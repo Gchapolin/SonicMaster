@@ -357,6 +357,7 @@ class PresetBrowserPage extends HookConsumerWidget {
                                                                 child: SonicSurface(
                                                                   key:
                                                                       editorKey,
+                                                                  radius: 24,
                                                                   padding:
                                                                       EdgeInsets
                                                                           .zero,

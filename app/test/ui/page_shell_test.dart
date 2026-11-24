@@ -448,4 +448,18 @@ void main() {
       expect(container.read(globalVolumeProvider), 76);
     });
   });
+
+  for (final size in const [Size(1280, 800), Size(956, 440)]) {
+    testWidgets('the editor and preset panels have 24-px corners at '
+        '${size.width.toInt()}x${size.height.toInt()}', (tester) async {
+      await pumpPage(tester, size: size);
+
+      final radii = tester
+          .widgetList<SonicSurface>(find.byType(SonicSurface))
+          .map((s) => s.radius)
+          .toSet();
+
+      expect(radii, {24.0});
+    });
+  }
 }

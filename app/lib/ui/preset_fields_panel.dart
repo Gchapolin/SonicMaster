@@ -71,6 +71,7 @@ class PresetFieldsPanel extends StatelessWidget {
     return SizedBox(
       width: metrics.presetPanelWidth,
       child: SonicSurface(
+        radius: 24,
         padding: const EdgeInsets.symmetric(horizontal: 12),
         child: Column(
           mainAxisSize: .min,
