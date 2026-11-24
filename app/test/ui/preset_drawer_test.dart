@@ -168,6 +168,28 @@ void main() {
       semantics.dispose();
     });
 
+    // A notched phone in landscape (native iOS) insets the page; the closed
+    // panel slides one width left, into that inset, so it must be clipped to
+    // its own slot or its right edge shows beside the notch.
+    testWidgets('closed, the panel is clipped to its slot', (tester) async {
+      await pumpPage(
+        tester,
+        size: const Size(852, 393),
+        selectedEffects: const {},
+      );
+
+      final clip = find.ancestor(
+        of: _inDrawer(find.byType(AnimatedSlide)),
+        matching: _inDrawer(find.byType(ClipRect)),
+      );
+
+      expect(clip, findsOneWidget);
+      expect(
+        tester.getSize(clip),
+        tester.getSize(_inDrawer(find.byType(AnimatedSlide))),
+      );
+    });
+
     testWidgets('the burger slides it in over the bar; the burger stays put', (
       tester,
     ) async {

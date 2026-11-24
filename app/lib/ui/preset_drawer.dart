@@ -195,28 +195,32 @@ class _DrawerPanel extends StatelessWidget {
         excluding: !isOpen,
         child: ExcludeSemantics(
           excluding: !isOpen,
-          child: AnimatedSlide(
-            offset: isOpen ? Offset.zero : const Offset(-1, 0),
-            duration: sonicMotionDuration,
-            curve: sonicMotionCurve,
-            child: DecoratedBox(
-              decoration: railDecoration,
-              child: Column(
-                crossAxisAlignment: .stretch,
-                children: [
-                  SizedBox(
-                    height: SonicMetrics.of(context).topBarHeight,
-                    child: const _DrawerHeader(),
-                  ),
-                  Expanded(
-                    child: _DrawerBody(
-                      scrollController: scrollController,
-                      currentRowKey: currentRowKey,
-                      onPick: onPick,
-                      onMasterVolume: onMasterVolume,
+          // Clipped to its slot: closed, the slide would otherwise paint into
+          // the left safe-area inset of a notched phone in landscape.
+          child: ClipRect(
+            child: AnimatedSlide(
+              offset: isOpen ? Offset.zero : const Offset(-1, 0),
+              duration: sonicMotionDuration,
+              curve: sonicMotionCurve,
+              child: DecoratedBox(
+                decoration: railDecoration,
+                child: Column(
+                  crossAxisAlignment: .stretch,
+                  children: [
+                    SizedBox(
+                      height: SonicMetrics.of(context).topBarHeight,
+                      child: const _DrawerHeader(),
                     ),
-                  ),
-                ],
+                    Expanded(
+                      child: _DrawerBody(
+                        scrollController: scrollController,
+                        currentRowKey: currentRowKey,
+                        onPick: onPick,
+                        onMasterVolume: onMasterVolume,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

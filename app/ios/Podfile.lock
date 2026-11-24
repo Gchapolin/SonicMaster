@@ -1,0 +1,22 @@
+PODS:
+  - clo_generator (0.0.1):
+    - Flutter
+  - Flutter (1.0.0)
+
+DEPENDENCIES:
+  - clo_generator (from `.symlinks/plugins/clo_generator/ios`)
+  - Flutter (from `Flutter`)
+
+EXTERNAL SOURCES:
+  clo_generator:
+    :path: ".symlinks/plugins/clo_generator/ios"
+  Flutter:
+    :path: Flutter
+
+SPEC CHECKSUMS:
+  clo_generator: 94b68f17386de3ece8bdc500b6fd545178840ce9
+  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
+
+PODFILE CHECKSUM: 77b89289175adeb8085d99b6a4c4aed6e2a27ca5
+
+COCOAPODS: 1.16.2
