@@ -106,8 +106,9 @@ class _ToggleKnobPainter extends CustomPainter {
       oldDelegate.color != color;
 }
 
-/// A flat input well (search, value readouts): a surfaceContainerHigh rounded
-/// rect. [accent] optionally paints a rounded bar down the left edge.
+/// A flat input well (search, value readouts, text fields): a
+/// surfaceContainerHigh rounded rect with a hairline outline. [accent]
+/// optionally paints a rounded bar down the left edge.
 class SonicRecess extends StatelessWidget {
   const SonicRecess({
     super.key,
@@ -145,6 +146,15 @@ class _RecessPainter extends CustomPainter {
     );
 
     canvas.drawRRect(rrect, Paint()..color = Palette.surfaceContainerHigh);
+    // A hairline outline: dialog plates share the well's fill, so without it
+    // a field inside a dialog would show no box. Painted only, no layout.
+    canvas.drawRRect(
+      rrect.deflate(0.5),
+      Paint()
+        ..color = Palette.outline
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1,
+    );
 
     // optional accent bar down the left edge (clipped -> rounded corners)
     if (accent != null) {

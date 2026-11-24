@@ -143,4 +143,13 @@ void main() {
     await tester.pumpWidget(host(amp(isSelected: false)));
     expect(find.byType(SvgPicture), findsOneWidget);
   });
+
+  Color? nameColor(WidgetTester tester) =>
+      tester.widget<Text>(find.text('AMP')).style?.color;
+
+  testWidgets('a selected card names its module in onSecondaryContainer '
+      '(7:1 on its fill)', (tester) async {
+    await tester.pumpWidget(host(amp(isSelected: true)));
+    expect(nameColor(tester), Palette.onSecondaryContainer);
+  });
 }

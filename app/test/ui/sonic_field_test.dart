@@ -1,5 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sonicmaster/theme/app_colors.dart';
+import 'package:sonicmaster/ui/sonic_controls.dart';
 import 'package:sonicmaster/ui/sonic_field.dart';
 
 void main() {
@@ -70,5 +72,29 @@ void main() {
     expect(editable.selectAllOnFocus, isFalse); // the android default
     expect(editable.autocorrect, isTrue);
     expect(editable.enableSuggestions, isTrue);
+  });
+
+  testWidgets('a recessed well draws an outline, so it shows on a dialog '
+      'plate of the same fill', (tester) async {
+    await tester.pumpWidget(
+      const Directionality(
+        textDirection: TextDirection.ltr,
+        child: Center(
+          child: SonicRecess(child: SizedBox(width: 120, height: 32)),
+        ),
+      ),
+    );
+
+    expect(
+      find
+          .descendant(
+            of: find.byType(SonicRecess),
+            matching: find.byType(CustomPaint),
+          )
+          .first,
+      paints
+        ..rrect(color: Palette.surfaceContainerHigh)
+        ..rrect(color: Palette.outline, style: PaintingStyle.stroke),
+    );
   });
 }

@@ -140,7 +140,11 @@ class ModuleCard extends StatelessWidget {
           SizedBox(height: metrics.chainIconGap),
           Text(
             name,
-            style: AppText.chainLabel.copyWith(color: Palette.chainIcon),
+            style: AppText.chainLabel.copyWith(
+              color: isSelected
+                  ? Palette.onSecondaryContainer
+                  : Palette.chainIcon,
+            ),
           ),
           Text(
             effect ?? '—',
