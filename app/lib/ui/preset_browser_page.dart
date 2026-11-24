@@ -231,17 +231,10 @@ class PresetBrowserPage extends HookConsumerWidget {
                       children: [
                         if (!metrics.isCompact) rail,
                         Expanded(
-                          // Recessed work area: a grey plate, darker than the rail but
-                          // filling the whole panel, with the top bar's shadow cast along
-                          // its top edge only (the rail, on the bar's own plane, gets none).
+                          // The work area: the flat app surface.
                           child: DecoratedBox(
-                            // TEMP swap: work area uses the rail's grey gradient.
                             decoration: const BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [Color(0xFF3A3A3A), Color(0xFF2A2A2A)],
-                              ),
+                              color: Palette.surface,
                             ),
                             child: LayoutBuilder(
                               builder: (context, constraints) {
@@ -382,26 +375,6 @@ class PresetBrowserPage extends HookConsumerWidget {
                                                       ),
                                                     ],
                                                   ],
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                          const Positioned(
-                                            top: 0,
-                                            left: 0,
-                                            right: 0,
-                                            height: 16,
-                                            child: IgnorePointer(
-                                              child: DecoratedBox(
-                                                decoration: BoxDecoration(
-                                                  gradient: LinearGradient(
-                                                    begin: Alignment.topCenter,
-                                                    end: Alignment.bottomCenter,
-                                                    colors: [
-                                                      Color(0x66000000),
-                                                      Color(0x00000000),
-                                                    ],
-                                                  ),
                                                 ),
                                               ),
                                             ),

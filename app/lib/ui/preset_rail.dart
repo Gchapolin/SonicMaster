@@ -46,12 +46,12 @@ class PresetSlotChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(4),
-        color: Palette.accent,
+        color: Palette.primary,
       ),
       child: Text(
         slot,
         style: AppText.railHeader.copyWith(
-          color: Color(0xFFFFFFFF),
+          color: Palette.onPrimary,
           height: 1.15,
         ),
       ),
@@ -60,7 +60,7 @@ class PresetSlotChip extends StatelessWidget {
 }
 
 /// One preset row in the rail's chip list: a [PresetSlotChip] plus the decoded
-/// name (if any). Selected → orange border + tint; disabled → dimmed, no tap.
+/// name (if any). Selected → secondaryContainer fill; disabled → dimmed, no tap.
 class PresetChip extends StatelessWidget {
   const PresetChip({
     super.key,
@@ -91,13 +91,17 @@ class PresetChip extends StatelessWidget {
             width: double.infinity,
             margin: const EdgeInsets.only(bottom: 3),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            // The 1-px border stays (in the fill color) so the row keeps
+            // its size.
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(8),
               color: isSelected
-                  ? const Color(0x33FF6B35)
-                  : Color(0xFFFFFFFF).withValues(alpha: 0.05),
+                  ? Palette.secondaryContainer
+                  : Palette.surfaceContainerLow,
               border: Border.all(
-                color: isSelected ? Palette.accent : Color(0x00000000),
+                color: isSelected
+                    ? Palette.secondaryContainer
+                    : Palette.surfaceContainerLow,
               ),
             ),
             child: Row(
@@ -123,7 +127,7 @@ class PresetChip extends StatelessWidget {
   }
 }
 
-/// A Factory/User tab button; active → orange text + orange bottom border.
+/// A Factory/User tab button; active → secondaryContainer fill.
 class RailTab extends StatelessWidget {
   const RailTab({
     super.key,
@@ -144,11 +148,13 @@ class RailTab extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 11),
           alignment: Alignment.center,
+          // The 2-px bottom edge stays (in the fill color) so the tab keeps
+          // its height.
           decoration: BoxDecoration(
-            color: isActive ? const Color(0xFF2A2A2A) : const Color(0xFF333333),
+            color: isActive ? Palette.secondaryContainer : Palette.surface,
             border: Border(
               bottom: BorderSide(
-                color: isActive ? Palette.accent : const Color(0xFF333333),
+                color: isActive ? Palette.secondaryContainer : Palette.surface,
                 width: 2,
               ),
             ),
@@ -157,7 +163,9 @@ class RailTab extends StatelessWidget {
             label.toUpperCase(),
             style: _railStyle(
               11,
-              color: isActive ? Palette.accent : Palette.railMuted,
+              color: isActive
+                  ? Palette.onSecondaryContainer
+                  : Palette.onSurfaceVariant,
               ls: 0.8,
             ),
           ),
@@ -167,7 +175,7 @@ class RailTab extends StatelessWidget {
   }
 }
 
-/// A full-width rail button; primary → accent gradient, else neutral.
+/// A full-width rail button; primary → primary fill, else tonal.
 class RailButton extends StatelessWidget {
   const RailButton({
     super.key,
@@ -194,18 +202,19 @@ class RailButton extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 9),
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(4),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: isPrimary
-                  ? const [Palette.accent, Color(0xFFE0550A)]
-                  : const [Color(0xFF4A4A4A), Color(0xFF3A3A3A)],
-            ),
+            borderRadius: BorderRadius.circular(20),
+            color: isPrimary ? Palette.primary : Palette.secondaryContainer,
           ),
           child: Text(
             label.toUpperCase(),
-            style: _railStyle(11, w: .w600, ls: 0.8),
+            style: _railStyle(
+              11,
+              w: .w600,
+              ls: 0.8,
+              color: isPrimary
+                  ? Palette.onPrimary
+                  : Palette.onSecondaryContainer,
+            ),
           ),
         ),
       ),
@@ -213,11 +222,10 @@ class RailButton extends StatelessWidget {
   }
 }
 
-/// The rail's panel: the work-area grey with a hairline right edge. The
-/// compact preset drawer's panel wears it too.
+/// The rail's panel: the app surface with a hairline right edge. The compact
+/// preset drawer's panel wears it too.
 const railDecoration = BoxDecoration(
-  // TEMP swap: rail uses the work-area grey (was the #3A→#2A gradient).
-  color: Color(0xFF272727),
+  color: Palette.surface,
   border: Border(right: BorderSide(color: Palette.railBorder)),
 );
 
@@ -496,7 +504,7 @@ class _PresetSearchField extends HookConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Row(
         children: [
-          const Icon(Icons.search, size: 18, color: Color(0xFF9A9488)),
+          const Icon(Icons.search, size: 18, color: Palette.onSurfaceVariant),
           const SizedBox(width: 8),
           Expanded(
             child: SonicField(

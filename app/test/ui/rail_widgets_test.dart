@@ -47,19 +47,21 @@ void main() {
     expect(taps, 0);
   });
 
-  testWidgets('a selected PresetChip paints the orange border', (tester) async {
+  testWidgets('a selected PresetChip is filled with secondaryContainer', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       host(const PresetChip(slot: 'P06', isSelected: true, isEnabled: true)),
     );
-    // The outer row container carries the selection border (the inner slot chip
-    // has a fill but no border).
+    // The outer row container carries the selection (the inner slot chip has
+    // a fill but no border).
     final deco = tester
         .widgetList<Container>(find.byType(Container))
         .map((c) => c.decoration)
         .whereType<BoxDecoration>()
         .firstWhere((d) => d.border != null);
 
-    expect(deco.border!.top.color, Palette.accent);
+    expect(deco.color, Palette.secondaryContainer);
   });
 
   testWidgets('RailTab and RailButton render and tap', (tester) async {

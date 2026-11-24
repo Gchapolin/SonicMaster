@@ -18,19 +18,15 @@ import 'sonic_controls.dart';
 import 'sonic_metrics.dart';
 import 'window_controls.dart';
 
-/// The title bar's "convex plastic" plate: a dark top-to-bottom gradient with a
-/// specular top edge and a black lip. The compact preset drawer's header wears
-/// the same plate, so the open drawer reads as part of the bar.
+/// The title bar's flat surface with a hairline divider along the bottom. The
+/// compact preset drawer's header wears the same plate, so the open drawer
+/// reads as part of the bar. The 1-px top edge stays (in the surface color) so
+/// the bar's content keeps its position.
 const topBarDecoration = BoxDecoration(
-  gradient: LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [Color(0xFF3E3E3E), Color(0xFF242424), Color(0xFF0A0A0A)],
-    stops: [0.0, 0.4, 1.0],
-  ),
+  color: Palette.surface,
   border: Border(
-    top: BorderSide(color: Color(0x18FFFFFF)), // specular edge
-    bottom: BorderSide(color: Color(0xFF000000)), // convex plastic lip
+    top: BorderSide(color: Palette.surface),
+    bottom: BorderSide(color: Palette.outlineVariant),
   ),
 );
 

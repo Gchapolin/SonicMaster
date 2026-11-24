@@ -10,6 +10,7 @@ import '../device/transport_factory.dart';
 import '../device/web_capabilities.dart';
 import '../state/device_providers.dart';
 import '../state/reconnect.dart';
+import '../theme/app_colors.dart';
 import '../theme/app_text.dart';
 import 'sonic_controls.dart';
 
@@ -314,7 +315,7 @@ class WebBleChooser extends StatelessWidget {
                 children: [
                   Icon(
                     Icons.bluetooth_searching,
-                    color: Color(0xFF9A9488),
+                    color: Palette.onSurfaceVariant,
                     size: 40,
                   ),
                   SizedBox(height: 16),
@@ -370,7 +371,7 @@ class _DeviceRow extends StatelessWidget {
               children: [
                 Icon(
                   row.isUsb ? Icons.usb : Icons.bluetooth,
-                  color: const Color(0xFF9A9488),
+                  color: Palette.onSurfaceVariant,
                   size: 22,
                 ),
                 const SizedBox(width: 14),

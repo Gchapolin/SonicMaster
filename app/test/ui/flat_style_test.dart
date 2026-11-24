@@ -10,6 +10,26 @@ import 'package:flutter_test/flutter_test.dart';
 const flatClasses = <String, List<String>>{
   'lib/ui/knob_control.dart': ['KnobControl', '_KnobPainter'],
   'lib/ui/led_button.dart': ['LedButton'],
+  'lib/ui/top_bar.dart': ['TopBar', '_LogoZone', '_PresetWell'],
+  'lib/ui/preset_rail.dart': [
+    'PresetSlotChip',
+    'PresetChip',
+    'RailTab',
+    'RailButton',
+    'PresetRail',
+    'RailControls',
+    '_MasterVolume',
+    '_BankTabs',
+    'PresetChipColumn',
+    'RailFooter',
+    '_PresetSearchField',
+  ],
+  'lib/ui/preset_browser_page.dart': [
+    'PresetBrowserPage',
+    '_ConsoleResizeHandle',
+  ],
+  'lib/ui/device_dialog.dart': ['_DeviceRow'],
+  'lib/main.dart': ['_AppFrame'],
   'lib/ui/chain_view.dart': [
     'ModuleCard',
     '_FsBadge',
