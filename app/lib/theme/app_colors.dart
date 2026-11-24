@@ -1,45 +1,67 @@
 import 'package:flutter/painting.dart';
 
-/// Central palette of the recurring, semantic colors used across the UI.
+/// The app's single source of color: a Material 3 dark scheme.
 ///
-/// This names the colors that carry meaning and/or repeat (accent, text tones,
-/// rail chrome, status LEDs) so they have a single source of truth. One-off
-/// gradient and shadow stops that are purely local to a single widget's
-/// "plastic" rendering are intentionally left inline where they are used —
-/// naming each one centrally would add noise, not clarity.
+/// The roles are the values `ColorScheme.fromSeed(seedColor: 0xFFEF8A24,
+/// brightness: dark)` produces (default tonalSpot variant), written as consts
+/// so `lib/` stays free of `package:flutter/material.dart`; palette_test.dart
+/// checks them against fromSeed. The look is flat: no widget keeps gradients,
+/// shadows or inline colors of its own (flat_style_test.dart).
+///
+/// The legacy names below map onto the roles, so call sites keep their
+/// meaning. Colors that carry a meaning of their own (error, connection
+/// status, scrim) keep their values.
 abstract final class Palette {
-  /// The app's base dark plastic surface (window background).
-  static const Color background = Color(0xFF14100C);
+  // Material 3 roles.
+  static const Color primary = Color(0xFFFFB77C);
+  static const Color onPrimary = Color(0xFF4D2600);
+  static const Color primaryContainer = Color(0xFF6C3A06);
+  static const Color onPrimaryContainer = Color(0xFFFFDCC3);
+  static const Color secondaryContainer = Color(0xFF5A422E);
+  static const Color onSecondaryContainer = Color(0xFFFFDCC3);
+  static const Color surface = Color(0xFF19120C);
+  static const Color surfaceContainerLowest = Color(0xFF140D08);
+  static const Color surfaceContainerLow = Color(0xFF221A14);
+  static const Color surfaceContainer = Color(0xFF261E18);
+  static const Color surfaceContainerHigh = Color(0xFF312822);
+  static const Color surfaceContainerHighest = Color(0xFF3C332C);
+  static const Color onSurface = Color(0xFFEFE0D6);
+  static const Color onSurfaceVariant = Color(0xFFD6C3B6);
+  static const Color outline = Color(0xFF9E8E82);
+  static const Color outlineVariant = Color(0xFF51443B);
+
+  /// The window background.
+  static const Color background = surface;
 
   /// Primary interactive accent (buttons, cursors, scan spinner, active menu).
-  static const Color accent = Color(0xFFEF8A24);
+  static const Color accent = primary;
 
   /// Warning / out-of-range red.
   static const Color error = Color(0xFFFF5449);
 
-  /// Primary text — warm cream on the dark plastic surfaces.
-  static const Color textPrimary = Color(0xFFF2EDE2);
+  /// Primary text.
+  static const Color textPrimary = onSurface;
 
   /// Secondary / body text.
-  static const Color textMuted = Color(0xFFB8B2A6);
+  static const Color textMuted = onSurfaceVariant;
 
   /// Dimmed text — hints, counters, sub-labels.
-  static const Color textDim = Color(0xFF8A8578);
+  static const Color textDim = outline;
 
-  /// Neutral description grey (module help text).
-  static const Color textDescription = Color(0xFFAAAAAA);
+  /// Module help text.
+  static const Color textDescription = onSurfaceVariant;
 
-  /// Light field text on darker inputs.
-  static const Color fieldText = Color(0xFFCFCABF);
+  /// Field text on inputs.
+  static const Color fieldText = onSurface;
 
   /// Preset-rail text tones and border.
-  static const Color railText = Color(0xFFE0E0E0);
-  static const Color railMuted = Color(0xFF999999);
-  static const Color railBorder = Color(0xFF444444);
+  static const Color railText = onSurface;
+  static const Color railMuted = onSurfaceVariant;
+  static const Color railBorder = outlineVariant;
 
   /// Chain-view icon and effect-label tones.
-  static const Color chainIcon = Color(0xFFCCCCCC);
-  static const Color chainEffect = Color(0xFF888888);
+  static const Color chainIcon = onSurfaceVariant;
+  static const Color chainEffect = onSurfaceVariant;
 
   /// Connection status LEDs.
   static const Color ledConnected = Color(0xFF44FF44);
