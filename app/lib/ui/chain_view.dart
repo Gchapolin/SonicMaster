@@ -118,6 +118,9 @@ class ModuleCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final metrics = SonicMetrics.of(context);
+    final fill = isSelected
+        ? Palette.secondaryContainer
+        : Palette.surfaceContainerLow;
 
     final display = Opacity(
       opacity: isOn ? 1 : 0.4,
@@ -157,29 +160,13 @@ class ModuleCard extends StatelessWidget {
           width: width ?? metrics.chainCardMaxWidth,
           // The bottom padding lives in the LED row below (its hit area).
           padding: metrics.chainCardPadding.copyWith(bottom: 0),
-          // Same "plate" as the panels: warm gradient, hairline edge, lifted by a
-          // drop shadow. Selected keeps the orange outline + glow; the rest drop
-          // the grey border.
+          // A flat Material card: selected is filled with secondaryContainer.
+          // The border keeps today's widths (2 selected, 1 otherwise) so the
+          // content does not move, drawn in the fill color so it shows no line.
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            gradient: const LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0xFF221D19), Color(0xFF14100D)],
-            ),
-            border: Border.all(
-              width: isSelected ? 2 : 1,
-              color: isSelected ? Palette.accent : const Color(0x99000000),
-            ),
-            boxShadow: [
-              const BoxShadow(
-                color: Color(0x8C000000),
-                offset: Offset(0, 4),
-                blurRadius: 12,
-              ),
-              if (isSelected)
-                const BoxShadow(color: Color(0x4DFF6B35), blurRadius: 10),
-            ],
+            borderRadius: BorderRadius.circular(12),
+            color: fill,
+            border: Border.all(width: isSelected ? 2 : 1, color: fill),
           ),
           child: Column(
             mainAxisSize: .min,
@@ -256,12 +243,12 @@ class _FsBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(4),
-        color: Palette.accent,
+        color: Palette.primaryContainer,
       ),
       child: Text(
         label,
         style: AppText.chainLabel.copyWith(
-          color: const Color(0xFFFFFFFF),
+          color: Palette.onPrimaryContainer,
           fontSize: 11,
           height: 1.1,
         ),
@@ -283,14 +270,13 @@ class ChainConnector extends StatelessWidget {
       child: Icon(
         Icons.chevron_right,
         size: metrics.chainConnectorIconSize,
-        color: const Color(0xFF666666),
+        color: Palette.outlineVariant,
       ),
     );
   }
 }
 
-/// Corner radius shared by the dashed border and its dark fill, so the fill's
-/// corners round to the dashes instead of poking past them.
+/// Corner radius of the dashed border around the amp block.
 const double _ampBlockRadius = 12;
 
 /// The dashed rounded border around the fixed amp block (web #fixed-chain-block).
@@ -302,11 +288,7 @@ class AmpBlockBorder extends StatelessWidget {
   @override
   Widget build(BuildContext context) => CustomPaint(
     painter: _DashPainter(),
-    child: Container(
-      decoration: BoxDecoration(
-        color: const Color(0x26000000),
-        borderRadius: BorderRadius.circular(_ampBlockRadius),
-      ),
+    child: Padding(
       padding: EdgeInsets.all(SonicMetrics.of(context).ampBlockPadding),
       child: child,
     ),
@@ -324,7 +306,7 @@ class _DashPainter extends CustomPainter {
     final paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1
-      ..color = const Color(0xFF555555);
+      ..color = Palette.outlineVariant;
 
     // Dashed stroke: walk each rounded-rect contour, laying a 5px dash every 9px.
     // A cursor advancing by a fixed step has no iterator form — keep imperative.
