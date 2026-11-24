@@ -12,8 +12,10 @@ import 'sonic_metrics.dart';
 /// [SonicToggle] reproduces the BOOST toggle and [SonicDropdown] the MODE
 /// dropdown. All boolean toggles and dropdowns in the app use these.
 
-/// The BOOST toggle: a recessed dark track with an orange fill that fades in
-/// when on and a knob that slides across. [onChanged] null → disabled/dimmed.
+/// A Material 3 style switch: a pill track filled in the primary color with
+/// an onPrimary thumb on the right when on; an outlined dark track with a
+/// smaller outline thumb on the left when off. Keeps the kit's footprint
+/// (track 104x46 scaled by [height]). [onChanged] null -> disabled/dimmed.
 class SonicToggle extends StatelessWidget {
   const SonicToggle({
     super.key,
@@ -28,15 +30,13 @@ class SonicToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Proportions taken verbatim from the kit (track 104×46, knob 36, margin 5,
-    // travel 58) and scaled by [height].
     final h = height;
-    final s = h / 46; // scale vs the kit's native 46px track
     final w = h * 104 / 46;
-    final m = h * 5 / 46;
-    final knob = h - 2 * m;
-    final travel = w - knob - 2 * m;
+    final thumb = value ? h * 0.75 : h * 0.5;
+    final inset = (h - thumb) / 2;
     final isEnabled = onChanged != null;
+    const duration = Duration(milliseconds: 160);
+    const curve = Cubic(0.4, 0.15, 0.3, 1);
 
     return MouseRegion(
       cursor: isEnabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
@@ -50,73 +50,33 @@ class SonicToggle extends StatelessWidget {
             height: h,
             child: Stack(
               children: [
-                // recessed track
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(h / 2),
-                    gradient: const LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [Color(0xFF14100C), Color(0xFF211C18)],
-                    ),
-                  ),
-                ),
-                // fake the inset top shadow (Flutter has no inset box-shadow)
                 Positioned.fill(
-                  child: IgnorePointer(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(h / 2),
-                        gradient: const LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [Color(0x8C000000), Color(0x00000000)],
-                          stops: [0.0, 0.35],
-                        ),
+                  child: AnimatedContainer(
+                    duration: duration,
+                    curve: curve,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(h / 2),
+                      color: value
+                          ? Palette.primary
+                          : Palette.surfaceContainerHighest,
+                      border: Border.all(
+                        color: value ? Palette.primary : Palette.outline,
+                        width: 2,
                       ),
                     ),
                   ),
                 ),
-                // orange fill — fades in when on
-                Positioned.fill(
-                  child: Padding(
-                    padding: EdgeInsets.all(m * 0.85),
-                    child: AnimatedOpacity(
-                      duration: const Duration(milliseconds: 160),
-                      opacity: value ? 1 : 0,
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(h / 2),
-                          // Vertical linear gradient (dark top -> light bottom),
-                          // mirroring the off-state track's black gradient
-                          // direction (#14100C -> #211C18) — reads cleaner than
-                          // the old radial hotspot.
-                          gradient: const LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Color(0xFF9C4A08),
-                              Color(0xFFD5720F),
-                              Color(0xFFF4972A),
-                            ],
-                            stops: [0.0, 0.5, 1.0],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                // sliding knob
                 AnimatedPositioned(
-                  duration: const Duration(milliseconds: 160),
-                  curve: const Cubic(0.4, 0.15, 0.3, 1),
-                  top: m,
-                  left: value ? m + travel : m,
-                  width: knob,
-                  height: knob,
+                  duration: duration,
+                  curve: curve,
+                  top: inset,
+                  left: value ? w - inset - thumb : inset,
+                  width: thumb,
+                  height: thumb,
                   child: CustomPaint(
-                    size: Size(knob, knob),
-                    painter: _ToggleKnobPainter(s),
+                    painter: _ToggleKnobPainter(
+                      value ? Palette.onPrimary : Palette.outline,
+                    ),
                   ),
                 ),
               ],
@@ -128,87 +88,22 @@ class SonicToggle extends StatelessWidget {
   }
 }
 
-/// Paints the toggle knob as a convex disc, reproducing the kit's knob shadows
-/// (which are inset — Flutter has no inset box-shadow, so they're drawn as
-/// blurred crescents clipped inside the circle):
-///   box-shadow: inset 0 1px 2px rgba(255,255,255,.14),  // top highlight rim
-///               inset 0 -3px 6px rgba(0,0,0,.8),          // bottom shadow
-///               0 3px 6px rgba(0,0,0,.55);                // drop shadow
-/// [s] scales the kit's native px values (46px track) to the rendered size.
+/// Paints the switch thumb: a flat disc in [color].
 class _ToggleKnobPainter extends CustomPainter {
-  const _ToggleKnobPainter(this.s);
+  const _ToggleKnobPainter(this.color);
 
-  final double s;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final r = size.width / 2;
-    final c = Offset(r, r);
-    final circle = Rect.fromCircle(center: c, radius: r);
-    // Oversized rect so the inset-shadow crescents' outer edge is far away.
-    final big = Rect.fromLTRB(
-      -size.width,
-      -size.height,
-      size.width * 2,
-      size.height * 2,
-    );
-
-    // outer drop shadow: 0 3px 6px rgba(0,0,0,.55)
-    canvas.drawCircle(
-      c + Offset(0, 3 * s),
-      r,
-      Paint()
-        ..color = const Color(0x8C000000)
-        ..maskFilter = MaskFilter.blur(.normal, 3 * s),
-    );
-
-    // body: linear gradient #322C27 (top) -> #17130F (bottom)
-    canvas.drawCircle(
-      c,
-      r,
-      Paint()
-        ..shader = const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFF322C27), Color(0xFF17130F)],
-        ).createShader(circle),
-    );
-
-    // inset shadows live inside the disc.
-    canvas.save();
-    canvas.clipPath(Path()..addOval(circle));
-
-    // inset bottom shadow (inset 0 -3px 6px rgba(0,0,0,.8)): dark crescent along
-    // the bottom inner edge — the shadow shows where the up-shifted disc isn't.
-    canvas.drawPath(
-      Path.combine(
-        PathOperation.difference,
-        Path()..addRect(big),
-        Path()..addOval(circle.translate(0, -3 * s)),
-      ),
-      Paint()
-        ..color = const Color(0xCC000000)
-        ..maskFilter = MaskFilter.blur(.normal, 3 * s),
-    );
-
-    // inset top highlight (inset 0 1px 2px rgba(255,255,255,.14)): bright rim
-    // along the top inner edge (down-shifted disc leaves the top crescent).
-    canvas.drawPath(
-      Path.combine(
-        PathOperation.difference,
-        Path()..addRect(big),
-        Path()..addOval(circle.translate(0, 1 * s)),
-      ),
-      Paint()
-        ..color = const Color(0x24FFFFFF)
-        ..maskFilter = MaskFilter.blur(.normal, 1 * s),
-    );
-
-    canvas.restore();
-  }
+  final Color color;
 
   @override
-  bool shouldRepaint(_ToggleKnobPainter oldDelegate) => oldDelegate.s != s;
+  void paint(Canvas canvas, Size size) => canvas.drawCircle(
+    size.center(Offset.zero),
+    size.shortestSide / 2,
+    Paint()..color = color,
+  );
+
+  @override
+  bool shouldRepaint(_ToggleKnobPainter oldDelegate) =>
+      oldDelegate.color != color;
 }
 
 /// A recessed (concave) black well, matching the inactive [SonicToggle] body:
