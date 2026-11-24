@@ -73,7 +73,7 @@ class TapTempoControl extends HookWidget {
       bpmCtl.text = bpm.value.toStringAsFixed(1);
     }
 
-    // Blink the TAP label orange on every beat at the current BPM (a metronome
+    // Light the TAP label on every beat at the current BPM (a metronome
     // indicator, like the reference web app).
     void restartBeat() {
       beatTimer.value?.cancel();
@@ -183,13 +183,13 @@ class TapTempoControl extends HookWidget {
       spacing: 4,
       runSpacing: 4,
       children: [
-        // TAP — push button; its label flashes orange on the beat.
+        // TAP — push button; its label lights up on the beat.
         PanelCell(
           control: SonicButton(
             label: 'TAP',
             height: 44,
             minWidth: 92,
-            isAccent: isBeatOn.value,
+            isLit: isBeatOn.value,
             onPressed: tap,
           ),
         ),

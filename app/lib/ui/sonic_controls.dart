@@ -174,8 +174,10 @@ class _RecessPainter extends CustomPainter {
 }
 
 /// A flat Material 3 pill button: filled in the primary color when [isAccent]
-/// (the primary/destructive action), tonal (secondaryContainer) otherwise. A
-/// press lays a 10% state layer of the label color over the fill.
+/// (the primary/destructive action), tonal (secondaryContainer) otherwise.
+/// [isLit] lights only the label (primary on the tonal fill), for a light
+/// indicator such as the tap-tempo beat. A press lays a 10% state layer of
+/// the label color over the fill.
 /// [onPressed] null → disabled/dimmed.
 class SonicButton extends HookWidget {
   const SonicButton({
@@ -185,6 +187,7 @@ class SonicButton extends HookWidget {
     this.height = 44,
     this.minWidth = 104,
     this.isAccent = false,
+    this.isLit = false,
   });
 
   final String label;
@@ -192,6 +195,7 @@ class SonicButton extends HookWidget {
   final double height;
   final double minWidth;
   final bool isAccent;
+  final bool isLit;
 
   @override
   Widget build(BuildContext context) {
@@ -200,6 +204,8 @@ class SonicButton extends HookWidget {
     final s = height / 54; // kit's native button height
     final labelColor = isAccent
         ? Palette.onPrimary
+        : isLit
+        ? Palette.primary
         : Palette.onSecondaryContainer;
     final base = isAccent ? Palette.primary : Palette.secondaryContainer;
     final fill = isDown.value
