@@ -85,7 +85,9 @@ class PresetChip extends StatelessWidget {
       cursor: isEnabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
       child: Opacity(
         opacity: isEnabled ? 1 : 0.4,
+        // Opaque: the whole row takes the tap, rounded corners included.
         child: GestureDetector(
+          behavior: .opaque,
           onTap: isEnabled ? onTap : null,
           child: Container(
             width: double.infinity,

@@ -84,4 +84,28 @@ void main() {
     expect(t, 1);
     expect(b, 1);
   });
+
+  testWidgets('a tap in the rounded corner still picks the preset', (
+    tester,
+  ) async {
+    var taps = 0;
+
+    await tester.pumpWidget(
+      host(
+        SizedBox(
+          width: 220,
+          child: PresetChip(
+            slot: 'P06',
+            isSelected: false,
+            isEnabled: true,
+            onTap: () => taps++,
+          ),
+        ),
+      ),
+    );
+    await tester.tapAt(
+      tester.getTopLeft(find.byType(PresetChip)) + const Offset(1, 1),
+    );
+    expect(taps, 1);
+  });
 }

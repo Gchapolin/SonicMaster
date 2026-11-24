@@ -152,4 +152,28 @@ void main() {
     await tester.pumpWidget(host(amp(isSelected: true)));
     expect(nameColor(tester), Palette.onSecondaryContainer);
   });
+
+  testWidgets('a tap in the rounded corner still selects the card', (
+    tester,
+  ) async {
+    var selects = 0;
+
+    await tester.pumpWidget(
+      host(
+        ModuleCard(
+          iconId: 3,
+          name: 'AMP',
+          isOn: true,
+          isSelected: false,
+          isEnabled: true,
+          onSelect: () => selects++,
+          onToggle: () {},
+        ),
+      ),
+    );
+    await tester.tapAt(
+      tester.getTopLeft(find.byType(ModuleCard)) + const Offset(1, 1),
+    );
+    expect(selects, 1);
+  });
 }

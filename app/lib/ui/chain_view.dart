@@ -145,7 +145,9 @@ class ModuleCard extends StatelessWidget {
 
     final card = MouseRegion(
       cursor: SystemMouseCursors.click,
+      // Opaque: the whole card box takes the tap, rounded corners included.
       child: GestureDetector(
+        behavior: .opaque,
         onTap: onSelect,
         child: Container(
           width: width ?? metrics.chainCardMaxWidth,
