@@ -9,6 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// Each redesign task adds its classes here.
 const flatClasses = <String, List<String>>{
   'lib/ui/knob_control.dart': ['KnobControl', '_KnobPainter'],
+  'lib/ui/led_button.dart': ['LedButton'],
 };
 
 final _forbidden = RegExp(r'Gradient\(|BoxShadow\(|MaskFilter|Color\(0x');

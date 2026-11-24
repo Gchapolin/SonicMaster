@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sonicmaster/theme/app_colors.dart';
 import 'package:sonicmaster/ui/led_button.dart';
 
 void main() {
@@ -63,5 +64,44 @@ void main() {
       );
       expect(tester.takeException(), isNull);
     }
+  });
+
+  Finder dot() => find
+      .descendant(
+        of: find.byType(LedButton),
+        matching: find.byType(CustomPaint),
+      )
+      .first;
+
+  testWidgets('on: a filled dot in the primary color', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: LedButton(isOn: true, label: '', onTap: () {}),
+          ),
+        ),
+      ),
+    );
+    expect(
+      dot(),
+      paints..circle(color: Palette.primary, style: PaintingStyle.fill),
+    );
+  });
+
+  testWidgets('off: an outline ring', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: LedButton(isOn: false, label: '', onTap: () {}),
+          ),
+        ),
+      ),
+    );
+    expect(
+      dot(),
+      paints..circle(color: Palette.outline, style: PaintingStyle.stroke),
+    );
   });
 }
