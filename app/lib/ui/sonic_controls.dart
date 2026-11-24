@@ -231,11 +231,10 @@ class _RecessPainter extends CustomPainter {
       oldDelegate.colors != colors;
 }
 
-/// The kit's PUSH button: a raised (convex) plate that presses into a recessed
-/// (concave) well with an orange label while held — the same relief vocabulary
-/// as the toggle knob (raised) and body (recessed). [accent] keeps the label
-/// orange at rest too, for a primary/destructive action. [onPressed] null →
-/// disabled/dimmed.
+/// A flat Material 3 pill button: filled in the primary color when [isAccent]
+/// (the primary/destructive action), tonal (secondaryContainer) otherwise. A
+/// press lays a 10% state layer of the label color over the fill.
+/// [onPressed] null → disabled/dimmed.
 class SonicButton extends HookWidget {
   const SonicButton({
     super.key,
@@ -257,9 +256,13 @@ class SonicButton extends HookWidget {
     final isDown = useState(false);
     final isEnabled = onPressed != null;
     final s = height / 54; // kit's native button height
-    final labelColor = (isDown.value || isAccent)
-        ? Palette.accent
-        : Palette.textPrimary;
+    final labelColor = isAccent
+        ? Palette.onPrimary
+        : Palette.onSecondaryContainer;
+    final base = isAccent ? Palette.primary : Palette.secondaryContainer;
+    final fill = isDown.value
+        ? Color.alphaBlend(labelColor.withValues(alpha: 0.1), base)
+        : base;
 
     return MouseRegion(
       cursor: isEnabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
@@ -275,28 +278,24 @@ class SonicButton extends HookWidget {
                 }
               : null,
           onTapCancel: isEnabled ? () => isDown.value = false : null,
-          child: Transform.translate(
-            // pressed relief drops the plate 1px into its well
-            offset: Offset(0, isDown.value ? s : 0),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minWidth: minWidth,
-                minHeight: height,
-                maxHeight: height,
-              ),
-              child: CustomPaint(
-                painter: _SonicButtonPainter(isDown: isDown.value, s: s),
-                child: Center(
-                  widthFactor: 1,
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 22 * s),
-                    child: Text(
-                      label,
-                      style: AppText.button.copyWith(
-                        fontSize: 19 * s,
-                        letterSpacing: 19 * s * 0.12,
-                        color: labelColor,
-                      ),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minWidth: minWidth,
+              minHeight: height,
+              maxHeight: height,
+            ),
+            child: CustomPaint(
+              painter: _SonicButtonPainter(color: fill),
+              child: Center(
+                widthFactor: 1,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 22 * s),
+                  child: Text(
+                    label,
+                    style: AppText.button.copyWith(
+                      fontSize: 19 * s,
+                      letterSpacing: 19 * s * 0.12,
+                      color: labelColor,
                     ),
                   ),
                 ),
@@ -310,86 +309,22 @@ class SonicButton extends HookWidget {
 }
 
 class _SonicButtonPainter extends CustomPainter {
-  const _SonicButtonPainter({required this.isDown, required this.s});
+  const _SonicButtonPainter({required this.color});
 
-  final bool isDown;
-  final double s;
+  final Color color;
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final rect = Offset.zero & size;
-    final rrect = RRect.fromRectAndRadius(rect, Radius.circular(13 * s));
-    final big = Rect.fromLTRB(
-      -size.width,
-      -size.height,
-      size.width * 2,
-      size.height * 2,
-    );
-    Path ring(Offset shift) => Path.combine(
-      PathOperation.difference,
-      Path()..addRect(big),
-      Path()..addRRect(rrect.shift(shift)),
-    );
-
-    // up state casts a drop shadow; pressed sits flush in its well.
-    if (!isDown) {
-      canvas.drawRRect(
-        rrect.shift(Offset(0, 3 * s)),
-        Paint()
-          ..color = const Color(0x80000000)
-          ..maskFilter = MaskFilter.blur(.normal, 3 * s),
-      );
-    }
-
-    canvas.drawRRect(
-      rrect,
-      Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: isDown
-              ? const [Color(0xFF14100C), Color(0xFF201B17)]
-              : const [Color(0xFF2A2521), Color(0xFF17130F)],
-        ).createShader(rect),
-    );
-
-    canvas.save();
-    canvas.clipRRect(rrect);
-    if (isDown) {
-      // recessed: inset 0 3px 7px .9 + inset 0 1px 2px .7
-      canvas.drawPath(
-        ring(Offset(0, 3 * s)),
-        Paint()
-          ..color = const Color(0xE6000000)
-          ..maskFilter = MaskFilter.blur(.normal, 3.5 * s),
-      );
-      canvas.drawPath(
-        ring(Offset(0, 1 * s)),
-        Paint()
-          ..color = const Color(0xB3000000)
-          ..maskFilter = MaskFilter.blur(.normal, 1 * s),
-      );
-    } else {
-      // convex: inset 0 -3px 6px .8 (bottom) + inset 0 1px 2px .12 (top rim)
-      canvas.drawPath(
-        ring(Offset(0, -3 * s)),
-        Paint()
-          ..color = const Color(0xCC000000)
-          ..maskFilter = MaskFilter.blur(.normal, 3 * s),
-      );
-      canvas.drawPath(
-        ring(Offset(0, 1 * s)),
-        Paint()
-          ..color = const Color(0x1FFFFFFF)
-          ..maskFilter = MaskFilter.blur(.normal, 1 * s),
-      );
-    }
-    canvas.restore();
-  }
+  void paint(Canvas canvas, Size size) => canvas.drawRRect(
+    RRect.fromRectAndRadius(
+      Offset.zero & size,
+      Radius.circular(size.height / 2),
+    ),
+    Paint()..color = color,
+  );
 
   @override
   bool shouldRepaint(_SonicButtonPainter oldDelegate) =>
-      oldDelegate.isDown != isDown || oldDelegate.s != s;
+      oldDelegate.color != color;
 }
 
 /// A non-knob control (toggle / dropdown / button / readout) laid out to match
@@ -517,9 +452,8 @@ Future<T?> showSonicDialog<T>({
 /// One entry in a [SonicDropdown] / [SonicSegmented].
 typedef SonicItem<T> = ({T value, String label});
 
-/// The EQ segmented control: a rounded bar of equal segments. The active
-/// segment reads pressed/sunken (dark gradient, orange text); inactive segments
-/// read raised (lighter gradient, light text). [onChanged] null → disabled.
+/// A Material 3 segmented button: an outlined pill of equal segments; the
+/// active one is filled (secondaryContainer). [onChanged] null → disabled.
 /// [width] fixes the bar width (segments split it equally); null → segments
 /// size to their labels.
 class SonicSegmented<T> extends StatelessWidget {
@@ -574,8 +508,9 @@ class SonicSegmented<T> extends StatelessWidget {
         ? [for (final s in segmentWidgets) Expanded(child: s)]
         : segmentWidgets;
 
+    final radius = BorderRadius.circular(height / 2);
     Widget bar = ClipRRect(
-      borderRadius: BorderRadius.circular(11),
+      borderRadius: radius,
       child: Row(mainAxisSize: isFilled ? .max : .min, children: children),
     );
 
@@ -585,15 +520,11 @@ class SonicSegmented<T> extends StatelessWidget {
       opacity: isEnabled ? 1 : 0.45,
       child: Container(
         height: height,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(11),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x80000000),
-              offset: Offset(0, 3),
-              blurRadius: 6,
-            ),
-          ],
+        // A foreground border: drawn over the segments, so it takes no space
+        // and the segments keep their size.
+        foregroundDecoration: BoxDecoration(
+          borderRadius: radius,
+          border: Border.all(color: Palette.outline),
         ),
         child: bar,
       ),
@@ -601,8 +532,8 @@ class SonicSegmented<T> extends StatelessWidget {
   }
 }
 
-/// One segment of a [SonicSegmented] bar. Active reads pressed/sunken (dark
-/// gradient, orange text); inactive reads raised (lighter gradient, light text).
+/// One segment of a [SonicSegmented] bar: filled with onSecondaryContainer
+/// text when active, plain with onSurface text otherwise.
 class _Segment extends StatelessWidget {
   const _Segment({
     required this.label,
@@ -634,17 +565,9 @@ class _Segment extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: padding),
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: isActive
-                  ? const [Color(0xFF14100C), Color(0xFF201B17)]
-                  : const [Color(0xFF2A2521), Color(0xFF17130F)],
-            ),
+            color: isActive ? Palette.secondaryContainer : null,
             border: hasDivider
-                ? const Border(
-                    left: BorderSide(color: Color(0x8C000000), width: 1),
-                  )
+                ? const Border(left: BorderSide(color: Palette.outline))
                 : null,
           ),
           // scaleDown shrinks a label that would otherwise overflow its (equal)
@@ -657,10 +580,10 @@ class _Segment extends StatelessWidget {
               maxLines: 1,
               style: AppText.segmentLabel.copyWith(
                 color: isDimmed
-                    ? Palette.textDim
+                    ? Palette.outline
                     : isActive
-                    ? Palette.accent
-                    : Palette.textPrimary,
+                    ? Palette.onSecondaryContainer
+                    : Palette.onSurface,
               ),
             ),
           ),
@@ -776,20 +699,11 @@ class _DropdownTrigger extends StatelessWidget {
       key: triggerKey,
       height: height,
       padding: const EdgeInsets.symmetric(horizontal: 14),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(11),
-        gradient: const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFF2C2621), Color(0xFF17130F)],
-        ),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x80000000),
-            offset: Offset(0, 3),
-            blurRadius: 6,
-          ),
-        ],
+      // An outlined field; the border is drawn over the content, so it takes
+      // no space.
+      foregroundDecoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Palette.outline),
       ),
       child: Row(
         mainAxisSize: width == null ? .min : .max,
@@ -800,7 +714,7 @@ class _DropdownTrigger extends StatelessWidget {
               label,
               maxLines: 1,
               overflow: .ellipsis,
-              style: AppText.controlLabel.copyWith(color: Palette.textPrimary),
+              style: AppText.controlLabel.copyWith(color: Palette.onSurface),
             ),
           ),
           const SizedBox(width: 8),
@@ -810,7 +724,7 @@ class _DropdownTrigger extends StatelessWidget {
             child: const Icon(
               Icons.keyboard_arrow_down,
               size: 22,
-              color: Palette.accent,
+              color: Palette.onSurfaceVariant,
             ),
           ),
         ],
@@ -825,7 +739,9 @@ class _DropdownTrigger extends StatelessWidget {
       cursor: isEnabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
       child: Opacity(
         opacity: isEnabled ? 1 : 0.45,
-        child: GestureDetector(onTap: onTap, child: trigger),
+        // Opaque: the trigger paints no fill now, so its empty space must
+        // still take the tap.
+        child: GestureDetector(behavior: .opaque, onTap: onTap, child: trigger),
       ),
     );
   }
@@ -1058,7 +974,7 @@ class _SonicMenuItem extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
-            color: isSelected ? const Color(0x24E07405) : Color(0x00000000),
+            color: isSelected ? Palette.secondaryContainer : null,
           ),
           child: Text(
             label,
@@ -1066,8 +982,8 @@ class _SonicMenuItem extends StatelessWidget {
             overflow: .ellipsis,
             style: AppText.menuItem.copyWith(
               color: isSelected
-                  ? const Color(0xFFF2AC52)
-                  : const Color(0xFFD8D3C8),
+                  ? Palette.onSecondaryContainer
+                  : Palette.onSurface,
             ),
           ),
         ),
@@ -1213,7 +1129,11 @@ class SonicIconButton extends StatelessWidget {
           opacity: isEnabled ? 1 : 0.4,
           child: Padding(
             padding: padding,
-            child: Icon(icon, size: size, color: color ?? Palette.textPrimary),
+            child: Icon(
+              icon,
+              size: size,
+              color: color ?? Palette.onSurfaceVariant,
+            ),
           ),
         ),
       ),

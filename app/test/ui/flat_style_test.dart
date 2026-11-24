@@ -10,7 +10,19 @@ import 'package:flutter_test/flutter_test.dart';
 const flatClasses = <String, List<String>>{
   'lib/ui/knob_control.dart': ['KnobControl', '_KnobPainter'],
   'lib/ui/led_button.dart': ['LedButton'],
-  'lib/ui/sonic_controls.dart': ['SonicToggle', '_ToggleKnobPainter'],
+  'lib/ui/sonic_controls.dart': [
+    'SonicToggle',
+    '_ToggleKnobPainter',
+    'SonicButton',
+    '_SonicButtonPainter',
+    'SonicSegmented',
+    '_Segment',
+    'SonicDropdown',
+    '_DropdownTrigger',
+    '_DropdownMenu',
+    '_SonicMenuItem',
+    'SonicIconButton',
+  ],
 };
 
 final _forbidden = RegExp(r'Gradient\(|BoxShadow\(|MaskFilter|Color\(0x');
