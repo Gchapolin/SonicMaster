@@ -22,6 +22,14 @@ const flatClasses = <String, List<String>>{
     '_DropdownMenu',
     '_SonicMenuItem',
     'SonicIconButton',
+    'SonicRecess',
+    '_RecessPainter',
+    'SonicSurface',
+    'PanelCell',
+    'SonicDialog',
+    'SonicSpinner',
+    '_SpinnerPainter',
+    'DragGrip',
   ],
 };
 

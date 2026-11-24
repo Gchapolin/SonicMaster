@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart' show clampDouble, kIsWeb;
+import 'package:flutter/foundation.dart' show clampDouble;
 import 'package:flutter/material.dart'; // Icons glyph font only
 import 'package:flutter_hooks/flutter_hooks.dart';
 
@@ -106,10 +106,8 @@ class _ToggleKnobPainter extends CustomPainter {
       oldDelegate.color != color;
 }
 
-/// A recessed (concave) black well, matching the inactive [SonicToggle] body:
-/// the same black vertical gradient plus inset shadows. Flutter has no inset
-/// box-shadow, so the shadows are painted as blurred regions clipped inside the
-/// rounded rect. [accent] optionally paints a rounded bar down the left edge.
+/// A flat input well (search, value readouts): a surfaceContainerHigh rounded
+/// rect. [accent] optionally paints a rounded bar down the left edge.
 class SonicRecess extends StatelessWidget {
   const SonicRecess({
     super.key,
@@ -117,7 +115,6 @@ class SonicRecess extends StatelessWidget {
     this.radius = 10,
     this.padding = EdgeInsets.zero,
     this.accent,
-    this.colors,
   });
 
   final Widget child;
@@ -125,110 +122,45 @@ class SonicRecess extends StatelessWidget {
   final EdgeInsetsGeometry padding;
   final Color? accent;
 
-  /// Optional top→bottom fill gradient; defaults to the black toggle-track
-  /// gradient. Pass a grey pair to sink a well into a lighter surround.
-  final List<Color>? colors;
-
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-      painter: _RecessPainter(radius: radius, accent: accent, colors: colors),
+      painter: _RecessPainter(radius: radius, accent: accent),
       child: Padding(padding: padding, child: child),
     );
   }
 }
 
 class _RecessPainter extends CustomPainter {
-  const _RecessPainter({required this.radius, this.accent, this.colors});
+  const _RecessPainter({required this.radius, this.accent});
 
   final double radius;
   final Color? accent;
-  final List<Color>? colors;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final rect = Offset.zero & size;
-    final rrect = RRect.fromRectAndRadius(rect, Radius.circular(radius));
-
-    // vertical fill — black toggle-track gradient by default, or a caller grey.
-    canvas.drawRRect(
-      rrect,
-      Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: colors ?? const [Color(0xFF14100C), Color(0xFF211C18)],
-        ).createShader(rect),
+    final rrect = RRect.fromRectAndRadius(
+      Offset.zero & size,
+      Radius.circular(radius),
     );
 
-    canvas.save();
-    canvas.clipRRect(rrect);
-
-    if (kIsWeb) {
-      // `MaskFilter.blur` (the desktop path below) does not render on web
-      // CanvasKit, so the blurred inset rings vanish and the well reads flat.
-      // Fake the recess with plain gradients, which always paint: a soft dark
-      // shadow falling from the top edge, and a thin light lip along the bottom.
-      final topShadow = math.min(size.height, 16.0);
-      final topRect = Rect.fromLTWH(0, 0, size.width, topShadow);
-
-      canvas.drawRect(
-        topRect,
-        Paint()
-          ..shader = const LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0x99000000), Color(0x00000000)],
-          ).createShader(topRect),
-      );
-      canvas.drawRect(
-        Rect.fromLTWH(0, size.height - 1.5, size.width, 1.5),
-        Paint()..color = const Color(0x12FFFFFF),
-      );
-    } else {
-      final big = Rect.fromLTRB(
-        -size.width,
-        -size.height,
-        size.width * 2,
-        size.height * 2,
-      );
-      Path insetRing(Offset shift) => Path.combine(
-        PathOperation.difference,
-        Path()..addRect(big),
-        Path()..addRRect(shift == Offset.zero ? rrect : rrect.shift(shift)),
-      );
-
-      // inset 0 3px 7px rgba(0,0,0,.9): the toggle body's top recess
-      canvas.drawPath(
-        insetRing(const Offset(0, 3)),
-        Paint()
-          ..color = const Color(0xE6000000)
-          ..maskFilter = const MaskFilter.blur(.normal, 3.5),
-      );
-      // inset 0 1px 2px rgba(0,0,0,.7)
-      canvas.drawPath(
-        insetRing(const Offset(0, 1)),
-        Paint()
-          ..color = const Color(0xB3000000)
-          ..maskFilter = const MaskFilter.blur(.normal, 1),
-      );
-    }
+    canvas.drawRRect(rrect, Paint()..color = Palette.surfaceContainerHigh);
 
     // optional accent bar down the left edge (clipped -> rounded corners)
     if (accent != null) {
+      canvas.save();
+      canvas.clipRRect(rrect);
       canvas.drawRect(
         Rect.fromLTWH(0, 0, 3, size.height),
         Paint()..color = accent!,
       );
+      canvas.restore();
     }
-    canvas.restore();
   }
 
   @override
   bool shouldRepaint(_RecessPainter oldDelegate) =>
-      oldDelegate.radius != radius ||
-      oldDelegate.accent != accent ||
-      oldDelegate.colors != colors;
+      oldDelegate.radius != radius || oldDelegate.accent != accent;
 }
 
 /// A flat Material 3 pill button: filled in the primary color when [isAccent]
@@ -410,7 +342,8 @@ class SonicDialog extends StatelessWidget {
           child: ConstrainedBox(
             constraints: BoxConstraints(maxWidth: maxWidth),
             child: SonicSurface(
-              radius: 16,
+              radius: 28,
+              color: Palette.surfaceContainerHigh,
               padding: EdgeInsets.zero,
               child: isScrollable
                   // Clamping on every platform: no bounce, and the scroll
@@ -992,20 +925,23 @@ class _SonicMenuItem extends StatelessWidget {
   }
 }
 
-/// The dropdown-menu backdrop — a dark gradient panel with a hairline border and
-/// drop shadow. Reused for popup surfaces (the dropdown menu and dialogs) so
-/// they all share the same "plate".
+/// The pop-up plate (dropdown menus, dialogs): a flat rounded [color] surface.
+/// Its 1-px border is drawn in the plate's own color: it keeps the plate's
+/// chrome (and the menu placement math, `_menuChrome`) unchanged while
+/// showing no line.
 class SonicSurface extends StatelessWidget {
   const SonicSurface({
     super.key,
     required this.child,
     this.padding = const EdgeInsets.all(6),
-    this.radius = 13,
+    this.radius = 12,
+    this.color = Palette.surfaceContainer,
   });
 
   final Widget child;
   final EdgeInsetsGeometry padding;
   final double radius;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -1014,19 +950,8 @@ class SonicSurface extends StatelessWidget {
       clipBehavior: .antiAlias,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(radius),
-        gradient: const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFF221D19), Color(0xFF14100D)],
-        ),
-        border: Border.all(color: const Color(0x99000000)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0xB3000000),
-            offset: Offset(0, 12),
-            blurRadius: 26,
-          ),
-        ],
+        color: color,
+        border: Border.all(color: color),
       ),
       child: child,
     );
@@ -1186,7 +1111,7 @@ class DragGrip extends StatelessWidget {
       margin: const EdgeInsets.all(1.5),
       decoration: BoxDecoration(
         shape: .circle,
-        color: isVisible ? const Color(0xFF6E675D) : const Color(0x00000000),
+        color: isVisible ? Palette.outlineVariant : null,
       ),
     );
 

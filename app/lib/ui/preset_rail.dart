@@ -493,7 +493,6 @@ class _PresetSearchField extends HookConsumerWidget {
 
     return SonicRecess(
       radius: 8,
-      colors: const [Color(0xFF1E1E1E), Color(0xFF2A2A2A)],
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Row(
         children: [
