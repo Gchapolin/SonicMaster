@@ -454,8 +454,8 @@ class ChainView extends ConsumerWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
             color: candidate.isNotEmpty
-                ? const Color(0x22FF6B35)
-                : Color(0x00000000),
+                ? Palette.primary.withValues(alpha: 0.13)
+                : null,
           ),
           child: child,
         ),

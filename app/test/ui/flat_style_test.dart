@@ -2,65 +2,17 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
-/// The flat Material look, checked in the source: a redesigned class carries
-/// no gradient, shadow, blur or inline color of its own. Every color comes
-/// from Palette (lib/theme/app_colors.dart).
-///
-/// Each redesign task adds its classes here.
-const flatClasses = <String, List<String>>{
-  'lib/ui/knob_control.dart': ['KnobControl', '_KnobPainter'],
-  'lib/ui/led_button.dart': ['LedButton'],
-  'lib/ui/top_bar.dart': ['TopBar', '_LogoZone', '_PresetWell'],
-  'lib/ui/preset_rail.dart': [
-    'PresetSlotChip',
-    'PresetChip',
-    'RailTab',
-    'RailButton',
-    'PresetRail',
-    'RailControls',
-    '_MasterVolume',
-    '_BankTabs',
-    'PresetChipColumn',
-    'RailFooter',
-    '_PresetSearchField',
-  ],
-  'lib/ui/preset_browser_page.dart': [
-    'PresetBrowserPage',
-    '_ConsoleResizeHandle',
-  ],
-  'lib/ui/device_dialog.dart': ['_DeviceRow'],
-  'lib/main.dart': ['_AppFrame'],
-  'lib/ui/chain_view.dart': [
-    'ModuleCard',
-    '_FsBadge',
-    'ChainConnector',
-    'AmpBlockBorder',
-    '_DashPainter',
-  ],
-  'lib/ui/sonic_controls.dart': [
-    'SonicToggle',
-    '_ToggleKnobPainter',
-    'SonicButton',
-    '_SonicButtonPainter',
-    'SonicSegmented',
-    '_Segment',
-    'SonicDropdown',
-    '_DropdownTrigger',
-    '_DropdownMenu',
-    '_SonicMenuItem',
-    'SonicIconButton',
-    'SonicRecess',
-    '_RecessPainter',
-    'SonicSurface',
-    'PanelCell',
-    'SonicDialog',
-    'SonicSpinner',
-    '_SpinnerPainter',
-    'DragGrip',
-  ],
-};
-
+/// The flat Material look, checked in the source: no class in the UI carries a
+/// gradient, shadow, blur or inline color of its own. Every color comes from
+/// Palette (lib/theme/app_colors.dart). Top-level data such as the per-module
+/// icon colors (moduleIconColor in chain_view.dart) are not classes and stay
+/// out of the check.
 final _forbidden = RegExp(r'Gradient\(|BoxShadow\(|MaskFilter|Color\(0x');
+
+final _classLine = RegExp(
+  r'^(?:abstract |final |base |sealed )*class (\w+)',
+  multiLine: true,
+);
 
 /// The source of [className] in [path]: from its `class` line to the next
 /// top-level `class` (or the end of the file).
@@ -73,21 +25,40 @@ String classSource(String path, String className) {
 
   if (start == null) throw StateError('class $className not found in $path');
 
-  final next = RegExp(
-    r'^(?:abstract |final |base |sealed )*class ',
-    multiLine: true,
-  ).allMatches(src, start.end).firstOrNull;
+  final next = _classLine.allMatches(src, start.end).firstOrNull;
 
   return src.substring(start.start, next?.start ?? src.length);
 }
 
+/// Every UI source file: lib/ui/*.dart and the app frame in lib/main.dart.
+List<String> uiFiles() => [
+  ...Directory('lib/ui')
+      .listSync()
+      .whereType<File>()
+      .map((f) => f.path)
+      .where((p) => p.endsWith('.dart')),
+  'lib/main.dart',
+]..sort();
+
 void main() {
-  for (final MapEntry(key: path, value: classes) in flatClasses.entries) {
-    for (final name in classes) {
+  test('the scan finds the UI classes', () {
+    final names = {
+      for (final path in uiFiles())
+        for (final m in _classLine.allMatches(File(path).readAsStringSync()))
+          m.group(1),
+    };
+
+    expect(names, containsAll(['KnobControl', 'ModuleCard', 'SonicToggle']));
+  });
+
+  for (final path in uiFiles()) {
+    for (final m in _classLine.allMatches(File(path).readAsStringSync())) {
+      final name = m.group(1)!;
+
       test('$name ($path) has no gradient, shadow, blur or inline color', () {
         final hits = _forbidden
             .allMatches(classSource(path, name))
-            .map((m) => m.group(0))
+            .map((h) => h.group(0))
             .toSet();
 
         expect(hits, isEmpty);
