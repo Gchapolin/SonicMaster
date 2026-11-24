@@ -542,7 +542,7 @@ class _Segment extends StatelessWidget {
   }
 }
 
-/// The MODE dropdown: a raised pill that opens a gradient menu of options with
+/// The MODE dropdown: an outlined field that opens a flat menu of options with
 /// a selected-highlight. [width] fixes the trigger + menu width; when null the
 /// trigger sizes to content and the menu matches its measured width.
 class SonicDropdown<T> extends HookWidget {

@@ -12,8 +12,8 @@ import 'sonic_field.dart';
 import 'sonic_metrics.dart';
 
 /// The Delay module's tap-tempo controls, laid out as [PanelCell]s so they line
-/// up with the effect's knobs in one row: a TAP push-button (its label flashes
-/// orange on the beat), a recessed BPM well, a note-division dropdown, and the
+/// up with the effect's knobs in one row: a TAP push-button (its label lights
+/// up on the beat), a BPM well, a note-division dropdown, and the
 /// computed-ms readout. Computes the delay Time and reports it via [onSend]
 /// (clamped to [timeMin], [timeMax]). [trailing] are the module's own knob
 /// cells, appended so everything flows in a single Wrap.

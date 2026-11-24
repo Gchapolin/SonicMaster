@@ -54,7 +54,7 @@ class SonicLogo extends StatelessWidget {
   }
 }
 
-/// The shared "convex plastic" title bar spanning the rail and the work area:
+/// The shared flat title bar spanning the rail and the work area:
 /// branding over the rail, then the loaded preset, the actions and the
 /// connection well over the work area. On desktop it also drags the window and
 /// carries the window controls.

@@ -64,7 +64,8 @@ double chainCardWidth(
 }
 
 /// One effect card in the signal chain: SVG icon, module name, effect name,
-/// and an amber [LedButton] at the bottom-center for on/off. Pure presentation.
+/// and a [LedButton] status dot at the bottom-center for on/off. Pure
+/// presentation.
 class ModuleCard extends StatelessWidget {
   const ModuleCard({
     super.key,
@@ -180,9 +181,9 @@ class ModuleCard extends StatelessWidget {
                   bottom: metrics.chainCardPadding.bottom,
                 ),
                 onTap: metrics.isCompact && isEnabled ? onToggle : null,
-                // A small centered 3:1 recessed button — NOT stretched across
-                // the card. (LedButton's inner face has an alignment, so it
-                // would otherwise expand to the full card width.)
+                // A small centered 3:1 slot for the status dot — NOT stretched
+                // across the card. (LedButton centers its dot, so it would
+                // otherwise expand to the full card width.)
                 child: Center(
                   child: SizedBox(
                     width: metrics.chainLedSize.width,

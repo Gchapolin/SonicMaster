@@ -248,7 +248,7 @@ class ModuleEditor extends ConsumerWidget {
         if (metrics.isEffectDescriptionVisible && def.descriptionEn.isNotEmpty)
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-            // Recessed black well, like the inactive toggle body.
+            // A flat outlined well (SonicRecess).
             child: SonicRecess(
               radius: 10,
               padding: const EdgeInsets.fromLTRB(14, 12, 16, 12),
