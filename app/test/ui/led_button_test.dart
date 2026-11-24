@@ -104,4 +104,20 @@ void main() {
       paints..circle(color: Palette.outline, style: PaintingStyle.stroke),
     );
   });
+
+  testWidgets('the dot is 60% of the button height, easy to see', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: LedButton(isOn: true, label: '', onTap: () {}),
+          ),
+        ),
+      ),
+    );
+    // Default height 26 -> diameter 15.6 -> radius 7.8.
+    expect(dot(), paints..circle(radius: 26 * 0.6 / 2, color: Palette.primary));
+  });
 }

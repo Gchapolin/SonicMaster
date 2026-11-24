@@ -24,7 +24,7 @@ class LedButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dotSize = height * 0.4;
+    final dotSize = height * 0.6;
 
     return MouseRegion(
       cursor: onTap == null
