@@ -16,22 +16,9 @@ import 'led_button.dart';
 import 'sonic_controls.dart';
 import 'sonic_metrics.dart';
 
-/// Per-module effect-icon tint, matching the pedal's own screen colours (kept a
-/// touch more saturated than phone photos of the display, which read lighter).
-/// Keyed by physical module id (0=NR … 8=RVB).
-const moduleIconColor = <int, Color>{
-  0: Color(0xFFFFFFFF), // NR  — white
-  1: Color(0xFF5B8DEF), // FX1 — light blue
-  2: Color(0xFFFF4136), // DRV — red
-  3: Color(0xFFFF851B), // AMP — orange
-  4: Color(0xFFFFD400), // IR  — yellow
-  5: Color(0xFFA6E22E), // EQ  — lime
-  6: Color(0xFF3FD6EC), // FX2 — light cyan
-  7: Color(
-    0xFF1570A8,
-  ), // DLY — dark cyan (darker, distinct from FX2's bright cyan)
-  8: Color(0xFFA45DE8), // RVB — violet
-};
+/// Per-module effect-icon tint, matching the pedal's own screen colours
+/// ([Palette.moduleIcon]). Keyed by physical module id (0=NR … 8=RVB).
+const moduleIconColor = Palette.moduleIcon;
 
 /// Width of one chain row: [cardCount] cards of [cardWidth], one connector
 /// between each adjacent pair (inside the amp block too, so 8 for the 9-card

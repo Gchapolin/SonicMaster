@@ -70,4 +70,22 @@ abstract final class Palette {
   /// Modal dim: the barrier behind pop-ups (showSonicDialog) and behind the
   /// compact preset drawer.
   static const Color scrim = Color(0x99000000);
+
+  /// Fully transparent (the native desktop window's background).
+  static const Color transparent = Color(0x00000000);
+
+  /// Per-module effect-icon tint, matching the pedal's own screen colours
+  /// (kept a touch more saturated than phone photos of the display, which
+  /// read lighter). Keyed by physical module id (0=NR … 8=RVB).
+  static const Map<int, Color> moduleIcon = {
+    0: Color(0xFFFFFFFF), // NR  — white
+    1: Color(0xFF5B8DEF), // FX1 — light blue
+    2: Color(0xFFFF4136), // DRV — red
+    3: Color(0xFFFF851B), // AMP — orange
+    4: Color(0xFFFFD400), // IR  — yellow
+    5: Color(0xFFA6E22E), // EQ  — lime
+    6: Color(0xFF3FD6EC), // FX2 — light cyan
+    7: Color(0xFF1570A8), // DLY — dark cyan (distinct from FX2's bright cyan)
+    8: Color(0xFFA45DE8), // RVB — violet
+  };
 }

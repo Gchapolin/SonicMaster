@@ -60,7 +60,7 @@ Future<void> main() async {
       size: Size(1280, 800),
       minimumSize: Size(960, 640),
       center: true,
-      backgroundColor: Color(0x00000000),
+      backgroundColor: Palette.transparent,
       titleBarStyle: .hidden, // no native title bar; drag by our top bar
       windowButtonVisibility:
           false, // hide macOS traffic lights; we draw our own
