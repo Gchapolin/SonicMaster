@@ -39,10 +39,6 @@ String withDecimalPoint(String text) =>
     ? text.replaceFirst(',', '.')
     : text;
 
-/// Knob rotation (deg) for [value]: 0 at [min], [sweep] at [max].
-double valueToRot(num value, num min, num max, {double sweep = 300}) =>
-    max == min ? 0 : ((value - min) / (max - min)) * sweep;
-
 /// Advances a linear-drag accumulator by [deltaPx] px (up = positive =
 /// increase); [travelPx] px spans the whole [min,max] range. Returns the new
 /// UNSNAPPED, clamped value — snap only when emitting via [snapToStep].

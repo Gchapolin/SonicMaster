@@ -23,13 +23,6 @@ void main() {
     expect(parseSliderValue('', 0, 100, 1), isNull);
   });
 
-  test('valueToRot maps min->0, max->sweep, mid->half', () {
-    expect(valueToRot(0, 0, 100), 0);
-    expect(valueToRot(100, 0, 100), 300);
-    expect(valueToRot(50, 0, 100), 150);
-    expect(valueToRot(5, 5, 5), 0); // degenerate range
-  });
-
   test('dragLinearStep: up increases, down decreases, clamps to range', () {
     // travelPx 200 over range 100 => 0.5 units/px. +40px up => +20.
     expect(dragLinearStep(50, 40, 0, 100, 200), closeTo(70, 1e-9));

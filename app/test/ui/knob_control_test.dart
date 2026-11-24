@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sonicmaster/state/preset_providers.dart';
+import 'package:sonicmaster/theme/app_colors.dart';
 import 'package:sonicmaster/ui/knob_control.dart';
 import 'package:sonicmaster/ui/preset_drawer.dart';
 import 'package:sonicmaster/ui/sonic_metrics.dart';
@@ -403,6 +404,58 @@ void main() {
 
       expect(find.byType(EditableText), findsNothing);
       await tester.pump(const Duration(milliseconds: 50));
+    });
+  });
+
+  group('flat arc', () {
+    test('unipolar range fills from the start', () {
+      expect(knobArc(50, 0, 100), (from: 0.0, to: 0.5));
+    });
+
+    test('bipolar range at zero draws no active arc', () {
+      expect(knobArc(0, -50, 50), (from: 0.5, to: 0.5));
+    });
+
+    test('bipolar range fills from zero towards a positive value', () {
+      expect(knobArc(25, -50, 50), (from: 0.5, to: 0.75));
+    });
+
+    test('bipolar range fills from zero towards the minimum', () {
+      expect(knobArc(-50, -50, 50), (from: 0.0, to: 0.5));
+    });
+
+    test('a range that ends at zero fills from the value to the end', () {
+      expect(knobArc(-12, -24, 0), (from: 0.5, to: 1.0));
+    });
+
+    test('a value outside the range is clamped to the track', () {
+      expect(knobArc(150, 0, 100), (from: 0.0, to: 1.0));
+      expect(knobArc(-10, 0, 100), (from: 0.0, to: 0.0));
+    });
+
+    test('a degenerate range (min == max) draws nothing', () {
+      expect(knobArc(5, 5, 5), (from: 0.0, to: 0.0));
+    });
+
+    testWidgets('paints the track and the active arc, nothing else', (
+      tester,
+    ) async {
+      await pump(tester, value: 70);
+
+      final dial = find
+          .descendant(
+            of: find.byType(KnobControl),
+            matching: find.byType(CustomPaint),
+          )
+          .first;
+
+      expect(
+        dial,
+        paints
+          ..arc(color: Palette.secondaryContainer, strokeCap: StrokeCap.round)
+          ..arc(color: Palette.primary, strokeCap: StrokeCap.round),
+      );
+      expect(dial, isNot(paints..circle()));
     });
   });
 }

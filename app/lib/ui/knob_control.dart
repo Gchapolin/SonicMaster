@@ -6,10 +6,11 @@ import 'package:flutter/widgets.dart'; // re-exports Matrix4 (vector_math)
 import 'package:flutter_hooks/flutter_hooks.dart';
 
 import '../model/slider_nudge.dart';
+import '../theme/app_colors.dart';
 import 'sonic_field.dart';
 import 'sonic_metrics.dart';
 
-/// A rotary knob reproducing the pedal's VOL/VALUE scalloped encoder. Vertical
+/// A rotary knob drawn as a flat Material arc dial. Vertical
 /// drag / scroll / double-tap-to-type edit the [value]; reports via [onChanged].
 ///
 /// Pointer kinds get their own recognizers, so a knob shares input with the
@@ -242,7 +243,11 @@ class KnobControl extends HookWidget {
             child: RawGestureDetector(
               gestures: touchGestures,
               child: CustomPaint(
-                painter: _KnobPainter(valueToRot(value, min, max)),
+                painter: () {
+                  final arc = knobArc(value, min, max);
+
+                  return _KnobPainter(from: arc.from, to: arc.to);
+                }(),
               ),
             ),
           ),
@@ -322,127 +327,65 @@ class KnobControl extends HookWidget {
   }
 }
 
-/// Paints the scalloped encoder: fixed body/face/highlight + 9 orbiting drops.
-/// Only [rot] (degrees) changes with the value. Reproduces the design model.
-class _KnobPainter extends CustomPainter {
-  _KnobPainter(this.rot);
-  final double rot;
+/// The active stretch of the knob's track, as fractions (0..1) of its 270°
+/// sweep. It runs from the zero point to [value]: from the start for ranges
+/// that begin at 0, from the middle for bipolar ones (EQ -50..50), from the
+/// end for ranges that end at 0 (Low Pitch -24..0). Values outside the range
+/// clamp to the track; a degenerate range draws nothing.
+({double from, double to}) knobArc(num value, num min, num max) {
+  if (max == min) return (from: 0.0, to: 0.0);
 
-  static const _count = 9;
-  // Teardrop in a 24x32 design-unit box, point at top, round bottom (r=12).
-  static final Path _drop = Path()
-    ..moveTo(12, 10)
-    ..cubicTo(17, 15, 24, 15, 24, 20)
-    ..arcToPoint(
-      const Offset(0, 20),
-      radius: const Radius.circular(12),
-      largeArc: true,
-    )
-    ..cubicTo(0, 15, 7, 15, 12, 10)
-    ..close();
+  double frac(num v) => ((v - min) / (max - min)).clamp(0.0, 1.0).toDouble();
+
+  final anchor = frac(0);
+  final f = frac(value);
+
+  return (from: math.min(anchor, f), to: math.max(anchor, f));
+}
+
+/// Paints the flat Material dial: a 270° track and, over it, the active arc
+/// between [from] and [to] (fractions of the track).
+class _KnobPainter extends CustomPainter {
+  _KnobPainter({required this.from, required this.to});
+
+  final double from;
+  final double to;
+
+  static const _start = 3 * math.pi / 4; // 135°, bottom-left
+  static const _sweep = 3 * math.pi / 2; // 270°
 
   @override
   void paint(Canvas canvas, Size size) {
     final s = size.width;
-    final c = Offset(s / 2, s / 2);
-    final k = s / 250.0; // design units → px
+    final rect = Rect.fromCircle(
+      center: Offset(s / 2, s / 2),
+      radius: 0.39 * s,
+    );
+    Paint stroke(Color color) => Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.11 * s
+      ..strokeCap = StrokeCap.round;
 
-    // body
-    final bodyR = 0.744 * s / 2;
-    // Drop shadow to lift the knob off the background — larger than the
-    // dropdown's so the knob reads as physically raised. Drawn behind the
-    // (opaque) body, so only the halo around the rim shows.
-    const shadow = BoxShadow(
-      color: Color(0x99000000),
-      offset: Offset(0, 7),
-      blurRadius: 16,
-    );
-    canvas.drawCircle(
-      c + shadow.offset,
-      bodyR,
-      Paint()
-        ..color = shadow.color
-        ..maskFilter = MaskFilter.blur(.normal, shadow.blurSigma),
-    );
-    final bodyRect = Rect.fromCircle(center: c, radius: bodyR);
-    canvas.drawCircle(
-      c,
-      bodyR,
-      Paint()
-        ..shader = const RadialGradient(
-          center: Alignment(0.0, -0.12),
-          radius: 0.72,
-          colors: [
-            Color(0xFF322C23),
-            Color(0xFF241F18),
-            Color(0xFF120F0B),
-            Color(0xFF0A0806),
-          ],
-          stops: [0, 0.52, 0.86, 1.0],
-        ).createShader(bodyRect),
+    canvas.drawArc(
+      rect,
+      _start,
+      _sweep,
+      false,
+      stroke(Palette.secondaryContainer),
     );
 
-    // face
-    final faceR = 0.592 * s / 2;
-    canvas.drawCircle(
-      c,
-      faceR,
-      Paint()
-        ..shader = const RadialGradient(
-          center: Alignment(-0.1, -0.24),
-          radius: 0.6,
-          colors: [Color(0xFF35302A), Color(0xFF2B261F), Color(0xFF211C16)],
-          stops: [0, 0.55, 1.0],
-        ).createShader(Rect.fromCircle(center: c, radius: faceR)),
-    );
-
-    // 9 orbiting drops — shape rotates outward, shading stays screen-vertical.
-    final r = 0.312 * s;
-
-    for (var i = 0; i < _count; i++) {
-      final angle = i * (360 / _count) + rot;
-      final rad = angle * math.pi / 180;
-      final m = Matrix4.translationValues(c.dx, c.dy, 0)
-        ..multiply(Matrix4.rotationZ(rad))
-        ..multiply(Matrix4.translationValues(0, -r, 0))
-        ..multiply(Matrix4.diagonal3Values(k, k, 1))
-        ..multiply(Matrix4.translationValues(-12, -16, 0));
-      final path = _drop.transform(m.storage);
-      final b = path.getBounds();
-      // subtle drop shadow
-      canvas.drawPath(
-        path.shift(Offset(0, 1 * k)),
-        Paint()..color = const Color(0x80000000),
-      );
-      canvas.drawPath(
-        path,
-        Paint()
-          ..shader = const LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF070503), Color(0xFF16110C), Color(0xFF4A4437)],
-            stops: [0, 0.45, 1.0],
-          ).createShader(b),
+    if (to > from) {
+      canvas.drawArc(
+        rect,
+        _start + from * _sweep,
+        (to - from) * _sweep,
+        false,
+        stroke(Palette.primary),
       );
     }
-
-    // fixed soft highlight
-    canvas.drawCircle(
-      c,
-      bodyR,
-      Paint()
-        ..shader = RadialGradient(
-          center: const Alignment(-0.28, -0.44),
-          radius: 0.5,
-          colors: [
-            Color(0xFFFFFFFF).withValues(alpha: 0.10),
-            Color(0xFFFFFFFF).withValues(alpha: 0.0),
-          ],
-          stops: const [0, 0.62],
-        ).createShader(bodyRect),
-    );
   }
 
   @override
-  bool shouldRepaint(_KnobPainter old) => old.rot != rot;
+  bool shouldRepaint(_KnobPainter old) => old.from != from || old.to != to;
 }
