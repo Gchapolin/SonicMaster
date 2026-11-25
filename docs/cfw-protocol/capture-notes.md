@@ -297,3 +297,15 @@ Saved a copy of the Generic MIDI map (34 rows) as Custom, then an empty map; map
   and then wrote `11 2A 17 00`, the header still read 1 while 0x17 read 0. Both are 0 again now. Which one the pedal
   obeys when they differ is not known.
 - The MIDI map setting itself stayed on Stock throughout; the gate ran without the app's heartbeat.
+
+## Capture session 6 (2026-11-25, CFW web app over USB in Chrome): battery `12 2D`, decoded from the app
+Reply `12 2D <ver 1> <flags> <mV u16 LE> <charge> <e> <f> <bars> <emptyMv u16 LE>`; sample on USB:
+`12 2d 01 01 28 0f 01 02 05 02 d4 0d` (3880 mV, charging, 2 bars, empty below 3540 mV).
+- flags: bit0 battery present (clear = unknown), bit2 empty, bit3 "Batt Only: not charging from USB".
+- charge: 0 on battery, 1 charging, 2 charged (on USB), other = charging.
+- bars 0..4 = byte 9; when byte 7 is 255 the app instead counts mV > 3540 / 3620 / 3760 / 3900.
+- Tooltip texts: "Charging (USB power)", "Charged (on USB power)", "Battery empty (below X V): charge the pedal",
+  "Battery low: 1 of 4 · X V", "Battery: N of 4 · X V".
+Bytes 7 and 8 (02 05 here) not decoded beyond the 255 check.
+Other CFW app features not in SonicMaster: Community presets (catalog with Try / Save to), TONE3000 download per IR/Clone slot.
+CFW 1.0.3 is out (Pocket Control / Stock-map CC fixes, .prst import messages, tuner close fix); the pedal runs 1.0.2.
