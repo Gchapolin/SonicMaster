@@ -182,3 +182,5 @@ Most likely 100 was an unsaved knob edit in the pedal's memory (e.g. from testin
   the assumed "module out of scenes" frame works.
 - `12 32` current scene = 0 (BASE). Nothing saved.
 - 2026-11-25: the user confirmed on the pedal's G-EQ screen that model 2 is Cut 24 (so 3 = Tilt EQ).
+- 2026-11-25 live gate (integration_test/cfw_scene_save_live_test.dart, User preset 50 "MegaVerb"): the stock Save (`040A`)
+  keeps scene records — NR sc1 {0: 23} survived save + reload; clearing the record and saving again removed it.
