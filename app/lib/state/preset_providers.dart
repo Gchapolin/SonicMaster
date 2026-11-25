@@ -433,6 +433,14 @@ Future<void> setParameter(
 ) async {
   if (ref.read(presetLoadingProvider)) return; // don't edit mid-load
 
+  // CFW: with SC1 / SC2 live, a module that takes part in scenes edits the
+  // scene, not its base value (the clone amp, editor id 9, is the AMP slot).
+  final physId = moduleId == 9 ? 3 : moduleId;
+
+  if (isSceneEdit(ref, physId)) {
+    return setSceneParam(ref, physId, algId, value);
+  }
+
   final data = ref.read(dataAssetsProvider).valueOrNull;
 
   if (data == null) return;

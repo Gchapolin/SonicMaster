@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../model/effect_parameter.dart';
 import '../model/footswitch_assignment.dart';
 import '../model/footswitch_state.dart';
+import '../state/cfw_providers.dart';
 import '../state/data_providers.dart';
 import '../state/device_providers.dart';
 import '../state/names_providers.dart';
@@ -11,6 +12,7 @@ import '../state/preset_providers.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text.dart';
 import 'knob_control.dart';
+import 'scene_controls.dart';
 import 'sonic_controls.dart';
 import 'sonic_metrics.dart';
 import 'tap_tempo_control.dart';
@@ -65,7 +67,20 @@ class ModuleEditor extends ConsumerWidget {
       );
     }
 
-    final values = params[moduleId] ?? const <int, num>{};
+    // CFW: in SC1 / SC2, a module that takes part in scenes shows the scene's
+    // values over its base ones (values for knobs this effect lacks are never
+    // looked up).
+    final sceneRecord = ref.watch(sceneRecordsProvider)[physId];
+    final scene = ref.watch(currentSceneProvider);
+    final isSceneLive =
+        ref.watch(cfwInfoProvider) != null && scene != 0 && sceneRecord != null;
+    final values = <int, num>{
+      ...?params[moduleId],
+      if (isSceneLive)
+        ...sceneRecord
+            .values(scene)
+            .map((k, v) => MapEntry(k, v == v.roundToDouble() ? v.round() : v)),
+    };
     final effectIds = data.capabilities.availableEffectIds(
       data.commands,
       model,
@@ -243,6 +258,7 @@ class ModuleEditor extends ConsumerWidget {
             );
           },
         ),
+        SceneControls(moduleId: physId),
         // Effect description (from the web app data), set off with an accent
         // rule down the left edge.
         if (metrics.isEffectDescriptionVisible && def.descriptionEn.isNotEmpty)
