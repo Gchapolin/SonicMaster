@@ -136,4 +136,16 @@ void main() {
     expect(decodeCurrentSceneFrame(reply), 2);
     expect(decodeCurrentSceneFrame('junk'), isNull);
   });
+
+  test('non-finite values in a record are dropped', () {
+    final reply = buildSysexWriteFrame([
+      0x12, 0x33, 0x53, 0x43, 0x01, 0x01, 0x18, 0x00, 0x00, 0x00, //
+      0x00, 0x01, 0x03, 0x00, 0x1b, 0x00, 0x00, 0x00, //
+      0x00, 0x00, 0x80, 0x7f, // +Infinity
+      ...f33,
+    ]);
+    final records = decodeSceneRecordsFrame(reply);
+
+    expect(records.single.sc1, {1: 33.0});
+  });
 }

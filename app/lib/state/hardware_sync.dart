@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../model/preset_ref.dart';
+import '../protocol/cfw_scene_codec.dart';
 import '../protocol/inbound_message.dart';
+import 'cfw_providers.dart';
 import 'data_providers.dart';
 import 'names_providers.dart';
 import 'preset_providers.dart';
@@ -153,10 +155,23 @@ void handleHardwareSync(WidgetRef ref, InboundMessage m) {
     return;
   }
 
+  // CFW: the pedal pushes its live scene (`12 32`) when a footswitch or MIDI
+  // changes it; follow it so edits go to the scene that is playing.
+  if (m is DataFrame && ref.read(cfwInfoProvider) != null) {
+    final scene = decodeCurrentSceneFrame(m.hex);
+
+    if (scene != null) {
+      ref.read(currentSceneProvider.notifier).state = scene;
+
+      return;
+    }
+  }
+
   switch (classifyHardwareSync(m)) {
     case null:
       return;
     case PresetSelected(:final preset):
+      clearSceneState(ref); // the old preset's scenes
       ref.read(currentPresetProvider.notifier).state = preset;
       // Follow the pedal's bank so the rail lists (and highlights) the new
       // preset instead of filtering it out on the other tab.

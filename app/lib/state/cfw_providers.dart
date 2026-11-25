@@ -65,6 +65,9 @@ void clearCfwState(WidgetRef ref) {
 Future<void> refreshNamesThenCfw(WidgetRef ref) async {
   await refreshNames(ref);
   await refreshCfwInfo(ref);
+  // The preset loaded at connect arrives as a pushed dump, before the CFW is
+  // known: read its scenes now.
+  await refreshScenes(ref);
 }
 
 /// Sets one CFW setting: shows it at once, then sends it and waits for the
@@ -167,7 +170,7 @@ void clearSceneState(WidgetRef ref) {
 }
 
 /// Reads the loaded preset's scene records and the live scene. A no-op on
-/// stock firmware; best-effort (a missed read leaves the scenes empty).
+/// stock firmware; best-effort (a missed read keeps the current state).
 Future<void> refreshScenes(WidgetRef ref) async {
   if (ref.read(cfwInfoProvider) == null) return;
 
@@ -180,12 +183,19 @@ Future<void> refreshScenes(WidgetRef ref) async {
     final sceneHex = await service.requestCurrentScene();
 
     if (!records.mounted) return;
-    records.state = {
-      if (recordsHex != null)
+
+    // A missed read keeps what we have: the scenes are cleared where the
+    // preset changes, so nothing stale survives, and a timeout must not wipe
+    // records or drop the live scene mid-edit.
+    if (recordsHex != null) {
+      records.state = {
         for (final r in decodeSceneRecordsFrame(recordsHex)) r.module: r,
-    };
-    scene.state =
-        (sceneHex == null ? null : decodeCurrentSceneFrame(sceneHex)) ?? 0;
+      };
+    }
+
+    final live = sceneHex == null ? null : decodeCurrentSceneFrame(sceneHex);
+
+    if (live != null) scene.state = live;
   } catch (_) {
     // Best-effort.
   }
@@ -227,6 +237,12 @@ Future<void> setModuleInScenes(
   required bool isIn,
 }) async {
   if (isIn) {
+    // With no local record, ask the pedal first: a bare record would wipe
+    // overrides it already holds (a missed read at load, for example).
+    if (!ref.read(sceneRecordsProvider).containsKey(module)) {
+      await refreshScenes(ref);
+    }
+
     final r =
         ref.read(sceneRecordsProvider)[module] ?? SceneRecord(module: module);
 

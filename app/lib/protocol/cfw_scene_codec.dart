@@ -91,10 +91,21 @@ List<SceneRecord> decodeSceneRecordsFrame(String frameHex) {
       Uint8List.fromList(p.sublist(at + 8, at + 8 + 4 * n)),
     );
     var f = 0;
-    Map<int, double> take(int mask) => {
-      for (var k = 0; k < 8; k++)
-        if (mask & (1 << k) != 0) k: floats.getFloat32(4 * f++, Endian.little),
-    };
+    // Non-finite values (a wrong layout guess, garbage) are dropped: they
+    // must never reach a knob.
+    Map<int, double> take(int mask) {
+      final out = <int, double>{};
+
+      for (var k = 0; k < 8; k++) {
+        if (mask & (1 << k) == 0) continue;
+
+        final v = floats.getFloat32(4 * f++, Endian.little);
+
+        if (v.isFinite) out[k] = v;
+      }
+
+      return out;
+    }
 
     records.add(
       SceneRecord(

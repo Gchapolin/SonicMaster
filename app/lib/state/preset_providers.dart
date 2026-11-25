@@ -93,6 +93,7 @@ Future<void> loadPreset(WidgetRef ref, PresetRef preset) async {
     if (ok) {
       ref.read(currentPresetProvider.notifier).state = preset;
       ref.read(presetModifiedProvider.notifier).state = false;
+      clearSceneState(ref); // the old preset's scenes
       status('loaded ${preset.label}');
       await refreshDecodedState(ref); // fetch + decode the preset's content
     } else {
@@ -118,6 +119,7 @@ Future<void> refreshDecodedState(WidgetRef ref) async {
     ref.read(currentPresetStateProvider.notifier).state = null;
     ref.read(currentSelectedEffectsProvider.notifier).state = const {};
     ref.read(currentParametersProvider.notifier).state = const {};
+    clearSceneState(ref);
   }
 
   try {
@@ -140,8 +142,10 @@ Future<void> refreshDecodedState(WidgetRef ref) async {
     }
 
     applyDecodedDump(ref, data, dumpHex);
-    // CFW: the preset's scenes (a no-op on stock firmware).
-    clearSceneState(ref);
+    // CFW: re-read the preset's scenes (a no-op on stock firmware). No clear
+    // here: this also runs after on-pedal edits, and clearing first would
+    // route a knob edit to BASE while the read is in flight. The scenes are
+    // cleared where the preset changes.
     await refreshScenes(ref);
   } catch (_) {
     clear();
