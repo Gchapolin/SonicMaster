@@ -13,6 +13,7 @@ import '../state/device_providers.dart';
 import '../state/preset_providers.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text.dart';
+import 'eq_curve_view.dart';
 import 'knob_control.dart';
 import 'sonic_controls.dart';
 import 'sonic_metrics.dart';
@@ -393,6 +394,10 @@ class _GlobalEqSection extends ConsumerWidget {
                 );
               },
             ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: EqCurve(model: model, slots: eq.slots, isOn: eq.isOn),
           ),
           Wrap(
             children: [

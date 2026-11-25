@@ -2,6 +2,8 @@
 /// assets/data/cfw_eq_models.json (data shipped by the Sonicake CFW app, MIT).
 library;
 
+import 'dart:math' as math;
+
 /// One knob of a Global EQ model.
 class CfwEqParam {
   const CfwEqParam({
@@ -12,6 +14,11 @@ class CfwEqParam {
     required this.step,
     required this.defaultValue,
     required this.texts,
+    this.kind = '',
+    this.mapBase,
+    this.mapK = 0,
+    this.mapKNeg = 0,
+    this.mapOff,
   });
 
   final String name;
@@ -25,6 +32,23 @@ class CfwEqParam {
 
   /// Display text per value ("26Hz", "+2.0dB"), keyed like the data file.
   final Map<String, String> texts;
+
+  /// What the knob is ("db", "lcut", "hcut", "mid", "q", …).
+  final String kind;
+
+  /// The data's value mapping for frequency / Q knobs: the knob value v maps
+  /// to `mapBase * 2^(k * v)` ([mapKNeg] for v < 0); [mapOff] is the value
+  /// that switches the knob's filter off.
+  final double? mapBase;
+  final double mapK;
+  final double mapKNeg;
+  final num? mapOff;
+
+  /// The mapped quantity (Hz, Q) for knob [value]; the value itself when the
+  /// knob has no mapping.
+  double mapped(num value) => mapBase == null
+      ? value.toDouble()
+      : mapBase! * math.pow(2, (value < 0 ? mapKNeg : mapK) * value);
 
   /// The raw slot value for [value]: knobs with a fractional step (dB, 0.5)
   /// travel in steps; the rest travel as they are.
@@ -45,12 +69,16 @@ class CfwEqParam {
 class CfwEqModel {
   const CfwEqModel({
     required this.wireIndex,
+    required this.key,
     required this.name,
     required this.params,
   });
 
   /// The model byte of the Global EQ block.
   final int wireIndex;
+
+  /// The data's model key: studio, para3, cut24, tilt.
+  final String key;
   final String name;
   final List<CfwEqParam> params;
 
@@ -78,6 +106,7 @@ List<CfwEqModel> parseCfwEqModels(Map<String, dynamic> json) {
       if (_wireIndex[m['key']] case final int wire)
         CfwEqModel(
           wireIndex: wire,
+          key: m['key'] as String,
           name: m['name'] as String,
           params: [
             for (final p in (m['params'] as List).cast<Map<String, dynamic>>())
@@ -88,6 +117,12 @@ List<CfwEqModel> parseCfwEqModels(Map<String, dynamic> json) {
                 max: p['max'] as num,
                 step: p['step'] as num,
                 defaultValue: p['defaultValue'] as num,
+                kind: (p['kind'] as String?) ?? '',
+                mapBase: ((p['map'] as Map?)?['base'] as num?)?.toDouble(),
+                mapK: (((p['map'] as Map?)?['k'] as num?) ?? 0).toDouble(),
+                mapKNeg: (((p['map'] as Map?)?['k_neg'] as num?) ?? 0)
+                    .toDouble(),
+                mapOff: (p['map'] as Map?)?['off'] as num?,
                 texts: {
                   for (final e in ((p['texts'] as Map?) ?? const {}).entries)
                     e.key as String: e.value as String,

@@ -17,6 +17,7 @@ import 'package:sonicmaster/state/cfw_providers.dart';
 import 'package:sonicmaster/state/data_providers.dart';
 import 'package:sonicmaster/state/device_providers.dart';
 import 'package:sonicmaster/state/preset_providers.dart';
+import 'package:sonicmaster/ui/eq_curve_view.dart';
 import 'package:sonicmaster/ui/global_settings_dialog.dart';
 import 'package:sonicmaster/ui/sonic_controls.dart';
 
@@ -339,6 +340,7 @@ void main() {
       expect(inDialog(find.text('BASS')), findsOneWidget);
       expect(inDialog(find.text('+2.0dB')), findsOneWidget);
       expect(inDialog(find.text('26Hz')), findsOneWidget);
+      expect(inDialog(find.byType(EqCurve)), findsOneWidget);
     });
 
     testWidgets('is absent on stock firmware', (tester) async {
