@@ -27,4 +27,7 @@ abstract final class CfwSettingWriter {
 
   /// Reads the status block with the DSP load (`12 2B`).
   static String readDsp() => buildSysexWriteFrame([0x12, 0x2B]);
+
+  /// Reads the battery (`12 2D`).
+  static String readBattery() => buildSysexWriteFrame([0x12, 0x2D]);
 }

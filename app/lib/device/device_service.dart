@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import '../model/battery_status.dart';
 import '../protocol/cfw_exp_codec.dart';
 import '../protocol/cfw_geq_codec.dart';
 import '../protocol/cfw_midi_map_codec.dart';
@@ -294,6 +295,24 @@ class DeviceService {
       timeout: timeout,
     ),
   );
+
+  /// Requests the CFW battery reading (`12 2D`); null on timeout or when the
+  /// pedal reports no battery.
+  Future<BatteryStatus?> requestBattery({
+    Duration timeout = const Duration(seconds: 1),
+  }) async {
+    final hex = await _serialized(
+      () => awaitFirst<String>(
+        inbound,
+        () => sendFrame(CfwSettingWriter.readBattery()),
+        (m) => m is DataFrame && _isReplyTo(m.hex, 0x2D) ? m.hex : null,
+        timeout: timeout,
+      ),
+    );
+    final b = hex == null ? null : collapseFrame(hex);
+
+    return b == null || b.length < 4 ? null : decodeBatteryReply(b.sublist(4));
+  }
 
   /// Requests the CFW Global EQ block (`12 3A`); null on timeout.
   Future<String?> requestGlobalEq({

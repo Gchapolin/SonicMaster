@@ -78,6 +78,7 @@ void main() {
     expect(after.theme, 5);
     expect(after.brightness, 40);
     expect(await service.requestDspLoad(), inInclusiveRange(0, 100));
+    expect((await service.requestBattery())!.bars, 3);
   });
 
   test('keeps the Global EQ and the scenes it is sent', () async {

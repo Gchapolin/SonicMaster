@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sonicmaster/device/device_service.dart';
 import 'package:sonicmaster/device/transport.dart';
+import 'package:sonicmaster/model/battery_status.dart';
 import 'package:sonicmaster/protocol/cfw_setting_writer.dart';
 import 'package:sonicmaster/protocol/cfw_settings_decoder.dart';
 import 'package:sonicmaster/protocol/cfw_slot_names_codec.dart';
@@ -77,11 +78,12 @@ final _dspReply = buildSysexWriteFrame([
 
 /// Records the order of the reads the connect sequence and the heartbeat make.
 class _SpyService extends DeviceService {
-  _SpyService({this.dsp, this.dspThrows = false})
+  _SpyService({this.dsp, this.dspThrows = false, this.battery})
     : super(_ReplyingTransport(const {}));
 
   final int? dsp;
   final bool dspThrows;
+  final BatteryStatus? battery;
   final calls = <String>[];
   Completer<void>? dspGate;
 
@@ -118,6 +120,15 @@ class _SpyService extends DeviceService {
     if (dspThrows) throw StateError('send failed');
 
     return dsp;
+  }
+
+  @override
+  Future<BatteryStatus?> requestBattery({
+    Duration timeout = const Duration(seconds: 1),
+  }) async {
+    calls.add('battery');
+
+    return battery;
   }
 }
 
@@ -403,6 +414,28 @@ void main() {
       await tester.runAsync(() => pollCfwStatus(ref));
 
       expect(c.read(dspLoadProvider), isNull);
+    });
+
+    testWidgets('reads the battery after the DSP load', (tester) async {
+      const status = BatteryStatus(
+        flags: 1,
+        millivolts: 3880,
+        charge: BatteryCharge.charging,
+        bars: 2,
+        emptyMillivolts: 3540,
+      );
+      final spy = _SpyService(dsp: 57, battery: status);
+      final c = _spyContainer(spy);
+
+      addTearDown(c.dispose);
+      c.read(cfwInfoProvider.notifier).state = _cfw;
+
+      final ref = await _ref(tester, c);
+
+      await tester.runAsync(() => pollCfwStatus(ref));
+
+      expect(spy.calls, ['dsp', 'battery']);
+      expect(c.read(batteryProvider), same(status));
     });
 
     testWidgets('a send error is swallowed', (tester) async {

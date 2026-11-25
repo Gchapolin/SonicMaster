@@ -13,6 +13,7 @@ import '../state/preset_providers.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text.dart';
 import 'bar_preset_fields.dart';
+import 'battery_chip.dart';
 import 'connection_controls.dart';
 import 'dsp_chip.dart';
 import 'fullscreen_button.dart';
@@ -165,6 +166,7 @@ class TopBar extends ConsumerWidget {
                         const Spacer(),
                       ],
                       const DspChip(),
+                      const BatteryChip(),
                       // The pedal's tuner, mirrored (CFW only).
                       if (isConnected && ref.watch(cfwInfoProvider) != null)
                         SonicIconButton(

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../model/battery_status.dart';
 import '../model/cfw_eq_models.dart';
 import '../model/cfw_exp.dart';
 import '../model/cfw_global_eq.dart';
@@ -33,6 +34,10 @@ final cfwInfoProvider = StateProvider<CfwInfo?>((_) => null);
 /// The CFW's DSP load in percent, polled by the connection heartbeat; null
 /// until read (or on stock firmware).
 final dspLoadProvider = StateProvider<int?>((_) => null);
+
+/// The CFW pedal's battery, polled with the DSP load; null until read, on
+/// stock firmware, or when the pedal reports no battery.
+final batteryProvider = StateProvider<BatteryStatus?>((_) => null);
 
 /// Reads the CFW settings block into [cfwInfoProvider]. Fired unawaited on
 /// connect, so it takes what it needs from [ref] before the read and only
@@ -67,6 +72,7 @@ void clearCfwState(WidgetRef ref) {
   ref.read(midiMapProvider.notifier).state = null;
   ref.read(cfwInfoProvider.notifier).state = null;
   ref.read(dspLoadProvider.notifier).state = null;
+  ref.read(batteryProvider.notifier).state = null;
 }
 
 /// The connect-time reads, in order: preset names first, then the CFW block.
@@ -133,7 +139,7 @@ Future<void> setCfwSetting(WidgetRef ref, int key, int value) async {
 bool _statusPollInFlight = false;
 
 /// The CFW part of the connection heartbeat: on a CFW pedal, reads the DSP
-/// load. Like pollGlobalSettings it stays quiet while a load or an upload
+/// load and the battery. Like pollGlobalSettings it stays quiet while a load or an upload
 /// holds the pedal ([presetLoadingProvider]), never stacks a second read on
 /// the serialized IO gate behind a stalled one, and swallows a send error
 /// (the chip then disappears). A no-op on stock firmware.
@@ -145,12 +151,18 @@ Future<void> pollCfwStatus(WidgetRef ref) async {
   }
 
   final dsp = ref.read(dspLoadProvider.notifier);
+  final battery = ref.read(batteryProvider.notifier);
+  final service = ref.read(deviceServiceProvider);
 
   _statusPollInFlight = true;
   try {
     await refreshDspLoad(ref);
+    final status = await service.requestBattery();
+
+    if (battery.mounted) battery.state = status;
   } catch (_) {
     if (dsp.mounted) dsp.state = null;
+    if (battery.mounted) battery.state = null;
   } finally {
     _statusPollInFlight = false;
   }
