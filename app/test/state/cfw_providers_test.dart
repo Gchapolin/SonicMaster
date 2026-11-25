@@ -10,9 +10,12 @@ import 'package:sonicmaster/protocol/cfw_setting_writer.dart';
 import 'package:sonicmaster/protocol/cfw_settings_decoder.dart';
 import 'package:sonicmaster/protocol/sysex_write_frame.dart';
 import 'package:sonicmaster/state/cfw_providers.dart';
+import 'package:sonicmaster/state/data_providers.dart';
 import 'package:sonicmaster/state/device_providers.dart';
+import 'package:sonicmaster/state/preset_providers.dart';
 
 import '../fixtures/cfw_dumps.dart';
+import '../support/test_assets.dart';
 
 /// A frame as the transports deliver it: the `8080` BLE header stripped, so
 /// it starts at `F0` (see classifyInbound).
@@ -59,6 +62,63 @@ class _ReplyingTransport implements Transport {
 final _dspReply = buildSysexWriteFrame([
   0x12, 0x2B, 0x01, 0x03, 0x39, 0x00, 0x10, 0x0E, 0x00, 0x00, //
 ]);
+
+/// Records the order of the reads the connect sequence and the heartbeat make.
+class _SpyService extends DeviceService {
+  _SpyService({this.dsp, this.dspThrows = false})
+    : super(_ReplyingTransport(const {}));
+
+  final int? dsp;
+  final bool dspThrows;
+  final calls = <String>[];
+  Completer<void>? dspGate;
+
+  @override
+  Future<String?> requestPresetNames({
+    Duration timeout = const Duration(seconds: 2),
+  }) async {
+    calls.add('names');
+
+    return null;
+  }
+
+  @override
+  Future<String?> requestUserNames(
+    String requestHex, {
+    Duration timeout = const Duration(seconds: 1),
+  }) async => null;
+
+  @override
+  Future<String?> requestCfwSettings({
+    Duration timeout = const Duration(seconds: 1),
+  }) async {
+    calls.add('cfw');
+
+    return null;
+  }
+
+  @override
+  Future<int?> requestDspLoad({
+    Duration timeout = const Duration(seconds: 1),
+  }) async {
+    calls.add('dsp');
+    await dspGate?.future;
+    if (dspThrows) throw StateError('send failed');
+
+    return dsp;
+  }
+}
+
+ProviderContainer _spyContainer(_SpyService spy, {bool isLoading = false}) =>
+    ProviderContainer(
+      overrides: [
+        deviceServiceProvider.overrideWithValue(spy),
+        dataAssetsProvider.overrideWith((_) => loadTestDataAssets()),
+        presetLoadingProvider.overrideWith((_) => isLoading),
+      ],
+    );
+
+final _cfw = decodeCfwSettingsFrame(cfwSettingsOriginal)!;
 
 Future<WidgetRef> _ref(WidgetTester tester, ProviderContainer c) async {
   late WidgetRef captured;
@@ -169,5 +229,105 @@ void main() {
     );
     await tester.runAsync(() => pollCfwStatus(ref));
     expect(c.read(dspLoadProvider), 57);
+  });
+
+  testWidgets('after connecting, the CFW read waits for the preset names', (
+    tester,
+  ) async {
+    final spy = _SpyService();
+    final c = _spyContainer(spy);
+
+    addTearDown(c.dispose);
+
+    final ref = await _ref(tester, c);
+
+    await tester.runAsync(() => refreshNamesThenCfw(ref));
+
+    expect(spy.calls.first, 'names');
+    expect(spy.calls.last, 'cfw');
+  });
+
+  group('the DSP status poll', () {
+    testWidgets('stays quiet while a load or upload holds the pedal', (
+      tester,
+    ) async {
+      final spy = _SpyService(dsp: 57);
+      final c = _spyContainer(spy, isLoading: true);
+
+      addTearDown(c.dispose);
+      c.read(cfwInfoProvider.notifier).state = _cfw;
+
+      final ref = await _ref(tester, c);
+
+      await tester.runAsync(() => pollCfwStatus(ref));
+
+      expect(spy.calls, isEmpty);
+    });
+
+    testWidgets('a missed read clears the chip instead of freezing it', (
+      tester,
+    ) async {
+      final spy = _SpyService();
+      final c = _spyContainer(spy);
+
+      addTearDown(c.dispose);
+      c.read(cfwInfoProvider.notifier).state = _cfw;
+      c.read(dspLoadProvider.notifier).state = 57;
+
+      final ref = await _ref(tester, c);
+
+      await tester.runAsync(() => pollCfwStatus(ref));
+
+      expect(c.read(dspLoadProvider), isNull);
+    });
+
+    testWidgets('a send error is swallowed', (tester) async {
+      final spy = _SpyService(dspThrows: true);
+      final c = _spyContainer(spy);
+
+      addTearDown(c.dispose);
+      c.read(cfwInfoProvider.notifier).state = _cfw;
+
+      final ref = await _ref(tester, c);
+
+      await tester.runAsync(() => pollCfwStatus(ref));
+
+      expect(c.read(dspLoadProvider), isNull);
+    });
+
+    testWidgets('a stalled read does not stack another one', (tester) async {
+      final spy = _SpyService(dsp: 57)..dspGate = Completer<void>();
+      final c = _spyContainer(spy);
+
+      addTearDown(c.dispose);
+      c.read(cfwInfoProvider.notifier).state = _cfw;
+
+      final ref = await _ref(tester, c);
+
+      await tester.runAsync(() async {
+        final first = pollCfwStatus(ref);
+        final second = pollCfwStatus(ref);
+
+        spy.dspGate!.complete();
+        await Future.wait([first, second]);
+      });
+
+      expect(spy.calls.where((c) => c == 'dsp'), hasLength(1));
+    });
+  });
+
+  testWidgets('a new connection starts with no CFW state', (tester) async {
+    final c = ProviderContainer();
+
+    addTearDown(c.dispose);
+    c.read(cfwInfoProvider.notifier).state = _cfw;
+    c.read(dspLoadProvider.notifier).state = 57;
+
+    final ref = await _ref(tester, c);
+
+    clearCfwState(ref);
+
+    expect(c.read(cfwInfoProvider), isNull);
+    expect(c.read(dspLoadProvider), isNull);
   });
 }

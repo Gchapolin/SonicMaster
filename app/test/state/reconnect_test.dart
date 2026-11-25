@@ -10,6 +10,7 @@ import 'package:sonicmaster/device/device_service.dart';
 import 'package:sonicmaster/device/transport.dart';
 import 'package:sonicmaster/state/connection_prefs.dart';
 import 'package:sonicmaster/state/data_providers.dart';
+import 'package:sonicmaster/state/cfw_providers.dart';
 import 'package:sonicmaster/state/device_providers.dart';
 import 'package:sonicmaster/state/preset_providers.dart';
 import 'package:sonicmaster/state/reconnect.dart';
@@ -113,6 +114,28 @@ void main() {
     expect(container.read(connectionStateProvider), isTrue);
     expect(container.read(lastBleTargetProvider), 'My Pedal');
     expect(container.read(presetLoadStatusProvider), 'connected');
+  });
+
+  testWidgets('connectAndSync drops the previous pedal\'s CFW state', (
+    tester,
+  ) async {
+    final container = ProviderContainer(
+      overrides: [
+        transportKindProvider.overrideWith((_) => .ble),
+        deviceServiceProvider.overrideWith(
+          (_) => DeviceService(FakeTransport()),
+        ),
+        presetLoadingProvider.overrideWith((_) => true),
+        dspLoadProvider.overrideWith((_) => 57),
+      ],
+    );
+
+    addTearDown(container.dispose);
+    final ref = await pumpRef(tester, container);
+
+    await connectAndSync(ref, target: 'My Pedal', statusOnSuccess: 'ok');
+
+    expect(container.read(dspLoadProvider), isNull);
   });
 
   testWidgets(

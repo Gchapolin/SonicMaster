@@ -4,6 +4,7 @@ import '../model/cfw_info.dart';
 import '../protocol/cfw_setting_writer.dart';
 import '../protocol/cfw_settings_decoder.dart';
 import 'device_providers.dart';
+import 'preset_providers.dart';
 
 /// What the connected pedal's community custom firmware (CFW) reports; null
 /// for stock firmware (it never answers the `12 2A` read). Re-read on every
@@ -31,13 +32,28 @@ Future<void> refreshCfwInfo(
   }
 }
 
-/// Reads the DSP load into [dspLoadProvider] (kept as is on a missed read).
+/// Reads the DSP load into [dspLoadProvider]; a missed read clears it, so the
+/// chip disappears instead of freezing at a stale value.
 Future<void> refreshDspLoad(WidgetRef ref) async {
   final service = ref.read(deviceServiceProvider);
   final dsp = ref.read(dspLoadProvider.notifier);
   final load = await service.requestDspLoad();
 
-  if (load != null && dsp.mounted) dsp.state = load;
+  if (dsp.mounted) dsp.state = load;
+}
+
+/// Drops the CFW state, at the start of every connection.
+void clearCfwState(WidgetRef ref) {
+  ref.read(cfwInfoProvider.notifier).state = null;
+  ref.read(dspLoadProvider.notifier).state = null;
+}
+
+/// The connect-time reads, in order: preset names first, then the CFW block.
+/// On stock firmware the CFW read only times out, so it goes last and never
+/// delays the names on the serialized IO gate.
+Future<void> refreshNamesThenCfw(WidgetRef ref) async {
+  await refreshNames(ref);
+  await refreshCfwInfo(ref);
 }
 
 /// Sets one CFW setting: shows it at once, then sends it and waits for the
@@ -58,10 +74,28 @@ Future<void> setCfwSetting(WidgetRef ref, int key, int value) async {
   );
 }
 
-/// The CFW part of the connection heartbeat: on a CFW pedal, reads the DSP
-/// load; a no-op on stock firmware.
-Future<void> pollCfwStatus(WidgetRef ref) async {
-  if (ref.read(cfwInfoProvider) == null) return;
+bool _statusPollInFlight = false;
 
-  await refreshDspLoad(ref);
+/// The CFW part of the connection heartbeat: on a CFW pedal, reads the DSP
+/// load. Like pollGlobalSettings it stays quiet while a load or an upload
+/// holds the pedal ([presetLoadingProvider]), never stacks a second read on
+/// the serialized IO gate behind a stalled one, and swallows a send error
+/// (the chip then disappears). A no-op on stock firmware.
+Future<void> pollCfwStatus(WidgetRef ref) async {
+  if (_statusPollInFlight ||
+      ref.read(cfwInfoProvider) == null ||
+      ref.read(presetLoadingProvider)) {
+    return;
+  }
+
+  final dsp = ref.read(dspLoadProvider.notifier);
+
+  _statusPollInFlight = true;
+  try {
+    await refreshDspLoad(ref);
+  } catch (_) {
+    if (dsp.mounted) dsp.state = null;
+  } finally {
+    _statusPollInFlight = false;
+  }
 }

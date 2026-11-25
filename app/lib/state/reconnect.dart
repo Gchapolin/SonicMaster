@@ -23,6 +23,9 @@ Future<bool> connectAndSync(
 }) async {
   final kind = ref.read(transportKindProvider);
 
+  // A new connection may be another pedal: drop the last one's CFW state so
+  // no CFW control or DSP reading outlives it.
+  clearCfwState(ref);
   await ref.read(deviceServiceProvider).connect(target: target);
 
   if (ref.read(transportKindProvider) != kind) return false;
@@ -61,10 +64,10 @@ Future<bool> connectAndSync(
   }
 
   await refreshGlobalSettings(ref);
-  unawaited(refreshNames(ref));
-  // Community custom firmware (CFW) settings block; stock firmware never
-  // answers, which leaves cfwInfoProvider null after the read times out.
-  unawaited(refreshCfwInfo(ref));
+  // Names first, then the community custom firmware (CFW) settings block:
+  // stock firmware never answers it, so its timeout must not hold the IO gate
+  // ahead of the names.
+  unawaited(refreshNamesThenCfw(ref));
 
   return true;
 }
