@@ -14,6 +14,12 @@ class EffectDefinition {
   final String descriptionEn;
   final List<EffectParameter> params;
 
+  /// The knobs the pedal's firmware ([isCfw]) has.
+  List<EffectParameter> paramsFor({required bool isCfw}) => [
+    for (final p in params)
+      if (p.isShownOn(isCfw: isCfw)) p,
+  ];
+
   factory EffectDefinition.fromJson(int id, Map<String, dynamic> json) =>
       EffectDefinition(
         id: id,

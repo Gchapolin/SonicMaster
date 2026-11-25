@@ -326,8 +326,21 @@ The CFW app builds both frames itself (main.dart.js, functions a9V / zQ):
   set, Time is a note-division index (community preset MB-Thall-D: Trails 3, Time 4 = 1/4).
 - Param slots the stock tables lacked, by the 8-slots x 8-bytes layout: 5_6 (3,69), 5_7 (3,77), 7_7 (3,205),
   8_3 (4,37), 8_6 (4,61), 8_7 (4,69). Values outside the captured lookup decode from the float itself.
-- Not done: the stock delays/reverbs' extra knobs on the CFW (`stockExtraParams`: DLY Tone/Duck/Trail at 5/6/7,
-  RVB High Cut/Low Cut/Trail at 3/6/7), and the Swell Delay variant some CFW versions use for slot 6.
+- Not done: the Swell Delay variant some CFW versions use for slot 6.
+
+## The CFW's extra knobs on the stock delays and reverbs (2026-11-25, from the CFW web app's code, no capture)
+- Data: cfw_fx_models.json `stockExtraParams` (identical to the CFW app's own copy): DLY 701-709 Tone/Duck/Trails at
+  5/6/7, RVB 801-810 High Cut/Low Cut/Trails at 3/6/7. Parsed like the model params (`bip`: slot-7 "Trail" is
+  "Trails"); a Duck ("off" kind) reads Off at 0 (`pu.v_`).
+- Layout on a Pocket Master (`AX.kC(B.e2)` keeps the data as is; `Qz` drops a stock knob in a slot an extra takes and
+  appends the extras). With tempo v3 (cap bit 22, CFW 0.9.4 on) `bqd` then drops the slot-4 Trail of 701-707 and 709
+  (the CFW's Trails at 7 replaces it), and Sweep (708) keeps only slots 0-4 plus S-Sync 5 / D-Sync 6 / Trail 7: no
+  Tone or Duck on Sweep.
+- The CFW app gates them on cap bit 19 on a Pocket Master (`bJC`: fxExtraKnobs = fxModels = 524288); this app shows
+  them on any CFW pedal, like the CFW models. The legacy layout (`bKD`) is Smart Box only.
+- Preset files (the CFW app's export, `b8x`): stock knobs including the slot-4 "Trail", plus "Tone"/"Duck"/"Trails" or
+  "High Cut"/"Low Cut"/"Trails". Here: imported always, sent and exported only on the CFW; the slot-4 Trail is not
+  sent on the CFW (hidden there) but still exported, as the CFW app does.
 
 - Swell Delay variant (done): the CFW app's `AW.kC` swaps slot 6 for `B.NM` = Sens (-50..50, step 1, default 0,
   no texts) when its flags' `b` is set. On a Pocket Master that is capability bit 31 (`sbModels097`; demo

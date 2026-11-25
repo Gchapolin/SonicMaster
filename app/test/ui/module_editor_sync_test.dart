@@ -253,10 +253,11 @@ void main() {
   // Slap is the one DLY with no Sync: alg 3 falls through to slot 0 on the
   // pedal, which fits a slapback (Time 20-300ms). It still carries Trail.
   testWidgets('DLY Slap has Trail but no Sync gate', (tester) async {
-    final slap = assets.effects.byId(702)!;
+    // Stock firmware (the CFW adds its own knobs: cfw_stock_extras_test).
+    final slap = assets.effects.byId(702)!.paramsFor(isCfw: false);
 
-    expect(slap.params.map((p) => p.name), ['Mix', 'Time', 'F.Back', 'Trail']);
-    expect(slap.params.every((p) => p.syncToggleAlgId == null), isTrue);
-    expect(slap.params.any((p) => p.algId == 3), isFalse);
+    expect(slap.map((p) => p.name), ['Mix', 'Time', 'F.Back', 'Trail']);
+    expect(slap.every((p) => p.syncToggleAlgId == null), isTrue);
+    expect(slap.any((p) => p.algId == 3), isFalse);
   });
 }

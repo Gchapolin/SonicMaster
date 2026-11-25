@@ -202,4 +202,40 @@ void main() {
     expect(ok, isFalse);
     expect(spy.sent, isEmpty);
   });
+
+  group('stock delay with the CFW\'s extra knobs (Tone at 5)', () {
+    final analog = ImportedPreset(
+      isCloneMode: false,
+      presetVolume: 75,
+      presetBpm: 120,
+      moduleStates: const {7: true},
+      selectedEffects: const {7: 707}, // Analog
+      parameters: const {
+        7: {0: 30, 4: 1, 5: -12},
+      },
+      chainOrder: const ['DLY'],
+      warnings: const [],
+    );
+    final commands = loadTestDataAssets().commands;
+    final tone = commands.parameterCommand(7, 5, '-12')!.toLowerCase();
+    final trail = commands.parameterCommand(7, 4, '1')!.toLowerCase();
+
+    testWidgets('CFW: sends Tone, not the slot-4 Trail', (tester) async {
+      final (ref, spy) = await _pump(tester);
+
+      await tester.runAsync(() => pushImportedPreset(ref, analog));
+
+      expect(spy.sent, contains(tone));
+      expect(spy.sent, isNot(contains(trail)));
+    });
+
+    testWidgets('stock firmware: sends the Trail, never Tone', (tester) async {
+      final (ref, spy) = await _pump(tester, isCfw: false);
+
+      await tester.runAsync(() => pushImportedPreset(ref, analog));
+
+      expect(spy.sent, isNot(contains(tone)));
+      expect(spy.sent, contains(trail));
+    });
+  });
 }

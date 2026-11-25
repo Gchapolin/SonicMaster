@@ -81,13 +81,15 @@ List<CfwModel> parseCfwModels(
 }
 
 /// As the CFW app converts them: on/off kinds are toggles, the rest knobs;
-/// the delays' slot-7 "Trail" is named "Trails", as in its preset files. On
-/// a delay, [sync] makes that slot the Off/Trail/Sync/Both list and Time a
-/// note division while its Sync bit (2) is set.
+/// the slot-7 "Trail" is named "Trails", as in its preset files, and an "off"
+/// kind reads Off at 0. On a delay, [sync] makes that slot the
+/// Off/Trail/Sync/Both list and Time a note division while its Sync bit (2)
+/// is set.
 EffectParameter _param(
   Map<String, dynamic> p,
-  ({int slot, List<String> options})? sync,
-) {
+  ({int slot, List<String> options})? sync, {
+  bool? onlyOnCfw,
+}) {
   final kind = p['kind'] as String?;
   final algId = p['algId'] as int;
   final name = p['name'] as String;
@@ -110,10 +112,63 @@ EffectParameter _param(
     step: p['step'] as num?,
     unit: kind == 'ms' ? 'ms' : null,
     texts: {
+      if (kind == 'off') '0': 'Off',
       for (final e in ((p['texts'] as Map?) ?? const {}).entries)
         e.key as String: e.value as String,
     },
+    onlyOnCfw: onlyOnCfw,
   );
+}
+
+/// The stock delays whose Trail toggle (slot 4) the CFW replaces with its
+/// slot-7 Trails (the CFW app's `bqd`, CFW 0.9.4 on).
+const _stockTrail4Delays = {701, 702, 703, 704, 705, 706, 707, 709};
+
+/// Sweep: on the CFW, slots 5 / 6 are its S-Sync / D-Sync toggles, so it
+/// takes no Tone / Duck there (the CFW app's `bqd`), only Trails.
+const _sweep = 708;
+
+/// Adds the knobs the CFW gives the stock delays and reverbs (cfw_fx_models
+/// `stockExtraParams`: DLY Tone / Duck / Trails at 5 / 6 / 7, RVB High Cut /
+/// Low Cut / Trails at 3 / 6 / 7) to [effects], shown only on a CFW pedal. A
+/// stock knob in a slot the CFW takes over is kept to the stock firmware, as
+/// the CFW app's `Qz` drops it.
+void addCfwStockExtras(EffectLibrary effects, Map<String, dynamic> fxJson) {
+  for (final m in (fxJson['models'] as List).cast<Map<String, dynamic>>()) {
+    if (m['stockExtraParams'] is! List) continue;
+
+    final extras = [
+      for (final p
+          in (m['stockExtraParams'] as List).cast<Map<String, dynamic>>())
+        _param(p, null, onlyOnCfw: true),
+    ];
+
+    for (final fxId in (m['stockFxIds'] as List).cast<int>()) {
+      final def = effects.byId(fxId);
+
+      if (def == null) continue;
+
+      final added = [
+        for (final p in extras)
+          if (fxId != _sweep || p.algId == 7) p,
+      ];
+      final taken = {for (final p in added) p.algId};
+
+      effects.effects[fxId] = EffectDefinition(
+        id: def.id,
+        name: def.name,
+        descriptionEn: def.descriptionEn,
+        params: [
+          for (final p in def.params)
+            taken.contains(p.algId) ||
+                    (p.algId == 4 && _stockTrail4Delays.contains(fxId))
+                ? p.stockOnly
+                : p,
+          ...added,
+        ],
+      );
+    }
+  }
 }
 
 /// Adds [models] to [effects] and their select frames to [commands].

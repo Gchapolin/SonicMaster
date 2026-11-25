@@ -41,11 +41,14 @@ class DataAssets {
     final commands = CommandLibrary.fromJson(await read('command_library'));
 
     // Before the signatures: they look the models up by name.
+    final cfwFx = await read('cfw_fx_models');
+
     addCfwModels(
       effects,
       commands,
-      parseCfwModels(await read('cfw_fx_models'), await read('cfw_eq_models')),
+      parseCfwModels(cfwFx, await read('cfw_eq_models')),
     );
+    addCfwStockExtras(effects, cfwFx);
 
     return DataAssets(
       effects: effects,

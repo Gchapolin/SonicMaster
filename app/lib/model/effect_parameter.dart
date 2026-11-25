@@ -15,6 +15,7 @@ class EffectParameter {
     this.syncToggleAlgId,
     this.texts = const {},
     this.syncMask = 1,
+    this.onlyOnCfw,
   });
 
   final String name;
@@ -42,6 +43,32 @@ class EffectParameter {
   bool isSynced(Map<int, num> values) =>
       syncToggleAlgId != null &&
       ((values[syncToggleAlgId] ?? 0).round() & syncMask) != 0;
+
+  /// Which firmware has this knob: null both, true only the CFW (its extra
+  /// knobs on the stock delays and reverbs), false only stock (the knob the
+  /// CFW moves away from that slot).
+  final bool? onlyOnCfw;
+
+  /// Whether the pedal's firmware ([isCfw]) has this knob.
+  bool isShownOn({required bool isCfw}) =>
+      onlyOnCfw == null || onlyOnCfw == isCfw;
+
+  /// This knob, kept to the stock firmware.
+  EffectParameter get stockOnly => EffectParameter(
+    name: name,
+    algId: algId,
+    defaultValue: defaultValue,
+    widgetType: widgetType,
+    min: min,
+    max: max,
+    step: step,
+    unit: unit,
+    options: options,
+    syncToggleAlgId: syncToggleAlgId,
+    texts: texts,
+    syncMask: syncMask,
+    onlyOnCfw: false,
+  );
 
   /// Display text per value ("21Hz", "-3.5dB"), keyed like the CFW app's data
   /// ("12", "-3.5"); empty for the stock effects.

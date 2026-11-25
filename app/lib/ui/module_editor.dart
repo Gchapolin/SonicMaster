@@ -84,12 +84,16 @@ class ModuleEditor extends ConsumerWidget {
             .values(scene)
             .map((k, v) => MapEntry(k, v == v.roundToDouble() ? v.round() : v)),
     };
+    final isCfw = ref.watch(cfwInfoProvider) != null;
     final effectIds = data.capabilities.availableEffectIds(
       data.commands,
       model,
       moduleId,
-      isCfw: ref.watch(cfwInfoProvider) != null,
+      isCfw: isCfw,
     );
+    // The knobs this firmware has (the CFW adds some to the stock delays and
+    // reverbs).
+    final knobs = def.paramsFor(isCfw: isCfw);
     // Keep the current effect in the dropdown even if it isn't in the pickable
     // set — some presets hold legacy/hidden effects (e.g. Fullchor / Flash /
     // Doctor CL) that decode but have no select command; this keeps the value
@@ -229,7 +233,7 @@ class ModuleEditor extends ConsumerWidget {
                       userNames,
                     ),
                   ),
-              for (final p in def.params)
+              for (final p in knobs)
                 _control(
                   context,
                   ref,
@@ -258,7 +262,7 @@ class ModuleEditor extends ConsumerWidget {
             EffectParameter? timeParam;
 
             if (moduleId == 7) {
-              for (final p in def.params) {
+              for (final p in knobs) {
                 if (p.algId != 1) continue;
 
                 if (!p.isSynced(values)) timeParam = p;
@@ -293,7 +297,7 @@ class ModuleEditor extends ConsumerWidget {
           key: ValueKey(physId),
           moduleId: physId,
           params: [
-            for (final p in def.params)
+            for (final p in knobs)
               if (p.widgetType == .knob || p.widgetType == .eqBand) p,
           ],
         ),

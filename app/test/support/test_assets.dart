@@ -27,6 +27,7 @@ DataAssets loadTestDataAssets() {
     commands,
     parseCfwModels(read('cfw_fx_models'), read('cfw_eq_models')),
   );
+  addCfwStockExtras(effects, read('cfw_fx_models'));
 
   return DataAssets(
     effects: effects,

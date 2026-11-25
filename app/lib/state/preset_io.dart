@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../model/cfw_models.dart';
 import '../model/chain_order.dart';
+import '../model/effect_parameter.dart';
 import '../model/preset_json.dart';
 import '../protocol/cfw_scene_codec.dart';
 import '../protocol/footswitch_frame.dart';
@@ -39,6 +40,7 @@ Future<void> exportPreset(WidgetRef ref) async {
       params: ref.read(currentParametersProvider),
       data: data,
       presetName: name,
+      isCfw: ref.read(cfwInfoProvider) != null,
     ),
   );
 
@@ -155,8 +157,20 @@ Future<bool> pushImportedPreset(WidgetRef ref, ImportedPreset imported) async {
       c.chainOrderCommand(chainKey(collapseChain(imported.chainOrder))),
     );
 
+    final isCfw = ref.read(cfwInfoProvider) != null;
+
     for (final me in imported.parameters.entries) {
+      final fxId = imported.selectedEffects[me.key];
+      final def = fxId == null ? null : data.effects.byId(fxId);
+      // Not the knobs this firmware lacks (the CFW's extras on stock).
+      final lacks = {
+        for (final p in def?.params ?? const <EffectParameter>[])
+          if (!p.isShownOn(isCfw: isCfw)) p.algId,
+      };
+
       for (final pe in me.value.entries) {
+        if (lacks.contains(pe.key)) continue;
+
         await send(
           c.parameterCommand(me.key, pe.key, formatParamValueKey(pe.value)),
         );
@@ -179,7 +193,6 @@ Future<bool> pushImportedPreset(WidgetRef ref, ImportedPreset imported) async {
     }
 
     final scenes = imported.scenes;
-    final isCfw = ref.read(cfwInfoProvider) != null;
 
     if (scenes != null && isCfw) {
       // Clear only records the pedal is known to hold, then write the file's.

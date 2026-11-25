@@ -53,7 +53,7 @@ on a real pedal (CFW 1.0.2 and 1.0.3) by a live integration test, run on an iPad
 captures and results are in
 [docs/cfw-protocol/capture-notes.md](docs/cfw-protocol/capture-notes.md).
 
-**Not ported yet:** TONE3000 downloads per slot, backup/restore, and the extra knobs the CFW adds to the stock delays and reverbs.
+**Not ported yet:** TONE3000 downloads per slot and backup/restore.
 
 ---
 

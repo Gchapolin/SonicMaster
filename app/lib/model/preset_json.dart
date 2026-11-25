@@ -23,13 +23,15 @@ const _physicalModules = [
   'RVB',
 ];
 
-/// Serializes the live decoded preset to the web-compatible JSON schema.
+/// Serializes the live decoded preset to the web-compatible JSON schema;
+/// [isCfw] when it comes from a CFW pedal.
 Map<String, dynamic> presetToJson({
   required DecodedPresetState state,
   required Map<int, int> selected,
   required Map<int, Map<int, num>> params,
   required DataAssets data,
   String? presetName,
+  bool isCfw = false,
 }) {
   final modules = <String, dynamic>{};
 
@@ -44,6 +46,10 @@ Map<String, dynamic> presetToJson({
 
     if (def != null) {
       for (final p in def.params) {
+        // The CFW's extra knobs only from a CFW pedal; like the CFW app, the
+        // stock knob a CFW slot replaces still goes in the file.
+        if (p.onlyOnCfw == true && !isCfw) continue;
+
         if (vals[p.algId] != null) paramMap[p.name] = vals[p.algId];
       }
     }
@@ -192,6 +198,10 @@ ImportedPreset importedPresetFromJson(
           : (p.min, p.max);
 
       if (v == null) {
+        // A file from stock firmware has none of the CFW's extra knobs: leave
+        // them to the pedal.
+        if (p.onlyOnCfw == true) continue;
+
         v = p.defaultValue;
         warnings.add(
           '$key.${p.name} missing — using default ${p.defaultValue}',
