@@ -6,7 +6,6 @@ import 'package:sonicmaster/state/data_providers.dart';
 import 'package:sonicmaster/state/names_providers.dart';
 import 'package:sonicmaster/state/preset_providers.dart';
 import 'package:sonicmaster/ui/module_editor.dart';
-import 'package:sonicmaster/ui/preset_fields_panel.dart';
 import 'package:sonicmaster/ui/sonic_controls.dart';
 import 'package:sonicmaster/ui/sonic_metrics.dart';
 
@@ -14,9 +13,9 @@ import '../support/fonts.dart';
 import '../support/test_assets.dart';
 import '../support/view_helpers.dart';
 
-/// The compact twin of module_editor_overflow_test: the two work panels
-/// (IntrinsicHeight + Row(stretch), a fixed Preset panel beside an Expanded
-/// editor) at real compact work widths, with Oswald. 836 / 764 / 624 are
+/// The compact twin of module_editor_overflow_test: the effect editor alone
+/// across the work area (Preset Vol and BPM live in the top bar) at real
+/// compact work widths, with Oswald. 836 / 764 / 624 are
 /// 852 / 780 / 640-wide viewports minus the 2 x 8 work padding; 624 is the
 /// narrowest, since the app never lays out below the 640 compact minimum.
 void main() {
@@ -29,7 +28,6 @@ void main() {
   Future<void> pumpTwoPanels(
     WidgetTester tester, {
     required double width,
-    required bool isStacked,
     required int moduleId,
     required int fxId,
     required Map<int, num> params,
@@ -72,33 +70,13 @@ void main() {
                 alignment: Alignment.topLeft,
                 child: SizedBox(
                   width: width,
-                  child: IntrinsicHeight(
-                    child: Row(
-                      crossAxisAlignment: .stretch,
-                      children: [
-                        PresetFieldsPanel(
-                          presetVolume: 44,
-                          presetBpm: 120,
-                          isLoading: false,
-                          topSpacer: 12,
-                          stacked: isStacked,
-                          patchKnobKey: const ValueKey('patch'),
-                          onVolume: (_) {},
-                          onBpm: (_) {},
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: ConstrainedBox(
-                            constraints: BoxConstraints(
-                              minHeight: SonicMetrics.compact.minPanelHeight,
-                            ),
-                            child: SonicSurface(
-                              padding: EdgeInsets.zero,
-                              child: ModuleEditor(moduleId),
-                            ),
-                          ),
-                        ),
-                      ],
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: SonicMetrics.compact.minPanelHeight,
+                    ),
+                    child: SonicSurface(
+                      padding: EdgeInsets.zero,
+                      child: ModuleEditor(moduleId),
                     ),
                   ),
                 ),
@@ -125,14 +103,11 @@ void main() {
   for (final width in const [836.0, 764.0, 624.0]) {
     for (final (name, moduleId, fxId, params, isCloneMode, hasLongName)
         in cases) {
-      for (final isStacked in const [false, true]) {
-        final layout = isStacked ? 'stacked' : 'side by side';
-
-        testWidgets('$name at ${width.toInt()}, $layout', (tester) async {
+      {
+        testWidgets('$name at ${width.toInt()}', (tester) async {
           await pumpTwoPanels(
             tester,
             width: width,
-            isStacked: isStacked,
             moduleId: moduleId,
             fxId: fxId,
             params: params,
@@ -143,7 +118,6 @@ void main() {
           );
 
           expectNoOverflow(tester);
-          expect(tester.getSize(find.byType(PresetFieldsPanel)).width, 194);
 
           // Cancels the DLY beat timer; harmless for the others.
           await tester.pumpWidget(const SizedBox.shrink());

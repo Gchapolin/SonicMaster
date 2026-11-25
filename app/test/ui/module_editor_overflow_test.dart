@@ -5,7 +5,6 @@ import 'package:sonicmaster/model/decoded_preset_state.dart';
 import 'package:sonicmaster/state/data_providers.dart';
 import 'package:sonicmaster/state/preset_providers.dart';
 import 'package:sonicmaster/ui/module_editor.dart';
-import 'package:sonicmaster/ui/preset_fields_panel.dart';
 import 'package:sonicmaster/ui/sonic_controls.dart';
 
 import '../support/test_assets.dart';
@@ -64,31 +63,11 @@ void main() {
               alignment: Alignment.topLeft,
               child: SizedBox(
                 width: width,
-                child: IntrinsicHeight(
-                  child: Row(
-                    crossAxisAlignment: .stretch,
-                    children: [
-                      PresetFieldsPanel(
-                        presetVolume: 44,
-                        presetBpm: 120,
-                        isLoading: false,
-                        topSpacer: 12,
-                        stacked: true,
-                        patchKnobKey: const ValueKey('patch'),
-                        onVolume: (_) {},
-                        onBpm: (_) {},
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(minHeight: 212),
-                          child: const SonicSurface(
-                            padding: EdgeInsets.zero,
-                            child: ModuleEditor(0),
-                          ),
-                        ),
-                      ),
-                    ],
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 212),
+                  child: const SonicSurface(
+                    padding: EdgeInsets.zero,
+                    child: ModuleEditor(0),
                   ),
                 ),
               ),

@@ -12,6 +12,7 @@ import '../state/preset_io.dart';
 import '../state/preset_providers.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text.dart';
+import 'bar_preset_fields.dart';
 import 'connection_controls.dart';
 import 'dsp_chip.dart';
 import 'fullscreen_button.dart';
@@ -135,21 +136,32 @@ class TopBar extends ConsumerWidget {
                       if (isCompact) ...[
                         // The well gives way to the actions: its name
                         // ellipsizes first.
+                        // The preset (with its arrows) gives way first: its
+                        // name ellipsizes before the values or the actions.
                         Expanded(
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: well == null
-                                ? null
-                                : _PresetStepper(
+                          child: Row(
+                            children: [
+                              if (well != null) ...[
+                                Flexible(
+                                  child: _PresetStepper(
                                     current: current!,
                                     isEnabled: !isLoading,
                                     well: well,
                                   ),
+                                ),
+                                const SizedBox(width: 8),
+                                const BarPresetFields(),
+                              ],
+                            ],
                           ),
                         ),
                         const FullscreenButton(),
                       ] else ...[
-                        ?well,
+                        if (well != null) ...[
+                          well,
+                          const SizedBox(width: 12),
+                          const BarPresetFields(),
+                        ],
                         const Spacer(),
                       ],
                       const DspChip(),

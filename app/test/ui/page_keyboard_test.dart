@@ -4,8 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sonicmaster/model/preset_ref.dart';
 import 'package:sonicmaster/ui/chain_view.dart';
 import 'package:sonicmaster/ui/knob_control.dart';
+import 'package:sonicmaster/ui/module_editor.dart';
 import 'package:sonicmaster/ui/preset_drawer.dart';
-import 'package:sonicmaster/ui/preset_fields_panel.dart';
 import 'package:sonicmaster/ui/preset_rail.dart';
 import 'package:sonicmaster/ui/top_bar.dart';
 
@@ -160,14 +160,14 @@ void main() {
   ) async {
     await pumpPage(tester, size: const Size(852, 393));
 
-    final patchVol = find
+    final knob = find
         .descendant(
-          of: find.byType(PresetFieldsPanel),
+          of: find.byType(ModuleEditor),
           matching: find.byType(KnobControl),
         )
         .first;
 
-    final readout = find.descendant(of: patchVol, matching: find.text('44'));
+    final readout = find.descendant(of: knob, matching: find.text('50'));
 
     // As low on the screen as the work area scrolls it: where the keyboard
     // is about to come up.
@@ -184,7 +184,7 @@ void main() {
     expect(tester.getRect(_workArea).bottom, 393 - 180);
     expectWithin(
       tester.getRect(
-        find.descendant(of: patchVol, matching: find.byType(EditableText)),
+        find.descendant(of: knob, matching: find.byType(EditableText)),
       ),
       const Rect.fromLTRB(0, 0, 852, 393 - 180),
       'knob value field',

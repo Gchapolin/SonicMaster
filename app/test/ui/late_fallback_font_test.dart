@@ -8,7 +8,6 @@ import 'package:sonicmaster/state/preset_providers.dart';
 import 'package:sonicmaster/theme/app_text.dart';
 import 'package:sonicmaster/ui/module_editor.dart';
 import 'package:sonicmaster/ui/preset_browser_page.dart';
-import 'package:sonicmaster/ui/preset_fields_panel.dart';
 import 'package:sonicmaster/ui/preset_rail.dart';
 import 'package:sonicmaster/ui/sonic_controls.dart';
 import 'package:sonicmaster/ui/top_bar.dart';
@@ -179,10 +178,10 @@ void main() {
         33,
       ),
       (
-        'Patch Vol, compact,',
+        'a module knob, compact,',
         compact,
-        PresetFieldsPanel,
-        '44',
+        ModuleEditor,
+        '50',
         AppText.knobValueCompact,
         21,
         26,

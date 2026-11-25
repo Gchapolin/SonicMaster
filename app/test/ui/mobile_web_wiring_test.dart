@@ -9,6 +9,7 @@ import 'package:sonicmaster/ui/fullscreen_button.dart';
 import 'package:sonicmaster/ui/preset_browser_page.dart';
 import 'package:sonicmaster/ui/rotate_device_overlay.dart';
 import 'package:sonicmaster/ui/save_preset_dialog.dart';
+import 'package:sonicmaster/ui/bar_preset_fields.dart';
 import 'package:sonicmaster/ui/top_bar.dart';
 
 import '../support/fake_mobile_screen.dart';
@@ -133,14 +134,35 @@ void main() {
         bar,
         'Disconnect',
       );
-      expect(tester.getRect(name).right, lessThanOrEqualTo(toggle.left));
-      // Ten characters is the longest name the pedal stores; it still fits.
-      expect(
-        tester.renderObject<RenderParagraph>(name).didExceedMaxLines,
-        isFalse,
-      );
+      final values = tester.getRect(inBar(find.byType(BarPresetFields)));
+
+      // In order and inside the bar: name, preset values, toggle. At this
+      // narrowest layout the name is what gives way (it ellipsizes).
+      expect(tester.getRect(name).right, lessThanOrEqualTo(values.left));
+      expect(values.right, lessThanOrEqualTo(toggle.left));
     });
   }
+
+  // A phone in landscape (852 wide and up): the longest name the pedal stores
+  // (ten characters) fits in full next to the preset values.
+  testWidgets('852x393: the longest name fits beside the preset values', (
+    tester,
+  ) async {
+    await pumpPage(
+      tester,
+      size: const Size(852, 393),
+      names: {const PresetRef(.user, 1): 'WWWWWWWWWW'},
+      overrides: touchScreen(),
+    );
+
+    expectNoOverflow(tester);
+    expect(
+      tester
+          .renderObject<RenderParagraph>(inBar(find.text('WWWWWWWWWW')))
+          .didExceedMaxLines,
+      isFalse,
+    );
+  });
 
   testWidgets('a tablet in portrait: compact bar with the toggle, no prompt', (
     tester,

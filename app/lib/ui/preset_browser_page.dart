@@ -19,7 +19,6 @@ import 'chain_view.dart';
 import 'dev_console_page.dart';
 import 'module_editor.dart';
 import 'preset_drawer.dart';
-import 'preset_fields_panel.dart';
 import 'preset_rail.dart';
 import 'sonic_controls.dart';
 import 'sonic_metrics.dart';
@@ -98,21 +97,6 @@ class PresetBrowserPage extends HookConsumerWidget {
     final isConsoleOpen = useState(false);
     final consoleHeight = useState(260.0);
 
-    // Cross-panel alignment: measured from the effect editor so the Patch Vol
-    // panel can match its height and vertically centre its knob on the effect's
-    // knob row (whatever header/selects sit above it).
-    final editorKey = useMemoized(() => GlobalKey(), const []);
-    final knobRowKey = useMemoized(() => GlobalKey(), const []);
-    final knobRowTop = useState<double?>(null);
-    // Whether the module's knob row wrapped to a second line. When it does, the
-    // BPM knob drops below Patch Vol to mirror the two-floor layout; otherwise
-    // the two sit side by side. Derived by measurement (below), not guessed.
-    final moduleKnobsWrapped = useState(false);
-    // The Patch Vol knob cell's height — measured, so the wrap test compares
-    // the module knob row against a real single-knob height (both are the same
-    // metrics.panelKnobSize dial) instead of a hard-coded pixel guess.
-    final patchKnobKey = useMemoized(() => GlobalKey(), const []);
-
     // Connection heartbeat while connected: detect a silent USB drop (USB has no
     // native connection events) and poll global-settings — the pedal never
     // pushes Master changes (light: one small request; the poll self-skips during
@@ -131,7 +115,6 @@ class PresetBrowserPage extends HookConsumerWidget {
 
     final isConnected = ref.watch(connectionStateProvider);
     final current = ref.watch(currentPresetProvider);
-    final isLoading = ref.watch(presetLoadingProvider);
     final state = ref.watch(currentPresetStateProvider);
     final selectedModule = ref.watch(selectedModuleProvider);
 
@@ -161,48 +144,6 @@ class PresetBrowserPage extends HookConsumerWidget {
         autoConnectOnStartup(ref);
       });
     }
-
-    // The two work-panels (Patch Vol + effect editor) are kept the same height
-    // by an IntrinsicHeight in the tree below — synchronous, no frame lag. Here
-    // we only measure where the editor's knob row sits, so the Patch Vol knob
-    // can line up with it vertically. Re-run after each layout.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!context.mounted) return;
-
-      final editorBox =
-          editorKey.currentContext?.findRenderObject() as RenderBox?;
-
-      if (editorBox == null || !editorBox.hasSize) return;
-
-      final knobBox =
-          knobRowKey.currentContext?.findRenderObject() as RenderBox?;
-      final top = (knobBox != null && knobBox.hasSize)
-          ? knobBox.localToGlobal(Offset.zero, ancestor: editorBox).dy
-          : 12.0; // no knob row (e.g. NR / no decoded effect): sit near the top
-
-      if (knobRowTop.value != top) {
-        knobRowTop.value = top;
-      }
-
-      // Did the module's knob Wrap spill onto a second line? Compare its box
-      // height to one Patch Vol knob (the same metrics.panelKnobSize dial as
-      // the module knobs). A single row ≈ 1×, two rows ≈ 2×, so 1.4× cleanly
-      // separates them without hard-coding the knob's pixel height.
-      final patchBox =
-          patchKnobKey.currentContext?.findRenderObject() as RenderBox?;
-
-      if (knobBox != null &&
-          knobBox.hasSize &&
-          patchBox != null &&
-          patchBox.hasSize &&
-          patchBox.size.height > 0) {
-        final wrapped = knobBox.size.height > patchBox.size.height * 1.4;
-
-        if (moduleKnobsWrapped.value != wrapped) {
-          moduleKnobsWrapped.value = wrapped;
-        }
-      }
-    });
 
     return ColoredBox(
       color: Palette.background,
@@ -309,129 +250,29 @@ class PresetBrowserPage extends HookConsumerWidget {
                                                       ],
                                                     ] else if (state !=
                                                         null) ...[
-                                                      // Regular: Preset Vol and BPM on their own
-                                                      // row above the chain, within reach without
-                                                      // looking past the chain; the editor below
-                                                      // takes the whole width. Compact keeps them
-                                                      // beside the editor (below): a phone has no
-                                                      // height to spare above the knobs.
-                                                      if (!metrics
-                                                          .isCompact) ...[
-                                                        Align(
-                                                          alignment: Alignment
-                                                              .centerLeft,
-                                                          child: PresetFieldsPanel(
-                                                            presetVolume: state
-                                                                .presetVolume,
-                                                            presetBpm:
-                                                                state.presetBpm,
-                                                            isLoading:
-                                                                isLoading,
-                                                            topSpacer: 8,
-                                                            bottomSpacer: 8,
-                                                            knobSize: SonicMetrics
-                                                                .compact
-                                                                .panelKnobSize,
-                                                            stacked: false,
-                                                            patchKnobKey:
-                                                                patchKnobKey,
-                                                            onVolume: (v) =>
-                                                                setPresetVolume(
-                                                                  ref,
-                                                                  v,
-                                                                ),
-                                                            onBpm: (v) =>
-                                                                setPresetBpm(
-                                                                  ref,
-                                                                  v,
-                                                                ),
-                                                          ),
-                                                        ),
-                                                        const SizedBox(
-                                                          height: 12,
-                                                        ),
-                                                      ],
                                                       const ChainView(),
                                                       SizedBox(
                                                         height: metrics
                                                             .chainPanelsGap,
                                                       ),
-                                                      // Compact Patch Vol knob (left, top-aligned) + effect
-                                                      // editor (fills the rest; placeholder when nothing is
-                                                      // selected). Both always shown once a preset is loaded,
-                                                      // at a fixed equal height (the editor scrolls if a
-                                                      // param-heavy effect is taller).
-                                                      // Patch Vol knob vertically aligned with the
-                                                      // effect's knob row; both panels the same height
-                                                      // (measured from the editor — see the post-frame
-                                                      // alignment above).
-                                                      // Both panels the SAME height via IntrinsicHeight
-                                                      // + stretch (synchronous — no post-frame height
-                                                      // measurement to lag behind content changes).
-                                                      IntrinsicHeight(
-                                                        child: Row(
-                                                          crossAxisAlignment:
-                                                              .stretch,
-                                                          children: [
-                                                            if (metrics
-                                                                .isCompact) ...[
-                                                              PresetFieldsPanel(
-                                                                presetVolume: state
-                                                                    .presetVolume,
-                                                                presetBpm: state
-                                                                    .presetBpm,
-                                                                isLoading:
-                                                                    isLoading,
-                                                                topSpacer:
-                                                                    knobRowTop
-                                                                        .value ??
-                                                                    12,
-                                                                stacked:
-                                                                    moduleKnobsWrapped
-                                                                        .value,
-                                                                patchKnobKey:
-                                                                    patchKnobKey,
-                                                                onVolume: (v) =>
-                                                                    setPresetVolume(
-                                                                      ref,
-                                                                      v,
-                                                                    ),
-                                                                onBpm: (v) =>
-                                                                    setPresetBpm(
-                                                                      ref,
-                                                                      v,
-                                                                    ),
-                                                              ),
-                                                              const SizedBox(
-                                                                width: 8,
-                                                              ),
-                                                            ],
-                                                            Expanded(
-                                                              child: ConstrainedBox(
-                                                                constraints:
-                                                                    BoxConstraints(
-                                                                      minHeight:
-                                                                          metrics
-                                                                              .minPanelHeight,
-                                                                    ),
-                                                                child: SonicSurface(
-                                                                  key:
-                                                                      editorKey,
-                                                                  radius: 24,
-                                                                  padding:
-                                                                      EdgeInsets
-                                                                          .zero,
-                                                                  // Always a selection (default NR).
-                                                                  child: ModuleEditor(
-                                                                    selectedModule ??
-                                                                        0,
-                                                                    knobRowKey:
-                                                                        knobRowKey,
-                                                                  ),
-                                                                ),
-                                                              ),
+                                                      // The effect editor across the whole
+                                                      // work area (Preset Vol and BPM live in
+                                                      // the top bar); it scrolls if a
+                                                      // param-heavy effect is taller.
+                                                      ConstrainedBox(
+                                                        constraints:
+                                                            BoxConstraints(
+                                                              minHeight: metrics
+                                                                  .minPanelHeight,
                                                             ),
-                                                          ],
+                                                        child: SonicSurface(
+                                                          radius: 24,
+                                                          padding:
+                                                              EdgeInsets.zero,
+                                                          // Always a selection (default NR).
+                                                          child: ModuleEditor(
+                                                            selectedModule ?? 0,
+                                                          ),
                                                         ),
                                                       ),
                                                     ],

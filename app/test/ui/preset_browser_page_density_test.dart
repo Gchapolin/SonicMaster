@@ -7,7 +7,6 @@ import 'package:sonicmaster/state/edit_providers.dart';
 import 'package:sonicmaster/ui/chain_view.dart';
 import 'package:sonicmaster/ui/knob_control.dart';
 import 'package:sonicmaster/ui/module_editor.dart';
-import 'package:sonicmaster/ui/preset_fields_panel.dart';
 import 'package:sonicmaster/ui/preset_rail.dart';
 import 'package:sonicmaster/ui/sonic_controls.dart';
 import 'package:sonicmaster/ui/sonic_metrics.dart';
@@ -52,7 +51,7 @@ void main() {
       .first;
 
   double gap(WidgetTester tester) =>
-      tester.getTopLeft(find.byType(PresetFieldsPanel)).dy -
+      tester.getRect(editorSurface()).top -
       tester.getBottomLeft(find.byType(ChainView)).dy;
 
   Iterable<double> cardWidths() =>
@@ -80,35 +79,19 @@ void main() {
 
   group('regular keeps the pre-compact work area', () {
     for (final size in const [Size(1280, 800), Size(960, 640)]) {
-      testWidgets('${label(size)}: padding 12, gap 34, 360 panel, 120 dials', (
+      testWidgets('${label(size)}: padding 12, gap 34, 120 dials', (
         tester,
       ) async {
         await pumpPage(tester, size: size);
 
-        final panel = find.byType(PresetFieldsPanel);
         final chain = find.byType(ChainView);
 
         expect(tester.getTopLeft(chain).dx, railWidth + 12);
-        // Preset Vol / BPM on their own row above the chain, then the chain,
-        // then the editor across the whole work area.
-        expect(tester.getTopLeft(panel).dx, railWidth + 12);
-        expect(tester.getRect(chain).top - tester.getRect(panel).bottom, 12);
-        expect(
-          tester.getRect(editorSurface()).top - tester.getRect(chain).bottom,
-          34,
-        );
+        expect(gap(tester), 34);
+        // The editor spans the work area: Preset Vol / BPM are in the bar.
         expect(
           tester.getSize(editorSurface()).width,
           tester.getSize(chain).width,
-        );
-        expect(tester.getSize(panel).width, 360);
-        expect(
-          tester.getSize(
-            find
-                .descendant(of: panel, matching: find.byKey(const Key('knob')))
-                .first,
-          ),
-          const Size.square(72),
         );
         expect(
           tester.getSize(inEditor(find.byKey(const Key('knob'))).first),
@@ -127,8 +110,8 @@ void main() {
     }
   });
 
-  // An iPad in landscape: with the preset row and a two-row chain above it,
-  // the effect's first knob row is still on screen without scrolling.
+  // An iPad in landscape: under a two-row chain the effect's first knob row
+  // is on screen without scrolling.
   testWidgets('1180x820: the effect knobs are on screen under the chain', (
     tester,
   ) async {
@@ -142,9 +125,7 @@ void main() {
   });
 
   group('compact', () {
-    testWidgets('852x393: padding 8, gap 8, 194 panel, 72 dials, one row', (
-      tester,
-    ) async {
+    testWidgets('852x393: padding 8, gap 8, 72 dials, one row', (tester) async {
       // A two-row editor: the content is taller than the work area, so it is
       // top-aligned and the chain starts right under the work padding. NR is
       // on FS1; its badge overhangs the card corner and must stay inside the
@@ -173,7 +154,6 @@ void main() {
 
       expect(chain, Offset(8, metrics.topBarHeight + 8));
       expect(gap(tester), 8);
-      expect(tester.getSize(find.byType(PresetFieldsPanel)).width, 194);
       expect(
         tester.getSize(inEditor(find.byKey(const Key('knob'))).first),
         const Size.square(72),
@@ -196,7 +176,6 @@ void main() {
       );
 
       expect(tester.getSize(editorSurface()).height, 142);
-      expect(tester.getSize(find.byType(PresetFieldsPanel)).height, 142);
     });
 
     // The D5 target: at 360 px and up (fullscreen / installed app) the first
@@ -281,31 +260,6 @@ void main() {
       }
     }
 
-    // The load-bearing IntrinsicHeight: both panels share one height whether
-    // Preset Vol / BPM stack (a wrapping editor) or not.
-    for (final (name, moduleId, fxId, isStacked) in const [
-      ('AMP Brit 50JP', 3, 307, true),
-      ('NR Gate', 0, 1, false),
-    ]) {
-      testWidgets('852x393: $name panels share one height', (tester) async {
-        await pumpEditorPage(
-          tester,
-          size: const Size(852, 393),
-          moduleId: moduleId,
-          fxId: fxId,
-        );
-
-        final panel = find.byType(PresetFieldsPanel);
-
-        expect(tester.widget<PresetFieldsPanel>(panel).stacked, isStacked);
-        expect(
-          tester.getSize(panel).height,
-          tester.getSize(editorSurface()).height,
-        );
-        expect(tester.getSize(panel).width, 194);
-      });
-    }
-
     for (final size in const [Size(568, 320), Size(852, 300)]) {
       testWidgets('${label(size)} disconnected: the empty state fits', (
         tester,
@@ -320,10 +274,10 @@ void main() {
 
   group('phone failure modes', () {
     // Android Chrome's text-size setting reaches Flutter web as a text scale.
-    // Compact knob captions then outgrow their 72-px dials: every cell, the
-    // Preset panel included, must reflow instead of overflowing.
+    // Compact knob captions then outgrow their 72-px dials: every cell must
+    // reflow instead of overflowing.
     for (final (name, moduleId, fxId, params, isCloneMode) in [
-      ('NR Gate (Preset Vol / BPM side by side)', 0, 1, <int, num>{}, false),
+      ('NR Gate', 0, 1, <int, num>{}, false),
       ...heavyEditors,
     ]) {
       testWidgets('640x360 at 130% text: $name does not overflow', (
@@ -342,16 +296,14 @@ void main() {
         );
 
         expectNoOverflow(tester);
-        expect(tester.getSize(find.byType(PresetFieldsPanel)).width, 194);
 
         await tester.pumpWidget(const SizedBox.shrink());
       });
     }
 
     // Turning the phone to portrait (the app lays out at the 640 minimum) and
-    // back re-decides whether Preset Vol / BPM stack: the IR editor wraps at
-    // 640 but not at 852. A latched flag would leave the panels mismatched.
-    testWidgets('a rotation re-decides the Preset Vol / BPM stacking', (
+    // back keeps the editor across the work area, with no overflow.
+    testWidgets('a rotation keeps the editor full width, no overflow', (
       tester,
     ) async {
       await pumpEditorPage(
@@ -361,30 +313,17 @@ void main() {
         fxId: 416,
       );
 
-      final panel = find.byType(PresetFieldsPanel);
+      for (final size in const [Size(393, 852), Size(852, 393)]) {
+        tester.view.physicalSize = size;
+        await tester.pump();
+        await tester.pump();
 
-      expect(tester.widget<PresetFieldsPanel>(panel).stacked, isFalse);
-
-      tester.view.physicalSize = const Size(393, 852);
-      await tester.pump();
-      await tester.pump();
-
-      expect(tester.widget<PresetFieldsPanel>(panel).stacked, isTrue);
-      expect(
-        tester.getSize(panel).height,
-        tester.getSize(editorSurface()).height,
-      );
-
-      tester.view.physicalSize = const Size(852, 393);
-      await tester.pump();
-      await tester.pump();
-
-      expect(tester.widget<PresetFieldsPanel>(panel).stacked, isFalse);
-      expect(
-        tester.getSize(panel).height,
-        tester.getSize(editorSurface()).height,
-      );
-      expectNoOverflow(tester);
+        expect(
+          tester.getSize(editorSurface()).width,
+          tester.getSize(find.byType(ChainView)).width,
+        );
+        expectNoOverflow(tester);
+      }
     });
 
     // Typing a knob value in a browser tab: the keyboard leaves the work area
