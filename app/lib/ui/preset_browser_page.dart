@@ -309,6 +309,48 @@ class PresetBrowserPage extends HookConsumerWidget {
                                                       ],
                                                     ] else if (state !=
                                                         null) ...[
+                                                      // Regular: Preset Vol and BPM on their own
+                                                      // row above the chain, within reach without
+                                                      // looking past the chain; the editor below
+                                                      // takes the whole width. Compact keeps them
+                                                      // beside the editor (below): a phone has no
+                                                      // height to spare above the knobs.
+                                                      if (!metrics
+                                                          .isCompact) ...[
+                                                        Align(
+                                                          alignment: Alignment
+                                                              .centerLeft,
+                                                          child: PresetFieldsPanel(
+                                                            presetVolume: state
+                                                                .presetVolume,
+                                                            presetBpm:
+                                                                state.presetBpm,
+                                                            isLoading:
+                                                                isLoading,
+                                                            topSpacer: 8,
+                                                            bottomSpacer: 8,
+                                                            knobSize: SonicMetrics
+                                                                .compact
+                                                                .panelKnobSize,
+                                                            stacked: false,
+                                                            patchKnobKey:
+                                                                patchKnobKey,
+                                                            onVolume: (v) =>
+                                                                setPresetVolume(
+                                                                  ref,
+                                                                  v,
+                                                                ),
+                                                            onBpm: (v) =>
+                                                                setPresetBpm(
+                                                                  ref,
+                                                                  v,
+                                                                ),
+                                                          ),
+                                                        ),
+                                                        const SizedBox(
+                                                          height: 12,
+                                                        ),
+                                                      ],
                                                       const ChainView(),
                                                       SizedBox(
                                                         height: metrics
@@ -331,36 +373,39 @@ class PresetBrowserPage extends HookConsumerWidget {
                                                           crossAxisAlignment:
                                                               .stretch,
                                                           children: [
-                                                            PresetFieldsPanel(
-                                                              presetVolume: state
-                                                                  .presetVolume,
-                                                              presetBpm: state
-                                                                  .presetBpm,
-                                                              isLoading:
-                                                                  isLoading,
-                                                              topSpacer:
-                                                                  knobRowTop
-                                                                      .value ??
-                                                                  12,
-                                                              stacked:
-                                                                  moduleKnobsWrapped
-                                                                      .value,
-                                                              patchKnobKey:
-                                                                  patchKnobKey,
-                                                              onVolume: (v) =>
-                                                                  setPresetVolume(
-                                                                    ref,
-                                                                    v,
-                                                                  ),
-                                                              onBpm: (v) =>
-                                                                  setPresetBpm(
-                                                                    ref,
-                                                                    v,
-                                                                  ),
-                                                            ),
-                                                            const SizedBox(
-                                                              width: 8,
-                                                            ),
+                                                            if (metrics
+                                                                .isCompact) ...[
+                                                              PresetFieldsPanel(
+                                                                presetVolume: state
+                                                                    .presetVolume,
+                                                                presetBpm: state
+                                                                    .presetBpm,
+                                                                isLoading:
+                                                                    isLoading,
+                                                                topSpacer:
+                                                                    knobRowTop
+                                                                        .value ??
+                                                                    12,
+                                                                stacked:
+                                                                    moduleKnobsWrapped
+                                                                        .value,
+                                                                patchKnobKey:
+                                                                    patchKnobKey,
+                                                                onVolume: (v) =>
+                                                                    setPresetVolume(
+                                                                      ref,
+                                                                      v,
+                                                                    ),
+                                                                onBpm: (v) =>
+                                                                    setPresetBpm(
+                                                                      ref,
+                                                                      v,
+                                                                    ),
+                                                              ),
+                                                              const SizedBox(
+                                                                width: 8,
+                                                              ),
+                                                            ],
                                                             Expanded(
                                                               child: ConstrainedBox(
                                                                 constraints:

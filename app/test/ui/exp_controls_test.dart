@@ -53,6 +53,9 @@ void main() {
       find.descendant(of: find.byType(ExpControls), matching: f);
 
   Future<void> pick(WidgetTester tester, String from, String to) async {
+    // The EXP row sits low in the editor: bring it into view first.
+    await tester.ensureVisible(inExp(find.text(from)));
+    await tester.pump();
     await tester.tap(inExp(find.text(from)));
     await tester.pump();
     await tester.ensureVisible(find.text(to).last);
@@ -148,6 +151,8 @@ void main() {
   testWidgets('mode and range changes keep the target', (tester) async {
     final (c, _) = await pump(tester, slots: const [nrThre, null, null, null]);
 
+    await tester.ensureVisible(inExp(find.text('TOGGLE')));
+    await tester.pump();
     await tester.tap(inExp(find.text('TOGGLE')));
     await tester.pump();
     await pick(tester, '35 %', '40 %');

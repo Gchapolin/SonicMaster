@@ -85,9 +85,31 @@ void main() {
       ) async {
         await pumpPage(tester, size: size);
 
-        expect(tester.getTopLeft(find.byType(ChainView)).dx, railWidth + 12);
-        expect(gap(tester), 34);
-        expect(tester.getSize(find.byType(PresetFieldsPanel)).width, 360);
+        final panel = find.byType(PresetFieldsPanel);
+        final chain = find.byType(ChainView);
+
+        expect(tester.getTopLeft(chain).dx, railWidth + 12);
+        // Preset Vol / BPM on their own row above the chain, then the chain,
+        // then the editor across the whole work area.
+        expect(tester.getTopLeft(panel).dx, railWidth + 12);
+        expect(tester.getRect(chain).top - tester.getRect(panel).bottom, 12);
+        expect(
+          tester.getRect(editorSurface()).top - tester.getRect(chain).bottom,
+          34,
+        );
+        expect(
+          tester.getSize(editorSurface()).width,
+          tester.getSize(chain).width,
+        );
+        expect(tester.getSize(panel).width, 360);
+        expect(
+          tester.getSize(
+            find
+                .descendant(of: panel, matching: find.byKey(const Key('knob')))
+                .first,
+          ),
+          const Size.square(72),
+        );
         expect(
           tester.getSize(inEditor(find.byKey(const Key('knob'))).first),
           const Size.square(120),
@@ -101,9 +123,22 @@ void main() {
         await pumpPage(tester, size: size, selectedEffects: const {});
 
         expect(tester.getSize(editorSurface()).height, 212);
-        expect(tester.getSize(find.byType(PresetFieldsPanel)).height, 212);
       });
     }
+  });
+
+  // An iPad in landscape: with the preset row and a two-row chain above it,
+  // the effect's first knob row is still on screen without scrolling.
+  testWidgets('1180x820: the effect knobs are on screen under the chain', (
+    tester,
+  ) async {
+    await pumpPage(tester, size: const Size(1180, 820));
+
+    expect(
+      tester.getRect(inEditor(find.byKey(const Key('knob'))).first).bottom,
+      lessThanOrEqualTo(820),
+    );
+    expectNoOverflow(tester);
   });
 
   group('compact', () {

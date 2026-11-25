@@ -118,6 +118,8 @@ void main() {
       },
     );
 
+    await tester.ensureVisible(inEditor(find.text('OFF')));
+    await tester.pump();
     await tester.tap(inEditor(find.text('OFF')));
     await tester.pump();
 
@@ -138,6 +140,8 @@ void main() {
       records: {0: const SceneRecord(module: 0)},
     );
 
+    await tester.ensureVisible(inEditor(find.text('SC2')));
+    await tester.pump();
     await tester.tap(inEditor(find.text('SC2')));
     await tester.pump();
 
