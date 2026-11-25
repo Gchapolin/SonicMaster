@@ -257,3 +257,9 @@ Slots 6-10 take the stock commands with slot index 5..9; only the index differs.
 - Clone clear: `11 27 05 00 00 0F` -> ack, `12 1B 03 ...`.
 - Both test slots were cleared again; both clears committed without a power cycle.
 - Not captured: rename of slots 6-10, the web app's "Import as is" NAM path, names longer than 10 characters.
+
+## Live gate 2026-11-25 (integration_test/cfw_slot_upload_live_test.dart, iPad over BLE, CFW 1.0.2)
+- User IR 10 (slot index 9), with the app's own frames: upload committed and `12 28` read "LiveTest"; rename
+  (`11 22`, slot 9) committed and read "Renamed"; clear committed and the name is "User IR 10" again.
+  So rename works on slots 6-10 too, and three writes in a row committed without a power cycle.
+- Clone slots 6-10 from the app are not live-checked (only the web app's upload to slot 6 was captured).
