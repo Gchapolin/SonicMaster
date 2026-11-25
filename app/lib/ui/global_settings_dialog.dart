@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../device/device_model.dart';
+import '../model/cfw_eq_models.dart';
 import '../model/cfw_info.dart';
 import '../state/cfw_providers.dart';
 import '../state/connection_prefs.dart';
@@ -229,6 +230,7 @@ class GlobalSettingsDialog extends ConsumerWidget {
                         isFunc2: true,
                       ),
                     ],
+                    if (cfw != null) const _GlobalEqSection(),
                     const _SectionHeader('Display'),
                     if (cfw != null)
                       _SettingRow(
@@ -340,6 +342,82 @@ class GlobalSettingsDialog extends ConsumerWidget {
 }
 
 /// A small uppercase group header, e.g. "USB" / "Display".
+/// The CFW Global EQ: one EQ after the whole chain, for every preset. Shows
+/// the switch, the model and the model's knobs; a model this app has no data
+/// for shows only the switch.
+class _GlobalEqSection extends ConsumerWidget {
+  const _GlobalEqSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final eq = ref.watch(globalEqProvider);
+    final models = ref.watch(cfwEqModelsProvider).valueOrNull ?? const [];
+    final isLoading = ref.watch(presetLoadingProvider);
+
+    if (eq == null) return const SizedBox.shrink();
+
+    final model = models
+        .where((m) => m.wireIndex == eq.model)
+        .cast<CfwEqModel?>()
+        .firstWhere((_) => true, orElse: () => null);
+
+    return Column(
+      mainAxisSize: .min,
+      crossAxisAlignment: .stretch,
+      children: [
+        const _SectionHeader('Global EQ'),
+        _SwitchRow(
+          label: 'Global EQ',
+          name: 'globalEq',
+          value: eq.isOn ? 1 : 0,
+          isLoading: isLoading,
+          write: (v) => setGlobalEq(ref, eq.copyWith(isOn: v == 1)),
+        ),
+        if (model != null) ...[
+          _SettingRow(
+            label: 'Model',
+            child: SonicDropdown<int>(
+              value: model.wireIndex,
+              items: [
+                for (final m in models) (value: m.wireIndex, label: m.name),
+              ],
+              isEnabled: !isLoading,
+              onChanged: (v) {
+                final next = models.firstWhere((m) => m.wireIndex == v);
+
+                setGlobalEq(
+                  ref,
+                  eq.copyWith(model: v, slots: next.defaultSlots()),
+                );
+              },
+            ),
+          ),
+          Wrap(
+            children: [
+              for (final p in model.params)
+                KnobControl(
+                  value: p.fromSlot(eq.slots[p.algId]).clamp(p.min, p.max),
+                  min: p.min,
+                  max: p.max,
+                  step: p.step,
+                  label: p.name,
+                  valueText: p.textFor(
+                    p.fromSlot(eq.slots[p.algId]).clamp(p.min, p.max),
+                  ),
+                  isEnabled: !isLoading,
+                  isHoldToTurnOnTouch: true,
+                  size: 60,
+                  onChanged: (v) =>
+                      setGlobalEq(ref, eq.withSlot(p.algId, p.toSlot(v))),
+                ),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+}
+
 /// The CFW screen themes, in the pedal's order.
 const List<SonicItem<int>> _cfwThemes = [
   (value: 0, label: 'Default'),

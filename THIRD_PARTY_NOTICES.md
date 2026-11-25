@@ -41,3 +41,10 @@ its own license (predominantly BSD-3-Clause, MIT, and Apache-2.0):
   crate's license on https://crates.io.
 
 Run `flutter pub deps` / inspect `Cargo.lock` for the exact resolved versions.
+
+## Sonicake CFW app data
+
+`app/assets/data/cfw_eq_models.json` and the reference files under
+`docs/cfw-protocol/cfw-app-data/` come from the Sonicake CFW web app
+(https://pocketmaster-cfw.guitar-training-generator.com/), a fork of SonicMaster
+whose About dialog states its CFW additions are under the same MIT License.

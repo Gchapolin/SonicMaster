@@ -28,6 +28,7 @@ class KnobControl extends HookWidget {
     required this.label,
     required this.onChanged,
     this.unit,
+    this.valueText,
     this.isEnabled = true,
     this.size = 120,
     this.isHoldToTurnOnTouch = false,
@@ -55,6 +56,9 @@ class KnobControl extends HookWidget {
   final num step;
   final String label;
   final String? unit;
+
+  /// Replaces the readout (value + unit) with a ready-made text, e.g. "26Hz".
+  final String? valueText;
   final ValueChanged<num> onChanged;
   final bool isEnabled;
   final double size;
@@ -300,7 +304,7 @@ class KnobControl extends HookWidget {
               width: size,
               child: Center(
                 child: Text(
-                  '$value${unit ?? ''}',
+                  valueText ?? '$value${unit ?? ''}',
                   style: metrics.knobValueStyle,
                 ),
               ),

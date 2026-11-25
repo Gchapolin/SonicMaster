@@ -1,10 +1,15 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sonicmaster/device/device_service.dart';
+import 'package:sonicmaster/model/cfw_eq_models.dart';
+import 'package:sonicmaster/model/cfw_global_eq.dart';
 import 'package:sonicmaster/model/global_settings.dart';
+import 'package:sonicmaster/protocol/cfw_geq_codec.dart';
 import 'package:sonicmaster/protocol/cfw_setting_writer.dart';
 import 'package:sonicmaster/protocol/cfw_settings_decoder.dart';
 import 'package:sonicmaster/state/cfw_providers.dart';
@@ -300,6 +305,90 @@ void main() {
 
       expect(tester.takeException(), isNull);
       expect(inDialog(find.text('Theme')), findsOneWidget);
+    });
+  });
+
+  group('CFW Global EQ', () {
+    final cfw = decodeCfwSettingsFrame(cfwSettingsOriginal)!;
+    final models = parseCfwEqModels(
+      jsonDecode(File('assets/data/cfw_eq_models.json').readAsStringSync())
+          as Map<String, dynamic>,
+    );
+    const studio = CfwGlobalEq(
+      isOn: true,
+      model: 0,
+      slots: [4, 0, 0, 0, 0, 50, 7, 100],
+    );
+    List<Override> withEq(CfwGlobalEq? eq) => [
+      connectionStateProvider.overrideWith((_) => true),
+      cfwInfoProvider.overrideWith((_) => cfw),
+      cfwEqModelsProvider.overrideWith((_) => models),
+      globalEqProvider.overrideWith((_) => eq),
+    ];
+
+    testWidgets('shows the model, its knobs and their texts', (tester) async {
+      await openSettings(
+        tester,
+        size: const Size(1280, 800),
+        extra: withEq(studio),
+      );
+
+      expect(inDialog(find.text('Global EQ')), findsWidgets);
+      expect(inDialog(find.text('Studio EQ')), findsOneWidget);
+      expect(inDialog(find.text('BASS')), findsOneWidget);
+      expect(inDialog(find.text('+2.0dB')), findsOneWidget);
+      expect(inDialog(find.text('26Hz')), findsOneWidget);
+    });
+
+    testWidgets('is absent on stock firmware', (tester) async {
+      await openSettings(tester, size: const Size(1280, 800));
+
+      expect(inDialog(find.text('Global EQ')), findsNothing);
+    });
+
+    testWidgets('picking a model sends the block with its defaults', (
+      tester,
+    ) async {
+      final transport = await openSettings(
+        tester,
+        size: const Size(1280, 800),
+        extra: withEq(studio),
+      );
+
+      await tester.ensureVisible(inDialog(find.text('Studio EQ')));
+      await tester.pumpAndSettle();
+      await tester.tap(inDialog(find.text('Studio EQ')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Parametric 3').last);
+      await tester.pumpAndSettle();
+
+      expect(
+        transport.sentFrames.map((f) => f.toLowerCase()),
+        contains(
+          buildGlobalEqFrame(
+            const CfwGlobalEq(
+              isOn: true,
+              model: 1,
+              slots: [0, 0, 0, 0, 0, 50, 33, 40],
+            ),
+          ).toLowerCase(),
+        ),
+      );
+      expect(inDialog(find.text('LOW F')), findsOneWidget);
+      await tester.pump(const Duration(seconds: 1));
+    });
+
+    testWidgets('an unknown model shows only the switch', (tester) async {
+      await openSettings(
+        tester,
+        size: const Size(1280, 800),
+        extra: withEq(studio.copyWith(model: 5)),
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(inDialog(find.text('Global EQ')), findsWidgets);
+      expect(inDialog(find.text('BASS')), findsNothing);
+      expect(inDialog(find.text('Model')), findsNothing);
     });
   });
 }

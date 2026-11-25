@@ -59,8 +59,9 @@ class CfwEqModel {
     final slots = List<int>.filled(8, 0);
 
     for (final p in params) {
-      if (p.algId >= 0 && p.algId < 8)
+      if (p.algId >= 0 && p.algId < 8) {
         slots[p.algId] = p.toSlot(p.defaultValue);
+      }
     }
 
     return slots;

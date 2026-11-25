@@ -3,6 +3,7 @@ import 'package:flutter/material.dart'; // Icons glyph font only
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../state/cfw_providers.dart';
 import '../state/device_providers.dart';
 import '../state/names_providers.dart';
 import '../state/preset_io.dart';
@@ -149,6 +150,7 @@ class TopBar extends ConsumerWidget {
                         onPressed: (isConnected && !isLoading)
                             ? () {
                                 refreshGlobalSettings(ref);
+                                refreshGlobalEq(ref);
                                 showSonicDialog<void>(
                                   context: context,
                                   builder: (_) => const GlobalSettingsDialog(),

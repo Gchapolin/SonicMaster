@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import '../protocol/cfw_geq_codec.dart';
 import '../protocol/cfw_setting_writer.dart';
 import '../protocol/cfw_settings_decoder.dart';
 import '../protocol/inbound_message.dart';
@@ -260,6 +261,18 @@ class DeviceService {
 
         return b.length < 10 ? null : b[8] | (b[9] << 8);
       },
+      timeout: timeout,
+    ),
+  );
+
+  /// Requests the CFW Global EQ block (`12 3A`); null on timeout.
+  Future<String?> requestGlobalEq({
+    Duration timeout = const Duration(seconds: 1),
+  }) => _serialized(
+    () => awaitFirst<String>(
+      inbound,
+      () => sendFrame(readGlobalEqFrame()),
+      (m) => m is DataFrame && _isReplyTo(m.hex, 0x3A) ? m.hex : null,
       timeout: timeout,
     ),
   );

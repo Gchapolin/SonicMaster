@@ -1,6 +1,13 @@
+import 'dart:convert';
+
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../model/cfw_eq_models.dart';
+import '../model/cfw_global_eq.dart';
+
 import '../model/cfw_info.dart';
+import '../protocol/cfw_geq_codec.dart';
 import '../protocol/cfw_setting_writer.dart';
 import '../protocol/cfw_settings_decoder.dart';
 import 'device_providers.dart';
@@ -44,6 +51,7 @@ Future<void> refreshDspLoad(WidgetRef ref) async {
 
 /// Drops the CFW state, at the start of every connection.
 void clearCfwState(WidgetRef ref) {
+  ref.read(globalEqProvider.notifier).state = null;
   ref.read(cfwInfoProvider.notifier).state = null;
   ref.read(dspLoadProvider.notifier).state = null;
 }
@@ -97,5 +105,46 @@ Future<void> pollCfwStatus(WidgetRef ref) async {
     if (dsp.mounted) dsp.state = null;
   } finally {
     _statusPollInFlight = false;
+  }
+}
+
+/// The CFW Global EQ models (bundled data).
+final cfwEqModelsProvider = FutureProvider<List<CfwEqModel>>(
+  (_) async => parseCfwEqModels(
+    jsonDecode(await rootBundle.loadString('assets/data/cfw_eq_models.json'))
+        as Map<String, dynamic>,
+  ),
+);
+
+/// The pedal's Global EQ block; null until read (or on stock firmware).
+final globalEqProvider = StateProvider<CfwGlobalEq?>((_) => null);
+
+/// Reads the Global EQ block into [globalEqProvider]; a missed read keeps the
+/// last value. A no-op on stock firmware.
+Future<void> refreshGlobalEq(WidgetRef ref) async {
+  if (ref.read(cfwInfoProvider) == null) return;
+
+  final service = ref.read(deviceServiceProvider);
+  final eq = ref.read(globalEqProvider.notifier);
+
+  try {
+    final hex = await service.requestGlobalEq();
+    final decoded = hex == null ? null : decodeGlobalEqFrame(hex);
+
+    if (decoded != null && eq.mounted) eq.state = decoded;
+  } catch (_) {
+    // Best-effort: the section keeps what it had.
+  }
+}
+
+/// Sets the Global EQ: shows it at once and sends the whole block.
+Future<void> setGlobalEq(WidgetRef ref, CfwGlobalEq value) async {
+  final service = ref.read(deviceServiceProvider);
+
+  ref.read(globalEqProvider.notifier).state = value;
+  try {
+    await service.sendAndAwaitAck(buildGlobalEqFrame(value));
+  } catch (_) {
+    // A failed send leaves the shown value; the next read corrects it.
   }
 }
