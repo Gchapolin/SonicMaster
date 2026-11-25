@@ -10,9 +10,11 @@ import '../model/cfw_global_eq.dart';
 import '../model/cfw_info.dart';
 import '../model/cfw_scenes.dart';
 import '../model/command_library.dart';
+import '../model/midi_map.dart';
 import '../model/preset_ref.dart';
 import '../protocol/cfw_exp_codec.dart';
 import '../protocol/cfw_geq_codec.dart';
+import '../protocol/cfw_midi_map_codec.dart';
 import '../protocol/cfw_preset_order_codec.dart';
 import '../protocol/cfw_scene_codec.dart';
 import '../protocol/cfw_setting_writer.dart';
@@ -62,6 +64,7 @@ Future<void> refreshDspLoad(WidgetRef ref) async {
 void clearCfwState(WidgetRef ref) {
   clearSceneState(ref);
   ref.read(globalEqProvider.notifier).state = null;
+  ref.read(midiMapProvider.notifier).state = null;
   ref.read(cfwInfoProvider.notifier).state = null;
   ref.read(dspLoadProvider.notifier).state = null;
 }
@@ -446,6 +449,70 @@ Future<bool> moveUserPreset(WidgetRef ref, int from, int to) async {
   if (loaded != null && loaded.bank == PresetBank.user) {
     current.state = PresetRef(.user, source.indexOf(loaded.number) + 1);
   }
+
+  return true;
+}
+
+/// The rows of the pedal's custom MIDI map; null until read (or when the read
+/// failed), so an unread map is never mistaken for an empty one.
+final midiMapProvider = StateProvider<List<MidiMapEntry>?>((_) => null);
+
+/// Reads the pedal's custom MIDI map into [midiMapProvider]: the summary,
+/// then pages of eight rows. Any missed or short read leaves it null. A no-op
+/// on stock firmware.
+Future<void> refreshMidiMap(WidgetRef ref) async {
+  if (ref.read(cfwInfoProvider) == null) return;
+
+  final service = ref.read(deviceServiceProvider);
+  final map = ref.read(midiMapProvider.notifier);
+  List<MidiMapEntry>? rows;
+
+  try {
+    final infoHex = await service.requestMidiMapInfo();
+    final info = infoHex == null ? null : decodeMidiMapInfo(infoHex);
+
+    if (info != null && info.count <= MidiMapEntry.maxEntries) {
+      rows = [];
+      while (rows != null && rows.length < info.count) {
+        final hex = await service.requestMidiMapPage(rows.length);
+        final page = hex == null ? null : decodeMidiMapPage(hex);
+
+        rows = page == null || page.entries.isEmpty || page.first != rows.length
+            ? null
+            : [...rows, ...page.entries];
+      }
+    }
+  } catch (_) {
+    rows = null;
+  }
+
+  if (map.mounted) map.state = rows;
+}
+
+/// Replaces the pedal's custom MIDI map with [entries], keeping the pedal's
+/// custom-map options (first PC, level CC range). Every frame waits for its
+/// ack; a missing one stops the write (the pedal only switches maps on the
+/// commit). Returns whether the pedal took it all.
+Future<bool> saveMidiMap(WidgetRef ref, List<MidiMapEntry> entries) async {
+  final cfw = ref.read(cfwInfoProvider);
+
+  if (cfw == null || entries.length > MidiMapEntry.maxEntries) return false;
+
+  final service = ref.read(deviceServiceProvider);
+  final map = ref.read(midiMapProvider.notifier);
+
+  try {
+    for (final frame in buildMidiMapFrames(
+      options: cfw.customMapOptions,
+      entries: entries,
+    )) {
+      if (!await service.sendAndAwaitAck(frame)) return false;
+    }
+  } catch (_) {
+    return false;
+  }
+
+  if (map.mounted) map.state = [...entries];
 
   return true;
 }

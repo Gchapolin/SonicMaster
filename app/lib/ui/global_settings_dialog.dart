@@ -15,6 +15,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_text.dart';
 import 'eq_curve_view.dart';
 import 'knob_control.dart';
+import 'midi_map_dialog.dart';
 import 'preset_order_section.dart';
 import 'sonic_controls.dart';
 import 'sonic_metrics.dart';
@@ -488,6 +489,19 @@ class _MidiSection extends ConsumerWidget {
             ),
           ),
         ],
+        if (cfw.midiMap == CfwInfo.customMap)
+          _SettingRow(
+            label: 'Custom map rows',
+            child: SonicButton(
+              label: 'Edit map',
+              onPressed: isLoading
+                  ? null
+                  : () => showSonicDialog<void>(
+                      context: context,
+                      builder: (_) => const MidiMapDialog(),
+                    ),
+            ),
+          ),
         _SettingRow(
           label: 'MIDI channel',
           child: SonicDropdown<int>(

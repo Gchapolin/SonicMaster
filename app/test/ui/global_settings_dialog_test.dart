@@ -21,6 +21,7 @@ import 'package:sonicmaster/state/device_providers.dart';
 import 'package:sonicmaster/state/preset_providers.dart';
 import 'package:sonicmaster/ui/eq_curve_view.dart';
 import 'package:sonicmaster/ui/global_settings_dialog.dart';
+import 'package:sonicmaster/ui/midi_map_dialog.dart';
 import 'package:sonicmaster/ui/sonic_controls.dart';
 
 import '../fixtures/cfw_dumps.dart';
@@ -583,6 +584,50 @@ void main() {
       );
 
       expectNoOverflow(tester);
+    });
+  });
+
+  group('CFW custom MIDI map', () {
+    final cfw = decodeCfwSettingsFrame(cfwSettingsOriginal)!;
+
+    testWidgets('Edit map is offered only with the Custom map', (tester) async {
+      await openSettings(
+        tester,
+        size: const Size(1280, 800),
+        extra: [
+          connectionStateProvider.overrideWith((_) => true),
+          cfwInfoProvider.overrideWith((_) => cfw),
+        ],
+      );
+      expect(inDialog(find.text('Edit map')), findsNothing);
+    });
+
+    testWidgets('with the Custom map it opens the editor', (tester) async {
+      await openSettings(
+        tester,
+        size: const Size(1280, 800),
+        extra: [
+          connectionStateProvider.overrideWith((_) => true),
+          cfwInfoProvider.overrideWith(
+            (_) => cfw.copyWithSetting(CfwInfo.midiMapKey, CfwInfo.customMap),
+          ),
+        ],
+      );
+
+      final button = inDialog(find.text('Edit map'));
+
+      await tester.ensureVisible(button);
+      await tester.pump();
+      await tester.tap(button);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.byType(MidiMapDialog), findsOneWidget);
+
+      // The silent pedal never answers the map read: run it out.
+      for (var i = 0; i < 4; i++) {
+        await tester.pump(const Duration(seconds: 1));
+      }
     });
   });
 }

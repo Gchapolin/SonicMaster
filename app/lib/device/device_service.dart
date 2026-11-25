@@ -2,6 +2,7 @@ import 'dart:async';
 
 import '../protocol/cfw_exp_codec.dart';
 import '../protocol/cfw_geq_codec.dart';
+import '../protocol/cfw_midi_map_codec.dart';
 import '../protocol/cfw_preset_order_codec.dart';
 import '../protocol/cfw_scene_codec.dart';
 import '../protocol/cfw_setting_writer.dart';
@@ -343,6 +344,29 @@ class DeviceService {
       timeout: timeout,
     ),
   );
+
+  /// Requests the summary of the CFW's custom MIDI map (`12 39 00`).
+  Future<String?> requestMidiMapInfo({
+    Duration timeout = const Duration(seconds: 1),
+  }) => _midiMapRead(readMidiMapInfoFrame(), 0x00, timeout);
+
+  /// Requests up to eight rows of the custom MIDI map from [first] on
+  /// (`12 39 01 <first>`).
+  Future<String?> requestMidiMapPage(
+    int first, {
+    Duration timeout = const Duration(seconds: 1),
+  }) => _midiMapRead(readMidiMapPageFrame(first), 0x01, timeout);
+
+  Future<String?> _midiMapRead(String frame, int kind, Duration timeout) =>
+      _serialized(
+        () => awaitFirst<String>(inbound, () => sendFrame(frame), (m) {
+          if (m is! DataFrame || !_isReplyTo(m.hex, 0x39)) return null;
+
+          final b = collapseFrame(m.hex)!;
+
+          return b.length > 6 && b[6] == kind ? m.hex : null;
+        }, timeout: timeout),
+      );
 
   /// Requests the CFW's live scene (`12 32`).
   Future<String?> requestCurrentScene({
