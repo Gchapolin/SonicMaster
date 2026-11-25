@@ -3,8 +3,10 @@ import 'package:flutter/material.dart'; // Icons glyph font only
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../model/preset_ref.dart';
 import '../state/cfw_providers.dart';
 import '../state/device_providers.dart';
+import '../state/layout_providers.dart';
 import '../state/names_providers.dart';
 import '../state/preset_io.dart';
 import '../state/preset_providers.dart';
@@ -136,7 +138,13 @@ class TopBar extends ConsumerWidget {
                         Expanded(
                           child: Align(
                             alignment: Alignment.centerLeft,
-                            child: well,
+                            child: well == null
+                                ? null
+                                : _PresetStepper(
+                                    current: current!,
+                                    isEnabled: !isLoading,
+                                    well: well,
+                                  ),
                           ),
                         ),
                         const FullscreenButton(),
@@ -263,6 +271,57 @@ class _LogoZone extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       alignment: Alignment.centerLeft,
       child: const SonicLogo(),
+    );
+  }
+}
+
+/// The phone's quick preset selector: the loaded preset between a previous
+/// and a next arrow. The arrows load the neighbour in the same bank (wrapping
+/// at the ends, after the unsaved-changes question); tapping the preset opens
+/// the preset list.
+class _PresetStepper extends ConsumerWidget {
+  const _PresetStepper({
+    required this.current,
+    required this.isEnabled,
+    required this.well,
+  });
+
+  final PresetRef current;
+  final bool isEnabled;
+  final Widget well;
+
+  static const _presetsPerBank = 50;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // The neighbour [by] steps away, 1..50 wrapping.
+    PresetRef neighbour(int by) => PresetRef(
+      current.bank,
+      (current.number - 1 + by) % _presetsPerBank + 1,
+    );
+
+    Widget arrow(IconData icon, int by) => SonicIconButton(
+      icon: icon,
+      size: 20,
+      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 12),
+      onPressed: isEnabled
+          ? () => pickPreset(context, ref, neighbour(by))
+          : null,
+    );
+
+    return Row(
+      mainAxisSize: .min,
+      children: [
+        arrow(Icons.chevron_left, -1),
+        Flexible(
+          child: SonicHitArea(
+            onTap: () =>
+                ref.read(presetDrawerOpenProvider.notifier).state = true,
+            child: well,
+          ),
+        ),
+        arrow(Icons.chevron_right, 1),
+      ],
     );
   }
 }

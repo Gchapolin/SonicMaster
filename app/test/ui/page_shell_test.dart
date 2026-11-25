@@ -181,7 +181,14 @@ void main() {
         expect(find.byType(PresetRail), findsNothing);
         expect(_inBar(find.byIcon(Icons.terminal)), findsNothing);
         // The leading slot stays empty: the drawer floats its burger there.
-        expect(tester.getRect(presetWell).left, drawerButtonSlotWidth);
+        // The quick selector's previous arrow comes first, then the well.
+        final previous = find.ancestor(
+          of: _inBar(find.byIcon(Icons.chevron_left)),
+          matching: find.byType(SonicIconButton),
+        );
+
+        expect(tester.getRect(previous).left, drawerButtonSlotWidth);
+        expect(tester.getRect(presetWell).left, tester.getRect(previous).right);
         expect(_inBar(find.text('Clean')), findsOneWidget);
         // The connection well drops the device name, keeps glyph + button.
         expect(_inBar(find.text('Smart Box')), findsNothing);
