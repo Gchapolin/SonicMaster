@@ -309,3 +309,6 @@ Reply `12 2D <ver 1> <flags> <mV u16 LE> <charge> <e> <f> <bars> <emptyMv u16 LE
 Bytes 7 and 8 (02 05 here) not decoded beyond the 255 check.
 Other CFW app features not in SonicMaster: Community presets (catalog with Try / Save to), TONE3000 download per IR/Clone slot.
 CFW 1.0.3 is out (Pocket Control / Stock-map CC fixes, .prst import messages, tuner close fix); the pedal runs 1.0.2.
+
+## Live gate 2026-11-25 (integration_test/cfw_battery_live_test.dart, iPad over BLE, CFW 1.0.3)
+`12 2D` read 3 times: 4134 mV, charging (pedal on USB power), 4 bars, flags 0x01, empty 3540 mV. Same layout on 1.0.3.
