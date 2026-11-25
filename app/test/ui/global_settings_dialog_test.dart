@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sonicmaster/device/device_service.dart';
 import 'package:sonicmaster/model/cfw_eq_models.dart';
 import 'package:sonicmaster/model/cfw_global_eq.dart';
+import 'package:sonicmaster/model/cfw_info.dart';
 import 'package:sonicmaster/model/global_settings.dart';
 import 'package:sonicmaster/protocol/cfw_geq_codec.dart';
 import 'package:sonicmaster/protocol/cfw_setting_writer.dart';
@@ -390,5 +391,117 @@ void main() {
       expect(inDialog(find.text('BASS')), findsNothing);
       expect(inDialog(find.text('Model')), findsNothing);
     });
+  });
+
+  group('CFW MIDI', () {
+    final cfw = decodeCfwSettingsFrame(cfwSettingsOriginal)!;
+    List<Override> on(CfwInfo info) => [
+      connectionStateProvider.overrideWith((_) => true),
+      cfwInfoProvider.overrideWith((_) => info),
+    ];
+    Future<void> pick(WidgetTester tester, String current, String next) async {
+      await tester.ensureVisible(inDialog(find.text(current)));
+      await tester.pumpAndSettle();
+      await tester.tap(inDialog(find.text(current)));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(next).last);
+      await tester.pumpAndSettle();
+    }
+
+    List<String> sent(SilentTransport t) =>
+        t.sentFrames.map((f) => f.toLowerCase()).toList();
+
+    testWidgets('shows the MIDI settings of a CFW pedal', (tester) async {
+      await openSettings(tester, size: const Size(1280, 800), extra: on(cfw));
+
+      for (final label in [
+        'MIDI map',
+        'MIDI channel',
+        'Same preset again',
+        'Tempo scope',
+        'Drum Sync',
+      ]) {
+        expect(inDialog(find.text(label)), findsOneWidget, reason: label);
+      }
+      expect(inDialog(find.text('Stock')), findsOneWidget);
+      expect(inDialog(find.text('All channels')), findsOneWidget);
+      // Only the Custom map has these options.
+      expect(inDialog(find.text('First PC')), findsNothing);
+    });
+
+    testWidgets('is absent on stock firmware', (tester) async {
+      await openSettings(tester, size: const Size(1280, 800));
+
+      expect(inDialog(find.text('MIDI map')), findsNothing);
+    });
+
+    testWidgets('map and channel send the captured keys', (tester) async {
+      final t = await openSettings(
+        tester,
+        size: const Size(1280, 800),
+        extra: on(cfw),
+      );
+
+      await pick(tester, 'Stock', 'Chocolate');
+      await pick(tester, 'All channels', 'Channel 2');
+
+      expect(
+        sent(t),
+        containsAll([
+          '8080f00f0a0001000000040101020a01050003f7',
+          '8080f009060001000000040101020a01020002f7',
+        ]),
+      );
+      await tester.pump(const Duration(seconds: 1));
+    });
+
+    testWidgets('same-again, tempo scope and drum sync send their keys', (
+      tester,
+    ) async {
+      final t = await openSettings(
+        tester,
+        size: const Size(1280, 800),
+        extra: on(cfw),
+      );
+
+      await tester.ensureVisible(inDialog(find.text('CYCLE')));
+      await tester.pumpAndSettle();
+      await tester.tap(inDialog(find.text('CYCLE')));
+      await tester.tap(inDialog(find.text('GLOBAL')));
+      await tester.pump();
+
+      expect(
+        sent(t),
+        containsAll([
+          '8080f00a000001000000040101020a01010001f7',
+          '8080f00c0b0001000000040101020a01060001f7',
+        ]),
+      );
+      await tester.pump(const Duration(seconds: 1));
+    });
+
+    testWidgets(
+      'the Custom map adds First PC and the CC range (one bitfield)',
+      (tester) async {
+        final t = await openSettings(
+          tester,
+          size: const Size(1280, 800),
+          extra: on(cfw.copyWithSetting(0x15, 1).copyWithSetting(0x17, 1)),
+        );
+
+        expect(inDialog(find.text('First PC')), findsOneWidget);
+        await tester.ensureVisible(inDialog(find.text('0..127')));
+        await tester.pumpAndSettle();
+        await tester.tap(inDialog(find.text('0..127')));
+        await tester.pump();
+
+        // bit0 (PC 1) kept, bit1 (0..127) added -> 3.
+        expect(
+          sent(t),
+          contains(CfwSettingWriter.setting(0x17, 3).toLowerCase()),
+        );
+        await tester.pump(const Duration(seconds: 1));
+      },
+    );
   });
 }

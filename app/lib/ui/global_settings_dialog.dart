@@ -287,6 +287,8 @@ class GlobalSettingsDialog extends ConsumerWidget {
                       value: g.eco,
                       isLoading: isLoading,
                     ),
+                    if (cfw != null)
+                      _MidiSection(cfw: cfw, isLoading: isLoading),
                     if (cfw != null) ...[
                       const _SectionHeader('Footswitches'),
                       _SettingRow(
@@ -413,6 +415,112 @@ class _GlobalEqSection extends ConsumerWidget {
             ],
           ),
         ],
+      ],
+    );
+  }
+}
+
+/// The CFW MIDI settings: map, channel, what a repeated preset message does,
+/// tempo scope and drum sync; the Custom map adds its two options.
+class _MidiSection extends ConsumerWidget {
+  const _MidiSection({required this.cfw, required this.isLoading});
+
+  final CfwInfo cfw;
+  final bool isLoading;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    void set(int key, int value) => setCfwSetting(ref, key, value);
+    final options = cfw.customMapOptions;
+
+    return Column(
+      mainAxisSize: .min,
+      crossAxisAlignment: .stretch,
+      children: [
+        const _SectionHeader('MIDI'),
+        _SettingRow(
+          label: 'MIDI map',
+          child: SonicDropdown<int>(
+            value: cfw.midiMap,
+            items: const [
+              (value: 0, label: 'Stock'),
+              (value: 3, label: 'Chocolate'),
+              (value: 2, label: 'Generic MIDI'),
+              (value: 1, label: 'Custom'),
+            ],
+            isEnabled: !isLoading,
+            onChanged: (v) => set(CfwInfo.midiMapKey, v),
+          ),
+        ),
+        if (cfw.midiMap == CfwInfo.customMap) ...[
+          _SettingRow(
+            label: 'First PC',
+            child: SonicSegmented<int>(
+              value: options & 1,
+              segments: const [
+                (value: 0, label: 'PC 0'),
+                (value: 1, label: 'PC 1'),
+              ],
+              onChanged: (v) =>
+                  set(CfwInfo.customMapOptionsKey, (options & ~1) | v),
+            ),
+          ),
+          _SettingRow(
+            label: 'Level CC range',
+            child: SonicSegmented<int>(
+              value: options & 2,
+              segments: const [
+                (value: 0, label: '0..100'),
+                (value: 2, label: '0..127'),
+              ],
+              onChanged: (v) =>
+                  set(CfwInfo.customMapOptionsKey, (options & ~2) | v),
+            ),
+          ),
+        ],
+        _SettingRow(
+          label: 'MIDI channel',
+          child: SonicDropdown<int>(
+            value: cfw.midiChannel,
+            items: [
+              (value: 0, label: 'All channels'),
+              for (var ch = 1; ch <= 16; ch++)
+                (value: ch, label: 'Channel $ch'),
+            ],
+            isEnabled: !isLoading,
+            onChanged: (v) => set(CfwInfo.midiChannelKey, v),
+          ),
+        ),
+        _SettingRow(
+          label: 'Same preset again',
+          child: SonicSegmented<int>(
+            value: cfw.sameAgain,
+            segments: const [
+              (value: 0, label: 'Off'),
+              (value: 1, label: 'Cycle'),
+              (value: 2, label: 'Back'),
+            ],
+            onChanged: (v) => set(CfwInfo.sameAgainKey, v),
+          ),
+        ),
+        _SettingRow(
+          label: 'Tempo scope',
+          child: SonicSegmented<int>(
+            value: cfw.tempoScope,
+            segments: const [
+              (value: 0, label: 'Preset'),
+              (value: 1, label: 'Global'),
+            ],
+            onChanged: (v) => set(CfwInfo.tempoScopeKey, v),
+          ),
+        ),
+        _SwitchRow(
+          label: 'Drum Sync',
+          name: 'drumSync',
+          value: cfw.drumSync ? 1 : 0,
+          isLoading: isLoading,
+          write: (v) => set(CfwInfo.drumSyncKey, v),
+        ),
       ],
     );
   }

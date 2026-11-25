@@ -15,6 +15,15 @@ class CfwInfo {
   static const usbRecKey = 0x04;
   static const pedalModeKey = 0x06;
   static const sceneKey = 0x10;
+  static const sameAgainKey = 0x11;
+  static const midiChannelKey = 0x12;
+  static const midiMapKey = 0x15;
+  static const tempoScopeKey = 0x16;
+  static const customMapOptionsKey = 0x17;
+  static const drumSyncKey = 0x27;
+
+  /// MIDI map value of the user's own (Custom) map.
+  static const customMap = 1;
 
   /// e.g. `CFW1.0.2`.
   final String version;
@@ -39,6 +48,25 @@ class CfwInfo {
 
   /// 0 PRESET, 1 STOMP, 2 SCENE.
   int get pedalMode => settings[pedalModeKey] ?? 0;
+
+  /// 0 Stock, 1 Custom, 2 Generic MIDI, 3 Chocolate.
+  int get midiMap => settings[midiMapKey] ?? 0;
+
+  /// 0 all channels, 1..16 one channel.
+  int get midiChannel => settings[midiChannelKey] ?? 0;
+
+  /// What a MIDI message for the already-loaded preset does: 0 off, 1 cycle
+  /// (BASE -> SC1 -> SC2), 2 back to the previous preset.
+  int get sameAgain => settings[sameAgainKey] ?? 0;
+
+  /// 0 per preset, 1 global.
+  int get tempoScope => settings[tempoScopeKey] ?? 0;
+
+  bool get drumSync => (settings[drumSyncKey] ?? 0) != 0;
+
+  /// Custom-map options bitfield: bit0 first PC is PC 1 (else PC 0), bit1
+  /// level CCs span 0..127 (else 0..100).
+  int get customMapOptions => settings[customMapOptionsKey] ?? 0;
 
   CfwInfo copyWithSetting(int key, int value) => CfwInfo(
     version: version,
