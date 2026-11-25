@@ -11,6 +11,7 @@ import '../state/names_providers.dart';
 import '../state/preset_providers.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text.dart';
+import 'exp_controls.dart';
 import 'knob_control.dart';
 import 'scene_controls.dart';
 import 'sonic_controls.dart';
@@ -260,6 +261,13 @@ class ModuleEditor extends ConsumerWidget {
           },
         ),
         SceneControls(moduleId: physId),
+        ExpControls(
+          moduleId: physId,
+          params: [
+            for (final p in def.params)
+              if (p.widgetType == .knob || p.widgetType == .eqBand) p,
+          ],
+        ),
         // Effect description (from the web app data), set off with an accent
         // rule down the left edge.
         if (metrics.isEffectDescriptionVisible && def.descriptionEn.isNotEmpty)
