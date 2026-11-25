@@ -10,7 +10,9 @@ import 'package:sonicmaster/model/cfw_eq_models.dart';
 import 'package:sonicmaster/model/cfw_global_eq.dart';
 import 'package:sonicmaster/model/cfw_info.dart';
 import 'package:sonicmaster/model/global_settings.dart';
+import 'package:sonicmaster/model/preset_ref.dart';
 import 'package:sonicmaster/protocol/cfw_geq_codec.dart';
+import 'package:sonicmaster/protocol/cfw_preset_order_codec.dart';
 import 'package:sonicmaster/protocol/cfw_setting_writer.dart';
 import 'package:sonicmaster/protocol/cfw_settings_decoder.dart';
 import 'package:sonicmaster/state/cfw_providers.dart';
@@ -505,5 +507,82 @@ void main() {
         await tester.pump(const Duration(seconds: 1));
       },
     );
+  });
+
+  group('CFW preset order', () {
+    final cfw = decodeCfwSettingsFrame(cfwSettingsOriginal)!;
+
+    testWidgets('is absent on stock firmware', (tester) async {
+      await openSettings(tester, size: const Size(1280, 800));
+
+      expect(inDialog(find.text('PRESET ORDER')), findsNothing);
+      expect(inDialog(find.text('Move preset')), findsNothing);
+    });
+
+    testWidgets('moving to the same position is not offered', (tester) async {
+      final transport = await openSettings(
+        tester,
+        size: const Size(1280, 800),
+        extra: [
+          connectionStateProvider.overrideWith((_) => true),
+          cfwInfoProvider.overrideWith((_) => cfw),
+          currentPresetProvider.overrideWith((_) => const PresetRef(.user, 1)),
+        ],
+      );
+      final button = inDialog(find.text('Move preset'));
+
+      await tester.ensureVisible(button);
+      await tester.pump();
+      await tester.tap(button);
+      await tester.pump();
+
+      expect(
+        transport.sentFrames.map((f) => f.toLowerCase()),
+        isNot(contains(readPresetOrderFrame().toLowerCase())),
+      );
+    });
+
+    testWidgets('a different position asks the pedal for its order', (
+      tester,
+    ) async {
+      final transport = await openSettings(
+        tester,
+        size: const Size(1280, 800),
+        extra: [
+          connectionStateProvider.overrideWith((_) => true),
+          cfwInfoProvider.overrideWith((_) => cfw),
+          currentPresetProvider.overrideWith((_) => const PresetRef(.user, 2)),
+        ],
+      );
+      final button = inDialog(find.text('Move preset'));
+
+      await tester.ensureVisible(button);
+      await tester.pump();
+      await tester.tap(button);
+      await tester.pump();
+
+      expect(
+        transport.sentFrames.map((f) => f.toLowerCase()),
+        contains(readPresetOrderFrame().toLowerCase()),
+      );
+
+      // The silent pedal never answers: run out the read.
+      for (var i = 0; i < 3; i++) {
+        await tester.pump(const Duration(seconds: 1));
+      }
+    });
+
+    testWidgets('phone: the section fits', (tester) async {
+      await openSettings(
+        tester,
+        size: const Size(852, 393),
+        extra: [
+          connectionStateProvider.overrideWith((_) => true),
+          cfwInfoProvider.overrideWith((_) => cfw),
+        ],
+      );
+
+      expectNoOverflow(tester);
+    });
   });
 }

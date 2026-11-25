@@ -2,6 +2,7 @@ import 'dart:async';
 
 import '../protocol/cfw_exp_codec.dart';
 import '../protocol/cfw_geq_codec.dart';
+import '../protocol/cfw_preset_order_codec.dart';
 import '../protocol/cfw_scene_codec.dart';
 import '../protocol/cfw_setting_writer.dart';
 import '../protocol/cfw_settings_decoder.dart';
@@ -327,6 +328,18 @@ class DeviceService {
       inbound,
       () => sendFrame(readTunerFrame()),
       (m) => m is DataFrame && _isReplyTo(m.hex, 0x3F) ? m.hex : null,
+      timeout: timeout,
+    ),
+  );
+
+  /// Requests the CFW's preset order table (`12 37`).
+  Future<String?> requestPresetOrder({
+    Duration timeout = const Duration(seconds: 1),
+  }) => _serialized(
+    () => awaitFirst<String>(
+      inbound,
+      () => sendFrame(readPresetOrderFrame()),
+      (m) => m is DataFrame && _isReplyTo(m.hex, 0x37) ? m.hex : null,
       timeout: timeout,
     ),
   );

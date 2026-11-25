@@ -9,8 +9,11 @@ import '../model/cfw_global_eq.dart';
 
 import '../model/cfw_info.dart';
 import '../model/cfw_scenes.dart';
+import '../model/command_library.dart';
+import '../model/preset_ref.dart';
 import '../protocol/cfw_exp_codec.dart';
 import '../protocol/cfw_geq_codec.dart';
+import '../protocol/cfw_preset_order_codec.dart';
 import '../protocol/cfw_scene_codec.dart';
 import '../protocol/cfw_setting_writer.dart';
 import '../protocol/cfw_settings_decoder.dart';
@@ -381,4 +384,68 @@ Future<void> setSceneModuleState(WidgetRef ref, int module, bool? isOn) async {
 
   _storeRecord(ref, r);
   await _sendScene(ref, buildSceneRecordFrame(r));
+}
+
+/// Moves the User preset at position [from] to position [to] (1-based, as the
+/// labels P01..P50); the presets in between shift by one. The CFW only
+/// rewrites its order table: no preset is changed, but MIDI and footswitch
+/// preset numbers then select different sounds. Returns whether the pedal
+/// took the whole table. A no-op (false) on stock firmware.
+Future<bool> moveUserPreset(WidgetRef ref, int from, int to) async {
+  bool isSlot(int n) => n >= 1 && n <= presetOrderLength;
+
+  if (ref.read(cfwInfoProvider) == null ||
+      !isSlot(from) ||
+      !isSlot(to) ||
+      from == to) {
+    return false;
+  }
+
+  final service = ref.read(deviceServiceProvider);
+  final names = ref.read(presetNamesProvider.notifier);
+  final current = ref.read(currentPresetProvider.notifier);
+
+  try {
+    final hex = await service.requestPresetOrder();
+    final order = hex == null ? null : decodePresetOrderFrame(hex);
+
+    if (order == null) return false;
+
+    final frames = buildPresetOrderFrames(
+      token: order.token,
+      entries: movePreset(order.entries, from: from - 1, to: to - 1),
+    );
+
+    for (final frame in frames) {
+      if (!await service.sendAndAwaitAck(frame)) return false;
+    }
+  } catch (_) {
+    return false;
+  }
+
+  if (!names.mounted) return true;
+
+  // Where each position's preset came from, 1-based.
+  final source = movePreset(
+    [for (var i = 1; i <= presetOrderLength; i++) i],
+    from: from - 1,
+    to: to - 1,
+  );
+  final old = names.state;
+
+  names.state = {
+    for (final e in old.entries)
+      if (e.key.bank != PresetBank.user) e.key: e.value,
+    for (final (i, src) in source.indexed)
+      if (old[PresetRef(.user, src)] case final name?)
+        PresetRef(.user, i + 1): name,
+  };
+
+  final loaded = current.state;
+
+  if (loaded != null && loaded.bank == PresetBank.user) {
+    current.state = PresetRef(.user, source.indexOf(loaded.number) + 1);
+  }
+
+  return true;
 }

@@ -219,3 +219,24 @@ Pocket Master having no expression input.
 - Tuner: open / close are acked; flags 0x10 closed, 0x15 open. A4 441 -> flags 0x1D and the A4 field reads 441
   (bit3 = A4 not 440); mute -> 0x05, bypass -> 0x15 (bit4 = output bypassed, clear = muted; bit5 was a wrong guess).
   A4 440 and bypass restored, tuner closed. No string was played: a reading with a note is still unverified.
+
+## Capture session 3 (2026-11-25, CFW web app over BLE)
+### Register 0x37: preset order (User bank), moved P18 <-> P17 and moved back
+- read `12 37` -> `12 37 01 <state> <token> <50 entries>`: entry i = the stored slot (0-based) shown at position i.
+  Identity order: state 02, token 83, entries 00..31. After the swap: state 00, token CB, entries ... 0F 11 10 12 ...
+- write `11 37 01 <token of the table read just before> <50 entries>` (54 bytes). The second write (back to
+  identity) carried CB, so the byte is the current table's token (compare-and-swap), not one of the new table.
+- The write is a multi-packet frame: 3 packets with header `<crc> <total = 03> <index 00..02> <len>` and at most
+  19 payload bytes each (19 + 19 + 16); the pedal acks each (`14 08 00`). Then the app reads `12 37` again.
+- "No preset is changed, only their positions" (web app text): the pedal remaps; presets are not rewritten.
+- The web app downloads `preset-order-<date>-<time>.json` (2213 bytes) before each write.
+- Not known: how the token is computed (not needed to write), state values other than 00 / 02.
+### Whole-pedal backup ("Back up now"): reads only, in this order
+- `12 4F <slot 0..49> 00 00 00` x 50: the stored preset, a 5-packet reply (4 x 424 + 1 x 408 hex chars on the wire).
+- per slot 0..49: `12 34 <slot>` (that preset's scene records, same "SC" block as `12 33`: empty = `53 43 01 00 08 00 ff ff`)
+  and `12 3D <slot>` (that preset's EXP A-D; `12 3D` with no argument is the loaded preset).
+- then `12 39 00` (custom MIDI map), `12 2A`, `12 3A`, `12 37`, `12 28`, `12 29`, `12 38 00 00 <page 0..5>` (the data of
+  the one stored Clone, six pages), `12 10`.
+- File: `sonicake-cfw-backup-CFW1.0.2-<date>-<time>.smbackup.json` (61 KB), type `sonicmaster-cfw-backup`, format 1, with
+  sections presets / scenes / midiPedals / midiMap / order / globals / cfwSettings / globalEq / irs / clones.
+- Restore was NOT run (it rewrites all 50 presets), so the write side (`11 4F` ...?) is unknown.

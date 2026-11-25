@@ -15,6 +15,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_text.dart';
 import 'eq_curve_view.dart';
 import 'knob_control.dart';
+import 'preset_order_section.dart';
 import 'sonic_controls.dart';
 import 'sonic_metrics.dart';
 
@@ -305,6 +306,10 @@ class GlobalSettingsDialog extends ConsumerWidget {
                               setCfwSetting(ref, CfwInfo.pedalModeKey, v),
                         ),
                       ),
+                    ],
+                    if (cfw != null) ...[
+                      const _SectionHeader('Preset order'),
+                      const PresetOrderSection(),
                     ],
                     const _SectionHeader('Power'),
                     _SwitchRow(
