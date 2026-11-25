@@ -240,3 +240,8 @@ Pocket Master having no expression input.
 - File: `sonicake-cfw-backup-CFW1.0.2-<date>-<time>.smbackup.json` (61 KB), type `sonicmaster-cfw-backup`, format 1, with
   sections presets / scenes / midiPedals / midiMap / order / globals / cfwSettings / globalEq / irs / clones.
 - Restore was NOT run (it rewrites all 50 presets), so the write side (`11 4F` ...?) is unknown.
+
+## Live gate 2026-11-25 (integration_test/cfw_order_live_test.dart, iPad over BLE, CFW 1.0.2)
+- Preset order: swapped P50 / P49 with the app's own three packets (all acked): `12 37` read back ... 49, 48 with token
+  0x91, and the stock preset-names dump came back in the new order (P49 = MegaVerb, P50 = MVerbOCdrv). Swapped back:
+  identity, token 0x83, names as before.
