@@ -265,4 +265,19 @@ void main() {
       });
     }
   });
+
+  testWidgets('CFW slots 6-10 get the file actions of slots 1-5', (
+    tester,
+  ) async {
+    await pumpEditor(tester, moduleId: 4, fxId: 422);
+    expect(find.text('Load…'), findsOneWidget);
+    expect(find.text('Clear'), findsOneWidget);
+
+    await pumpEditor(tester, moduleId: 9, fxId: 910, isCloneMode: true);
+    expect(find.text('Load…'), findsOneWidget);
+
+    // The factory cab between the two IR ranges has none.
+    await pumpEditor(tester, moduleId: 4, fxId: 421);
+    expect(find.text('Load…'), findsNothing);
+  });
 }

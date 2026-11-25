@@ -245,3 +245,15 @@ Pocket Master having no expression input.
 - Preset order: swapped P50 / P49 with the app's own three packets (all acked): `12 37` read back ... 49, 48 with token
   0x91, and the stock preset-names dump came back in the new order (P49 = MegaVerb, P50 = MVerbOCdrv). Swapped back:
   identity, token 0x83, names as before.
+
+## Capture session 4 (2026-11-25, CFW web app over BLE): files into slot 6
+Slots 6-10 take the stock commands with slot index 5..9; only the index differs.
+- IR upload (User IR 6, a 1024-sample synthetic wav named "test_ir"): reads `12 28`, `12 20`, then the stock blob
+  `11 21 00 00 00 00 <slot 05> 00 10 0A <64-byte name> <512 x int32 LE>` (2122 bytes, 112 packets, each acked), then the
+  commit notification `12 1B 04 00 00 00` and `12 28` again.
+- IR clear: `11 23 05 00 10 0A` -> ack, `12 1B 04 ...`.
+- Clone upload (User Profile 6, a .nam through "Convert"): reads `12 29`, `12 24`, then the stock blob
+  `11 25 00 00 00 00 <slot 05> 00 00 0F <name> ...` (146 packets), commit `12 1B 03 00 00 00`.
+- Clone clear: `11 27 05 00 00 0F` -> ack, `12 1B 03 ...`.
+- Both test slots were cleared again; both clears committed without a power cycle.
+- Not captured: rename of slots 6-10, the web app's "Import as is" NAM path, names longer than 10 characters.

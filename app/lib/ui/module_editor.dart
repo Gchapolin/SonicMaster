@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../model/effect_parameter.dart';
 import '../model/footswitch_assignment.dart';
 import '../model/footswitch_state.dart';
+import '../protocol/cfw_slot_names_codec.dart';
 import '../state/cfw_providers.dart';
 import '../state/data_providers.dart';
 import '../state/device_providers.dart';
@@ -183,22 +184,33 @@ class ModuleEditor extends ConsumerWidget {
                     onChanged: isLoading ? null : (v) => setAmpMode(ref, v),
                   ),
                 ),
-              // User-IR slots (module 4, fxId 416–420): load a WAV into the
-              // slot, rename it, or clear it.
-              if (moduleId == 4 && fxId != null && fxId >= 416 && fxId <= 420)
-                UserIrActions(
-                  slot: fxId - 416,
-                  isEnabled: isConnected && !isLoading,
-                  currentName: effectDisplayName(fxId, data.effects, userNames),
-                ),
-              // User-Profile clone slots (module 9, fxId 901–905): convert a
-              // .nam natively and load it into the selected slot.
-              if (moduleId == 9 && fxId != null && fxId >= 901 && fxId <= 905)
-                UserProfileActions(
-                  slot: fxId - 901,
-                  isEnabled: isConnected && !isLoading,
-                  currentName: effectDisplayName(fxId, data.effects, userNames),
-                ),
+              // User-IR slots (module 4): load a WAV into the slot, rename it
+              // or clear it. Slots 6-10 (fxId 422-426) exist on the CFW only
+              // and take the same commands (seen in the capture).
+              if (moduleId == 4 && fxId != null)
+                if (userIrSlotOf(fxId) case final slot?)
+                  UserIrActions(
+                    slot: slot,
+                    isEnabled: isConnected && !isLoading,
+                    currentName: effectDisplayName(
+                      fxId,
+                      data.effects,
+                      userNames,
+                    ),
+                  ),
+              // User-Profile clone slots (module 9): convert a .nam natively
+              // and load it into the selected slot (6-10 on the CFW only).
+              if (moduleId == 9 && fxId != null)
+                if (userProfileSlotOf(fxId) case final slot?)
+                  UserProfileActions(
+                    slot: slot,
+                    isEnabled: isConnected && !isLoading,
+                    currentName: effectDisplayName(
+                      fxId,
+                      data.effects,
+                      userNames,
+                    ),
+                  ),
               for (final p in def.params)
                 _control(
                   context,
