@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../device/device_service.dart';
+import '../l10n/slots_text.dart';
 import '../protocol/clo_generator.dart';
 import '../protocol/clo_upload_frame.dart';
 import '../protocol/nam_format.dart';
@@ -16,7 +17,7 @@ import 'preset_providers.dart';
 /// + display name, or null if the user cancels.
 Future<({String namJson, String name})?> pickNamForClone(int slot) async {
   final res = await FilePicker.platform.pickFiles(
-    dialogTitle: 'Load NAM profile into User Profile ${slot + 1}',
+    dialogTitle: SlotsText.current.pickNamTitle(slot + 1),
     type: .custom,
     allowedExtensions: const ['nam'],
     withData: true,
@@ -56,7 +57,7 @@ Future<void> convertAndUploadClone(
   final name = _slotName(fileName);
 
   try {
-    status.state = 'Converting NAM…';
+    status.state = SlotsText.current.convertingNam;
     final profile = await const CloGenerator().fromNam(namJson);
 
     final chunks = CloUploadFrame.buildChunks(
@@ -70,27 +71,28 @@ Future<void> convertAndUploadClone(
         ref.read(importProgressProvider.notifier).state = total == 0
             ? null
             : sent / total;
-        status.state = 'Uploading clone… $sent/$total';
+        status.state = '${SlotsText.current.uploadingClone} $sent/$total';
       },
     );
 
     status.state = switch (result) {
-      .committed => 'Clone "$name" → User Profile ${slot + 1}',
-      .noAck => 'Clone upload failed (no ACK)',
-      .notCommitted =>
-        'Clone sent but not saved — power-cycle the pedal, then retry',
+      .committed => SlotsText.current.cloneCommitted(name, slot + 1),
+      .noAck => SlotsText.current.cloneUploadNoAck,
+      .notCommitted => SlotsText.current.cloneNotCommitted,
     };
 
     if (result != .committed) {
-      throw ImportException(status.state ?? 'Clone upload failed');
+      throw ImportException(
+        status.state ?? SlotsText.current.cloneUploadFailed,
+      );
     }
   } on ImportException {
     rethrow;
   } catch (e) {
-    status.state = 'NAM convert failed: $e';
+    status.state = SlotsText.current.namConvertFailed(e);
 
     throw ImportException(
-      'Conversion failed:\n$e',
+      SlotsText.current.conversionFailed(e),
       isFormatError: looksLikeNamFormatError(e),
     );
   } finally {
@@ -107,16 +109,16 @@ Future<void> renameCloneSlot(WidgetRef ref, int slot, String name) =>
       CloUploadFrame.buildChunks(
         CloUploadFrame.buildRenameBlob(slot: slot, name: name),
       ),
-      busy: 'renaming…',
-      done: 'renamed User Profile ${slot + 1}',
+      busy: SlotsText.current.renaming,
+      done: SlotsText.current.renamedProfile(slot + 1),
     );
 
 /// Clears User-Profile [slot] (0-based) on the pedal, then refreshes the names.
 Future<void> clearCloneSlot(WidgetRef ref, int slot) => _runCloneCommand(
   ref,
   CloUploadFrame.buildChunks(CloUploadFrame.buildClearBlob(slot: slot)),
-  busy: 'clearing…',
-  done: 'cleared User Profile ${slot + 1} — power-cycle before the next edit',
+  busy: SlotsText.current.clearing,
+  done: SlotsText.current.clearedProfile(slot + 1),
 );
 
 /// Sends a small chunked clone command (rename/clear) with the same commit flow
@@ -139,11 +141,11 @@ Future<void> _runCloneCommand(
 
     status.state = switch (result) {
       .committed => done,
-      .noAck => 'Clone command failed (no ACK)',
-      .notCommitted => 'not saved — power-cycle the pedal, then retry',
+      .noAck => SlotsText.current.cloneCommandNoAck,
+      .notCommitted => SlotsText.current.notCommitted,
     };
   } catch (e) {
-    status.state = 'Clone command failed: $e';
+    status.state = SlotsText.current.cloneCommandFailed(e);
   } finally {
     ref.read(presetLoadingProvider.notifier).state = false;
   }

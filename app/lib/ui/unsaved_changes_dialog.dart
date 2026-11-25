@@ -1,5 +1,7 @@
 import 'package:flutter/widgets.dart';
 
+import '../l10n/common_text.dart';
+import '../l10n/presets_text.dart';
 import '../theme/app_text.dart';
 import 'sonic_controls.dart';
 
@@ -16,24 +18,20 @@ Future<bool> showUnsavedChangesDialog(BuildContext context) async {
         mainAxisSize: .min,
         crossAxisAlignment: .stretch,
         children: [
-          const Text('Discard unsaved changes?', style: AppText.dialogTitle),
+          Text(PresetsText.current.discardTitle, style: AppText.dialogTitle),
           const SizedBox(height: 12),
-          const Text(
-            'The current preset has edits that are not saved to a slot. '
-            'Loading another preset will discard them.',
-            style: AppText.dialogBody,
-          ),
+          Text(PresetsText.current.discardBody, style: AppText.dialogBody),
           const SizedBox(height: 22),
           Row(
             mainAxisAlignment: .end,
             children: [
               SonicButton(
-                label: 'Cancel',
+                label: CommonText.current.cancel,
                 onPressed: () => Navigator.of(context).pop(false),
               ),
               const SizedBox(width: 10),
               SonicButton(
-                label: 'Discard',
+                label: PresetsText.current.discard,
                 isAccent: true,
                 onPressed: () => Navigator.of(context).pop(true),
               ),

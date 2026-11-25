@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import '../l10n/presets_text.dart';
+
 /// Where the Sonicake CFW web app publishes its community presets: the
 /// catalogue is `catalog.json`, each preset file is relative to it.
 const communityBaseUrl =
@@ -40,7 +42,7 @@ List<CommunityPreset> decodeCommunityCatalog(String text) {
       json['type'] != 'sonicake-cfw-community-catalog' ||
       json['schema'] is! int ||
       (json['schema'] as int) > 1) {
-    throw const FormatException('Not a community catalogue this app can read');
+    throw FormatException(PresetsText.current.notACatalogue);
   }
 
   String? str(Map e, String key) => e[key] is String ? e[key] as String : null;

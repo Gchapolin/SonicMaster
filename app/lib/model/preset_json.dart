@@ -1,3 +1,4 @@
+import '../l10n/presets_text.dart';
 import 'cfw_scenes.dart';
 import 'data_assets.dart';
 import 'decoded_preset_state.dart';
@@ -113,7 +114,9 @@ ImportedPreset importedPresetFromJson(
   DataAssets data,
 ) {
   if (json['version'] != presetJsonVersion) {
-    throw FormatException('Unsupported preset version: ${json['version']}');
+    throw FormatException(
+      PresetsText.current.unsupportedPresetVersion(json['version']),
+    );
   }
 
   final warnings = <String>[];
@@ -165,9 +168,7 @@ ImportedPreset importedPresetFromJson(
     final fxId = effectIdByName(effectName);
 
     if (fxId == null) {
-      throw FormatException(
-        'Module "$key" references unknown effect "$effectName"',
-      );
+      throw FormatException(PresetsText.current.unknownEffect(key, effectName));
     }
 
     selectedEffects[effModuleId] = fxId;

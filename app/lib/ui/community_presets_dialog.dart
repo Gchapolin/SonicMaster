@@ -2,6 +2,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../l10n/common_text.dart';
+import '../l10n/presets_text.dart';
 import '../model/community_catalog.dart';
 import '../state/community_presets.dart';
 import '../state/device_providers.dart';
@@ -73,7 +75,7 @@ class CommunityPresetsDialog extends HookConsumerWidget {
               Row(
                 children: [
                   SonicButton(
-                    label: 'Try',
+                    label: PresetsText.current.tryLabel,
                     height: 38,
                     minWidth: 84,
                     isAccent: true,
@@ -81,7 +83,7 @@ class CommunityPresetsDialog extends HookConsumerWidget {
                   ),
                   const SizedBox(width: 8),
                   SonicButton(
-                    label: 'Save to…',
+                    label: PresetsText.current.saveTo,
                     height: 38,
                     minWidth: 100,
                     onPressed: canRun ? () => run(p, save: true) : null,
@@ -91,7 +93,7 @@ class CommunityPresetsDialog extends HookConsumerWidget {
                   if (!isBusy && tried)
                     Expanded(
                       child: Text(
-                        error ?? 'On the pedal. Save to keep it.',
+                        error ?? PresetsText.current.onThePedal,
                         style: AppText.dialogBody.copyWith(
                           fontSize: 12,
                           color: error == null ? null : Palette.error,
@@ -112,18 +114,11 @@ class CommunityPresetsDialog extends HookConsumerWidget {
         mainAxisSize: .min,
         crossAxisAlignment: .stretch,
         children: [
-          const Text('Community presets', style: AppText.dialogTitle),
+          Text(PresetsText.current.communityTitle, style: AppText.dialogTitle),
           const SizedBox(height: 4),
-          const Text(
-            'Shared by players in the Sonicake CFW community '
-            '(pocketmaster-cfw.guitar-training-generator.com).',
-            style: AppText.dialogBody,
-          ),
+          Text(PresetsText.current.communityIntro, style: AppText.dialogBody),
           if (!ref.watch(connectionStateProvider))
-            const Text(
-              'Connect a pedal to try a preset.',
-              style: AppText.dialogBody,
-            ),
+            Text(PresetsText.current.connectToTry, style: AppText.dialogBody),
           ...catalog.when(
             data: (list) => [for (final p in list) card(p)],
             loading: () => const [
@@ -134,16 +129,15 @@ class CommunityPresetsDialog extends HookConsumerWidget {
             ],
             error: (_, _) => [
               const SizedBox(height: 12),
-              const Text(
-                'The community catalogue could not be read. Check the '
-                'connection and retry.',
+              Text(
+                PresetsText.current.catalogueUnreadable,
                 style: AppText.dialogBody,
               ),
               const SizedBox(height: 8),
               Align(
                 alignment: .centerLeft,
                 child: SonicButton(
-                  label: 'Retry',
+                  label: CommonText.current.retry,
                   onPressed: () => ref.invalidate(communityCatalogProvider),
                 ),
               ),
@@ -153,7 +147,7 @@ class CommunityPresetsDialog extends HookConsumerWidget {
           Align(
             alignment: .centerRight,
             child: SonicButton(
-              label: 'Close',
+              label: CommonText.current.close,
               onPressed: () => Navigator.pop(context),
             ),
           ),

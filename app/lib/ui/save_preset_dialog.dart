@@ -2,6 +2,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../l10n/common_text.dart';
+import '../l10n/presets_text.dart';
 import '../state/names_providers.dart';
 import '../state/preset_providers.dart';
 import '../theme/app_colors.dart';
@@ -79,12 +81,15 @@ class SavePresetDialog extends HookConsumerWidget {
           mainAxisSize: .min,
           crossAxisAlignment: .stretch,
           children: [
-            const Text('Save preset', style: AppText.dialogTitle),
+            Text(
+              PresetsText.current.savePresetTitle,
+              style: AppText.dialogTitle,
+            ),
             const SizedBox(height: 12),
             Row(
               mainAxisAlignment: .spaceBetween,
               children: [
-                const Text('Preset name', style: AppText.inputLabel),
+                Text(PresetsText.current.presetName, style: AppText.inputLabel),
                 Text('${nameText.length}/10', style: AppText.inputHint),
               ],
             ),
@@ -93,7 +98,7 @@ class SavePresetDialog extends HookConsumerWidget {
               controller: name,
               autofocus: true,
               maxLength: 10,
-              hintText: 'Name',
+              hintText: PresetsText.current.nameHint,
               style: AppText.input,
               onSubmitted: (_) {
                 // Compact with the soft keyboard up: Done only closes the
@@ -136,14 +141,14 @@ class SavePresetDialog extends HookConsumerWidget {
               mainAxisAlignment: .end,
               children: [
                 SonicButton(
-                  label: 'Cancel',
+                  label: CommonText.current.cancel,
                   onPressed: isSaving.value
                       ? null
                       : () => Navigator.pop(context, false),
                 ),
                 const SizedBox(width: 10),
                 SonicButton(
-                  label: 'Save',
+                  label: CommonText.current.save,
                   isAccent: true,
                   onPressed: isSaveEnabled ? save : null,
                 ),

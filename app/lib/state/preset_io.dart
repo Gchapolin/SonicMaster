@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../l10n/presets_text.dart';
 import '../model/cfw_models.dart';
 import '../model/chain_order.dart';
 import '../model/effect_parameter.dart';
@@ -48,15 +49,15 @@ Future<void> exportPreset(WidgetRef ref) async {
     final saved = await saveBytesFile(
       fileName: '${name.replaceAll(RegExp(r'\s+'), '_')}.json',
       bytes: utf8.encode(str),
-      dialogTitle: 'Export preset',
+      dialogTitle: PresetsText.current.exportDialogTitle,
       extensions: const ['json'],
     );
 
     if (saved == null) return; // cancelled
 
-    status.state = 'exported to $saved';
+    status.state = PresetsText.current.exportedTo(saved);
   } catch (e) {
-    status.state = 'export failed: $e';
+    status.state = PresetsText.current.exportFailed(e);
   }
 }
 
@@ -73,7 +74,7 @@ Future<void> importPreset(WidgetRef ref) async {
 
   try {
     final res = await FilePicker.platform.pickFiles(
-      dialogTitle: 'Import preset',
+      dialogTitle: PresetsText.current.importDialogTitle,
       type: .custom,
       allowedExtensions: const ['json'],
       withData: true,
@@ -90,7 +91,7 @@ Future<void> importPreset(WidgetRef ref) async {
       data,
     );
   } catch (e) {
-    status.state = 'import failed: $e';
+    status.state = PresetsText.current.importFailed(e);
 
     return;
   }
@@ -112,7 +113,7 @@ Future<bool> pushImportedPreset(WidgetRef ref, ImportedPreset imported) async {
   if (ref.read(presetLoadingProvider)) return false;
 
   if (cfwOnlyEffectName(ref, imported) case final name?) {
-    status.state = 'import failed: $name needs the CFW firmware';
+    status.state = PresetsText.current.needsCfw(name);
 
     return false;
   }
@@ -210,13 +211,12 @@ Future<bool> pushImportedPreset(WidgetRef ref, ImportedPreset imported) async {
     if (isCfw) await refreshScenes(ref);
     ref.read(presetModifiedProvider.notifier).state = true;
 
-    final warn = imported.warnings.isEmpty
-        ? ''
-        : ' (${imported.warnings.length} warning(s))';
-
-    status.state = 'imported${skipped > 0 ? ', $skipped skipped' : ''}$warn';
+    status.state = PresetsText.current.imported(
+      skipped,
+      imported.warnings.length,
+    );
   } catch (e) {
-    status.state = 'import push failed: $e';
+    status.state = PresetsText.current.importPushFailed(e);
 
     return false;
   } finally {

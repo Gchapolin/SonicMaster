@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../device/device_service.dart';
+import '../l10n/slots_text.dart';
 import '../protocol/ir_upload_frame.dart';
 import '../protocol/wav_ir.dart';
 import 'device_providers.dart';
@@ -15,7 +16,7 @@ import 'preset_providers.dart';
 /// display name, or null if the user cancels.
 Future<({Uint8List bytes, String name})?> pickIrForUpload(int slot) async {
   final res = await FilePicker.platform.pickFiles(
-    dialogTitle: 'Load IR into User IR ${slot + 1}',
+    dialogTitle: SlotsText.current.pickIrTitle(slot + 1),
     type: .custom,
     allowedExtensions: const ['wav'],
     withData: true,
@@ -56,12 +57,12 @@ Future<void> uploadIr(
         IrUploadFrame.buildBlob(slot: slot, name: name, samples: samples),
       );
     } catch (e) {
-      status.state = 'IR decode failed: $e';
+      status.state = SlotsText.current.irDecodeFailed(e);
 
-      throw ImportException('Could not read this WAV file:\n$e');
+      throw ImportException(SlotsText.current.cannotReadWav(e));
     }
 
-    status.state = 'Uploading IR…';
+    status.state = SlotsText.current.uploadingIr;
 
     final result = await _writeIrSlot(
       ref,
@@ -70,26 +71,25 @@ Future<void> uploadIr(
         ref.read(importProgressProvider.notifier).state = total == 0
             ? null
             : sent / total;
-        status.state = 'Uploading IR… $sent/$total';
+        status.state = '${SlotsText.current.uploadingIr} $sent/$total';
       },
     );
 
     status.state = switch (result) {
-      .committed => 'IR "$name" → User IR ${slot + 1}',
-      .noAck => 'IR upload failed (no ACK)',
-      .notCommitted =>
-        'IR sent but not saved — power-cycle the pedal, then retry',
+      .committed => SlotsText.current.irCommitted(name, slot + 1),
+      .noAck => SlotsText.current.irUploadNoAck,
+      .notCommitted => SlotsText.current.irNotCommitted,
     };
 
     if (result != .committed) {
-      throw ImportException(status.state ?? 'IR upload failed');
+      throw ImportException(status.state ?? SlotsText.current.irUploadFailed);
     }
   } on ImportException {
     rethrow;
   } catch (e) {
-    status.state = 'IR upload failed: $e';
+    status.state = '${SlotsText.current.irUploadFailed}: $e';
 
-    throw ImportException('IR upload failed:\n$e');
+    throw ImportException('${SlotsText.current.irUploadFailed}:\n$e');
   } finally {
     ref.read(presetLoadingProvider.notifier).state = false;
     ref.read(importProgressProvider.notifier).state = null;
@@ -104,8 +104,8 @@ Future<void> renameIrSlot(WidgetRef ref, int slot, String name) =>
       IrUploadFrame.buildChunks(
         IrUploadFrame.buildRenameBlob(slot: slot, name: name),
       ),
-      busy: 'renaming…',
-      done: 'renamed User IR ${slot + 1}',
+      busy: SlotsText.current.renaming,
+      done: SlotsText.current.renamedIr(slot + 1),
     );
 
 /// Clears User-IR [slot] (0-based) on the connected pedal, then refreshes the
@@ -113,8 +113,8 @@ Future<void> renameIrSlot(WidgetRef ref, int slot, String name) =>
 Future<void> clearIrSlot(WidgetRef ref, int slot) => _runIrCommand(
   ref,
   IrUploadFrame.buildChunks(IrUploadFrame.buildClearBlob(slot: slot)),
-  busy: 'clearing…',
-  done: 'cleared User IR ${slot + 1} — power-cycle before the next IR edit',
+  busy: SlotsText.current.clearing,
+  done: SlotsText.current.clearedIr(slot + 1),
 );
 
 /// Sends a small chunked User-IR command (rename/clear) with the same commit
@@ -137,11 +137,11 @@ Future<void> _runIrCommand(
 
     status.state = switch (result) {
       .committed => done,
-      .noAck => 'IR command failed (no ACK)',
-      .notCommitted => 'not saved — power-cycle the pedal, then retry',
+      .noAck => SlotsText.current.irCommandNoAck,
+      .notCommitted => SlotsText.current.notCommitted,
     };
   } catch (e) {
-    status.state = 'IR command failed: $e';
+    status.state = SlotsText.current.irCommandFailed(e);
   } finally {
     ref.read(presetLoadingProvider.notifier).state = false;
   }

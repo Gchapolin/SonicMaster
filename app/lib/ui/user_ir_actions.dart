@@ -5,6 +5,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../l10n/common_text.dart';
+import '../l10n/slots_text.dart';
 import '../protocol/ir_upload_frame.dart';
 import '../state/import_exception.dart';
 import '../state/ir_upload.dart';
@@ -41,21 +43,21 @@ class UserIrActions extends ConsumerWidget {
       mainAxisSize: .min,
       children: [
         SonicButton(
-          label: 'Load…',
+          label: SlotsText.current.load,
           height: buttonHeight,
           minWidth: 72,
           onPressed: isEnabled ? () => _load(context, ref) : null,
         ),
         const SizedBox(width: 4),
         SonicButton(
-          label: 'Name…',
+          label: SlotsText.current.name,
           height: buttonHeight,
           minWidth: 72,
           onPressed: isEnabled ? () => _rename(context, ref) : null,
         ),
         const SizedBox(width: 4),
         SonicButton(
-          label: 'Clear',
+          label: SlotsText.current.clear,
           height: buttonHeight,
           minWidth: 72,
           onPressed: isEnabled ? () => _clear(context, ref) : null,
@@ -63,7 +65,9 @@ class UserIrActions extends ConsumerWidget {
       ],
     );
 
-    return inPanel ? PanelCell(label: 'IR File', control: buttons) : buttons;
+    return inPanel
+        ? PanelCell(label: SlotsText.current.irFile, control: buttons)
+        : buttons;
   }
 
   /// Picks a WAV, then uploads it into the slot behind a non-dismissible progress
@@ -78,7 +82,7 @@ class UserIrActions extends ConsumerWidget {
       picked = await pickIrForUpload(slot);
     } catch (e) {
       if (context.mounted) {
-        await _showError(context, 'IR load failed', '$e');
+        await _showError(context, SlotsText.current.irLoadFailed, '$e');
       }
 
       return;
@@ -92,8 +96,9 @@ class UserIrActions extends ConsumerWidget {
       showSonicDialog<void>(
         context: context,
         barrierDismissible: false,
-        builder: (_) =>
-            ImportProgressDialog(title: 'Importing to User IR ${slot + 1}'),
+        builder: (_) => ImportProgressDialog(
+          title: SlotsText.current.importingToIr(slot + 1),
+        ),
       ),
     );
 
@@ -115,7 +120,11 @@ class UserIrActions extends ConsumerWidget {
     }
 
     if (failure != null && context.mounted) {
-      await _showError(context, 'IR import failed', failure.message);
+      await _showError(
+        context,
+        SlotsText.current.irImportFailed,
+        failure.message,
+      );
     }
   }
 
@@ -146,23 +155,23 @@ class UserIrActions extends ConsumerWidget {
           mainAxisSize: .min,
           crossAxisAlignment: .stretch,
           children: [
-            Text('Clear User IR ${slot + 1}?', style: AppText.dialogTitle),
-            const SizedBox(height: 12),
-            const Text(
-              'This erases the loaded impulse response.',
-              style: AppText.dialogBody,
+            Text(
+              SlotsText.current.clearIrTitle(slot + 1),
+              style: AppText.dialogTitle,
             ),
+            const SizedBox(height: 12),
+            Text(SlotsText.current.clearIrBody, style: AppText.dialogBody),
             const SizedBox(height: 22),
             Row(
               mainAxisAlignment: .end,
               children: [
                 SonicButton(
-                  label: 'Cancel',
+                  label: CommonText.current.cancel,
                   onPressed: () => Navigator.pop(dialogContext, false),
                 ),
                 const SizedBox(width: 10),
                 SonicButton(
-                  label: 'Clear',
+                  label: SlotsText.current.clear,
                   isAccent: true,
                   onPressed: () => Navigator.pop(dialogContext, true),
                 ),
@@ -203,12 +212,15 @@ class _RenameIrDialog extends HookWidget {
         mainAxisSize: .min,
         crossAxisAlignment: .stretch,
         children: [
-          Text('Rename User IR ${slot + 1}', style: AppText.dialogTitle),
+          Text(
+            SlotsText.current.renameIrTitle(slot + 1),
+            style: AppText.dialogTitle,
+          ),
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: .spaceBetween,
             children: [
-              const Text('Name', style: AppText.inputLabel),
+              Text(SlotsText.current.nameLabel, style: AppText.inputLabel),
               Text(
                 '${nameText.length}/${IrUploadFrame.nameMaxChars}',
                 style: AppText.inputHint,
@@ -220,7 +232,7 @@ class _RenameIrDialog extends HookWidget {
             controller: name,
             autofocus: true,
             maxLength: IrUploadFrame.nameMaxChars,
-            hintText: 'Name',
+            hintText: SlotsText.current.nameLabel,
             style: AppText.input,
             onSubmitted: (_) => submit(),
           ),
@@ -229,12 +241,12 @@ class _RenameIrDialog extends HookWidget {
             mainAxisAlignment: .end,
             children: [
               SonicButton(
-                label: 'Cancel',
+                label: CommonText.current.cancel,
                 onPressed: () => Navigator.pop(context),
               ),
               const SizedBox(width: 10),
               SonicButton(
-                label: 'Rename',
+                label: SlotsText.current.rename,
                 isAccent: true,
                 onPressed: isRenameEnabled ? submit : null,
               ),

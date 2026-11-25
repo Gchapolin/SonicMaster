@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../device/device_service.dart';
+import '../l10n/presets_text.dart';
 import '../model/chain_order.dart';
 import '../model/data_assets.dart';
 import '../model/decoded_preset_state.dart';
@@ -71,7 +72,11 @@ Future<void> loadPreset(WidgetRef ref, PresetRef preset) async {
   final data = dataAsync.valueOrNull;
 
   if (data == null) {
-    status(dataAsync.hasError ? 'data load failed' : 'data still loading…');
+    status(
+      dataAsync.hasError
+          ? PresetsText.current.dataLoadFailed
+          : PresetsText.current.dataLoading,
+    );
 
     return;
   }
@@ -79,7 +84,7 @@ Future<void> loadPreset(WidgetRef ref, PresetRef preset) async {
   final frame = data.commands.presetSelect(preset.bank, preset.number);
 
   if (frame == null) {
-    status('no command for ${preset.label}');
+    status(PresetsText.current.noCommandFor(preset.label));
 
     return;
   }
@@ -94,13 +99,13 @@ Future<void> loadPreset(WidgetRef ref, PresetRef preset) async {
       ref.read(currentPresetProvider.notifier).state = preset;
       ref.read(presetModifiedProvider.notifier).state = false;
       clearSceneState(ref); // the old preset's scenes
-      status('loaded ${preset.label}');
+      status(PresetsText.current.loaded(preset.label));
       await refreshDecodedState(ref); // fetch + decode the preset's content
     } else {
-      status('${preset.label}: no ACK (timeout)');
+      status(PresetsText.current.noAck(preset.label));
     }
   } catch (e) {
-    status('${preset.label}: send failed — $e');
+    status(PresetsText.current.sendFailedFor(preset.label, e));
   } finally {
     ref.read(presetLoadingProvider.notifier).state = false;
   }
@@ -351,7 +356,8 @@ Future<void> setEffectType(WidgetRef ref, int moduleId, int effectId) async {
   try {
     await ref.read(deviceServiceProvider).sendFrame(frame);
   } catch (e) {
-    ref.read(presetLoadStatusProvider.notifier).state = 'edit failed: $e';
+    ref.read(presetLoadStatusProvider.notifier).state = PresetsText.current
+        .editFailed(e);
 
     return;
   }
@@ -378,7 +384,8 @@ Future<void> toggleModule(WidgetRef ref, int moduleId, bool isOn) async {
   try {
     await ref.read(deviceServiceProvider).sendFrame(frame);
   } catch (e) {
-    ref.read(presetLoadStatusProvider.notifier).state = 'edit failed: $e';
+    ref.read(presetLoadStatusProvider.notifier).state = PresetsText.current
+        .editFailed(e);
 
     return;
   }
@@ -408,7 +415,8 @@ Future<void> reorderChain(WidgetRef ref, List<List<String>> newGroups) async {
   final frame = data.commands.chainOrderCommand(chainKey(newGroups));
 
   if (frame == null) {
-    ref.read(presetLoadStatusProvider.notifier).state = 'reorder unavailable';
+    ref.read(presetLoadStatusProvider.notifier).state =
+        PresetsText.current.reorderUnavailable;
 
     return;
   }
@@ -430,7 +438,8 @@ Future<void> reorderChain(WidgetRef ref, List<List<String>> newGroups) async {
   try {
     await ref.read(deviceServiceProvider).sendFrame(frame);
   } catch (e) {
-    ref.read(presetLoadStatusProvider.notifier).state = 'edit failed: $e';
+    ref.read(presetLoadStatusProvider.notifier).state = PresetsText.current
+        .editFailed(e);
   }
 }
 
@@ -468,7 +477,8 @@ Future<void> setParameter(
   try {
     await ref.read(deviceServiceProvider).sendFrame(frame);
   } catch (e) {
-    ref.read(presetLoadStatusProvider.notifier).state = 'edit failed: $e';
+    ref.read(presetLoadStatusProvider.notifier).state = PresetsText.current
+        .editFailed(e);
 
     return;
   }
@@ -510,7 +520,7 @@ Future<bool> savePreset(WidgetRef ref, int slot, String name) async {
     final ok = await ref.read(deviceServiceProvider).sendAndAwaitAck(frame);
 
     if (!ok) {
-      status.state = 'save: no ACK (timeout)';
+      status.state = PresetsText.current.saveNoAck;
 
       return false;
     }
@@ -539,11 +549,14 @@ Future<bool> savePreset(WidgetRef ref, int slot, String name) async {
       saved: name,
     };
     ref.read(presetModifiedProvider.notifier).state = false;
-    status.state = 'saved "$name" to U${slot.toString().padLeft(2, '0')}';
+    status.state = PresetsText.current.savedTo(
+      name,
+      'U${slot.toString().padLeft(2, '0')}',
+    );
 
     return true;
   } catch (e) {
-    status.state = 'save failed: $e';
+    status.state = PresetsText.current.saveFailed(e);
 
     return false;
   } finally {
@@ -572,7 +585,8 @@ Future<void> setPresetVolume(WidgetRef ref, int value) async {
   try {
     await ref.read(deviceServiceProvider).sendFrame(frame);
   } catch (e) {
-    ref.read(presetLoadStatusProvider.notifier).state = 'edit failed: $e';
+    ref.read(presetLoadStatusProvider.notifier).state = PresetsText.current
+        .editFailed(e);
 
     return;
   }
@@ -608,7 +622,8 @@ Future<void> setPresetBpm(WidgetRef ref, int value) async {
   try {
     await ref.read(deviceServiceProvider).sendFrame(frame);
   } catch (e) {
-    ref.read(presetLoadStatusProvider.notifier).state = 'edit failed: $e';
+    ref.read(presetLoadStatusProvider.notifier).state = PresetsText.current
+        .editFailed(e);
 
     return;
   }
@@ -668,7 +683,8 @@ Future<void> setModuleFootswitch(
       await ref.read(deviceServiceProvider).sendFrame(frame);
     }
   } catch (e) {
-    ref.read(presetLoadStatusProvider.notifier).state = 'edit failed: $e';
+    ref.read(presetLoadStatusProvider.notifier).state = PresetsText.current
+        .editFailed(e);
 
     return;
   }
@@ -709,7 +725,8 @@ Future<void> setGlobalVolume(WidgetRef ref, int value) async {
   try {
     await ref.read(deviceServiceProvider).sendFrame(frame);
   } catch (e) {
-    ref.read(presetLoadStatusProvider.notifier).state = 'edit failed: $e';
+    ref.read(presetLoadStatusProvider.notifier).state = PresetsText.current
+        .editFailed(e);
 
     return;
   }
@@ -855,7 +872,7 @@ Future<void> setGlobalLevel(WidgetRef ref, String name, int value) async {
   try {
     await ref.read(deviceServiceProvider).sendFrame(frame);
   } catch (e) {
-    status.state = 'edit failed: $e';
+    status.state = PresetsText.current.editFailed(e);
 
     return;
   }
@@ -911,7 +928,7 @@ Future<void> setGlobalSetting(WidgetRef ref, String name, int value) async {
   try {
     await ref.read(deviceServiceProvider).sendFrame(frame);
   } catch (e) {
-    status.state = 'edit failed: $e';
+    status.state = PresetsText.current.editFailed(e);
 
     return;
   }
@@ -963,7 +980,7 @@ Future<void> setExpFsTarget(
   try {
     await ref.read(deviceServiceProvider).sendFrame(frame);
   } catch (e) {
-    status.state = 'edit failed: $e';
+    status.state = PresetsText.current.editFailed(e);
 
     return;
   }
@@ -985,9 +1002,9 @@ Future<void> factoryReset(WidgetRef ref) async {
 
   try {
     await ref.read(deviceServiceProvider).sendFrame(frame);
-    status.state = 'factory reset — pedal rebooting';
+    status.state = PresetsText.current.factoryReset;
   } catch (e) {
-    status.state = 'reset failed: $e';
+    status.state = PresetsText.current.resetFailed(e);
   }
 }
 
@@ -1009,7 +1026,8 @@ Future<void> setAmpMode(WidgetRef ref, bool isClone) async {
   try {
     await ref.read(deviceServiceProvider).sendFrame(frame);
   } catch (e) {
-    ref.read(presetLoadStatusProvider.notifier).state = 'edit failed: $e';
+    ref.read(presetLoadStatusProvider.notifier).state = PresetsText.current
+        .editFailed(e);
 
     return;
   }

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../l10n/presets_text.dart';
 import '../model/community_catalog.dart';
 import '../model/preset_json.dart';
 import 'data_providers.dart';
@@ -32,7 +33,7 @@ Future<String?> tryCommunityPreset(
 ) async {
   final data = ref.read(dataAssetsProvider).valueOrNull;
 
-  if (data == null) return 'The effect data is not loaded yet';
+  if (data == null) return PresetsText.current.effectDataNotLoaded;
 
   final ImportedPreset imported;
 
@@ -49,14 +50,14 @@ Future<String?> tryCommunityPreset(
     // Mostly an effect this app cannot select yet (a CFW-only model).
     return e.message;
   } catch (_) {
-    return 'Could not download the preset. Check the connection and retry.';
+    return PresetsText.current.downloadFailed;
   }
 
   if (cfwOnlyEffectName(ref, imported) case final name?) {
-    return 'Uses $name, which needs the CFW firmware';
+    return PresetsText.current.usesCfwModel(name);
   }
 
   return await pushImportedPreset(ref, imported)
       ? null
-      : 'The preset could not be sent to the pedal';
+      : PresetsText.current.sendFailed;
 }

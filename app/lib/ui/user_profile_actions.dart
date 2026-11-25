@@ -4,6 +4,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../l10n/common_text.dart';
+import '../l10n/slots_text.dart';
 import '../protocol/clo_upload_frame.dart';
 import '../protocol/nam_format.dart';
 import '../state/clone_upload.dart';
@@ -43,21 +45,21 @@ class UserProfileActions extends ConsumerWidget {
       mainAxisSize: .min,
       children: [
         SonicButton(
-          label: 'Load…',
+          label: SlotsText.current.load,
           height: buttonHeight,
           minWidth: 72,
           onPressed: isEnabled ? () => _load(context, ref) : null,
         ),
         const SizedBox(width: 4),
         SonicButton(
-          label: 'Name…',
+          label: SlotsText.current.name,
           height: buttonHeight,
           minWidth: 72,
           onPressed: isEnabled ? () => _rename(context, ref) : null,
         ),
         const SizedBox(width: 4),
         SonicButton(
-          label: 'Clear',
+          label: SlotsText.current.clear,
           height: buttonHeight,
           minWidth: 72,
           onPressed: isEnabled ? () => _clear(context, ref) : null,
@@ -66,7 +68,7 @@ class UserProfileActions extends ConsumerWidget {
     );
 
     return inPanel
-        ? PanelCell(label: 'NAM Profile', control: buttons)
+        ? PanelCell(label: SlotsText.current.namProfile, control: buttons)
         : buttons;
   }
 
@@ -90,9 +92,8 @@ class UserProfileActions extends ConsumerWidget {
       if (context.mounted) {
         await _showError(
           context,
-          'Unsupported model format',
-          'This .nam is a "${e.architecture}" model, which the clone converter '
-              "can't convert.",
+          SlotsText.current.unsupportedFormatTitle,
+          SlotsText.current.unsupportedFormatBody(e.architecture),
           showSupportedFormats: true,
         );
       }
@@ -100,7 +101,7 @@ class UserProfileActions extends ConsumerWidget {
       return;
     } catch (e) {
       if (context.mounted) {
-        await _showError(context, 'NAM load failed', '$e');
+        await _showError(context, SlotsText.current.namLoadFailed, '$e');
       }
 
       return;
@@ -113,7 +114,7 @@ class UserProfileActions extends ConsumerWidget {
         context: context,
         barrierDismissible: false,
         builder: (_) => ImportProgressDialog(
-          title: 'Importing to User Profile ${slot + 1}',
+          title: SlotsText.current.importingToProfile(slot + 1),
         ),
       ),
     );
@@ -138,7 +139,7 @@ class UserProfileActions extends ConsumerWidget {
     if (failure != null && context.mounted) {
       await _showError(
         context,
-        'Import failed',
+        SlotsText.current.importFailed,
         failure.message,
         showSupportedFormats: failure.isFormatError,
       );
@@ -181,23 +182,23 @@ class UserProfileActions extends ConsumerWidget {
           mainAxisSize: .min,
           crossAxisAlignment: .stretch,
           children: [
-            Text('Clear User Profile ${slot + 1}?', style: AppText.dialogTitle),
-            const SizedBox(height: 12),
-            const Text(
-              'This erases the loaded clone profile.',
-              style: AppText.dialogBody,
+            Text(
+              SlotsText.current.clearProfileTitle(slot + 1),
+              style: AppText.dialogTitle,
             ),
+            const SizedBox(height: 12),
+            Text(SlotsText.current.clearProfileBody, style: AppText.dialogBody),
             const SizedBox(height: 22),
             Row(
               mainAxisAlignment: .end,
               children: [
                 SonicButton(
-                  label: 'Cancel',
+                  label: CommonText.current.cancel,
                   onPressed: () => Navigator.pop(dialogContext, false),
                 ),
                 const SizedBox(width: 10),
                 SonicButton(
-                  label: 'Clear',
+                  label: SlotsText.current.clear,
                   isAccent: true,
                   onPressed: () => Navigator.pop(dialogContext, true),
                 ),
@@ -238,12 +239,15 @@ class _RenameCloneDialog extends HookWidget {
         mainAxisSize: .min,
         crossAxisAlignment: .stretch,
         children: [
-          Text('Rename User Profile ${slot + 1}', style: AppText.dialogTitle),
+          Text(
+            SlotsText.current.renameProfileTitle(slot + 1),
+            style: AppText.dialogTitle,
+          ),
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: .spaceBetween,
             children: [
-              const Text('Name', style: AppText.inputLabel),
+              Text(SlotsText.current.nameLabel, style: AppText.inputLabel),
               Text(
                 '${nameText.length}/${CloUploadFrame.nameMaxChars}',
                 style: AppText.inputHint,
@@ -255,7 +259,7 @@ class _RenameCloneDialog extends HookWidget {
             controller: name,
             autofocus: true,
             maxLength: CloUploadFrame.nameMaxChars,
-            hintText: 'Name',
+            hintText: SlotsText.current.nameLabel,
             style: AppText.input,
             onSubmitted: (_) => submit(),
           ),
@@ -264,12 +268,12 @@ class _RenameCloneDialog extends HookWidget {
             mainAxisAlignment: .end,
             children: [
               SonicButton(
-                label: 'Cancel',
+                label: CommonText.current.cancel,
                 onPressed: () => Navigator.pop(context),
               ),
               const SizedBox(width: 10),
               SonicButton(
-                label: 'Rename',
+                label: SlotsText.current.rename,
                 isAccent: true,
                 onPressed: isRenameEnabled ? submit : null,
               ),

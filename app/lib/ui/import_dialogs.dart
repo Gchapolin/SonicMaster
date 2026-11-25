@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../l10n/slots_text.dart';
 import '../protocol/nam_format.dart';
 import '../state/preset_providers.dart';
 import '../theme/app_colors.dart';
@@ -17,7 +18,8 @@ class ImportProgressDialog extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final status = ref.watch(presetLoadStatusProvider) ?? 'Preparing…';
+    final status =
+        ref.watch(presetLoadStatusProvider) ?? SlotsText.current.preparing;
     final progress = ref.watch(importProgressProvider);
 
     // The importer pops this route itself once the upload settles, so it must
@@ -122,7 +124,7 @@ class ImportErrorDialog extends StatelessWidget {
           Text(message, style: AppText.dialogBody),
           if (showSupportedFormats) ...[
             const SizedBox(height: 18),
-            Text('SUPPORTED FORMATS', style: AppText.inputLabel),
+            Text(SlotsText.current.supportedFormats, style: AppText.inputLabel),
             const SizedBox(height: 8),
             for (final format in supportedNamFormats)
               Padding(

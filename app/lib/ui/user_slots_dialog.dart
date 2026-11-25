@@ -1,6 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../l10n/common_text.dart';
+import '../l10n/slots_text.dart';
 import '../protocol/cfw_slot_names_codec.dart';
 import '../state/cfw_providers.dart';
 import '../state/data_providers.dart';
@@ -24,6 +26,7 @@ class UserSlotsDialog extends ConsumerWidget {
     final data = ref.watch(dataAssetsProvider).valueOrNull;
     final names = ref.watch(userNamesProvider);
     final count = ref.watch(cfwInfoProvider) == null ? 5 : 10;
+    final t = SlotsText.current;
     final isEnabled =
         ref.watch(connectionStateProvider) && !ref.watch(presetLoadingProvider);
 
@@ -54,9 +57,9 @@ class UserSlotsDialog extends ConsumerWidget {
         mainAxisSize: .min,
         crossAxisAlignment: .stretch,
         children: [
-          const Text('User IR & Clone slots', style: AppText.dialogTitle),
+          Text(t.title, style: AppText.dialogTitle),
           const SizedBox(height: 12),
-          const Text('User IR (cab)', style: AppText.dialogBody),
+          Text(t.irSection, style: AppText.dialogBody),
           for (var slot = 0; slot < count; slot++)
             row(
               'IR ${slot + 1} · ${nameOf(cfwIrEffectId(slot))}',
@@ -68,7 +71,7 @@ class UserSlotsDialog extends ConsumerWidget {
               ),
             ),
           const SizedBox(height: 16),
-          const Text('User Profile (Clone)', style: AppText.dialogBody),
+          Text(t.profileSection, style: AppText.dialogBody),
           for (var slot = 0; slot < count; slot++)
             row(
               'Clone ${slot + 1} · ${nameOf(cfwProfileEffectId(slot))}',
@@ -83,7 +86,7 @@ class UserSlotsDialog extends ConsumerWidget {
           Align(
             alignment: .centerRight,
             child: SonicButton(
-              label: 'Close',
+              label: CommonText.current.close,
               onPressed: () => Navigator.pop(context),
             ),
           ),
