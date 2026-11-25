@@ -5,12 +5,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sonicmaster/device/device_service.dart';
 import 'package:sonicmaster/model/global_settings.dart';
+import 'package:sonicmaster/protocol/cfw_setting_writer.dart';
+import 'package:sonicmaster/protocol/cfw_settings_decoder.dart';
+import 'package:sonicmaster/state/cfw_providers.dart';
 import 'package:sonicmaster/state/data_providers.dart';
 import 'package:sonicmaster/state/device_providers.dart';
 import 'package:sonicmaster/state/preset_providers.dart';
 import 'package:sonicmaster/ui/global_settings_dialog.dart';
 import 'package:sonicmaster/ui/sonic_controls.dart';
 
+import '../fixtures/cfw_dumps.dart';
 import '../support/silent_transport.dart';
 import '../support/sonic_host.dart';
 import '../support/test_assets.dart';
@@ -24,6 +28,7 @@ void main() {
   Future<SilentTransport> openSettings(
     WidgetTester tester, {
     required Size size,
+    List<Override> extra = const [],
   }) async {
     final transport = SilentTransport();
     final context = await pumpSonicHost(
@@ -47,6 +52,7 @@ void main() {
             btRecLevel: 0,
           ),
         ),
+        ...extra,
       ],
     );
 
@@ -206,4 +212,94 @@ void main() {
       expect(transport.sentFrames, hasLength(eco));
     });
   }
+
+  group('CFW', () {
+    final cfw = decodeCfwSettingsFrame(cfwSettingsOriginal)!;
+    final cfwConnected = <Override>[
+      connectionStateProvider.overrideWith((_) => true),
+      cfwInfoProvider.overrideWith((_) => cfw),
+    ];
+
+    testWidgets('a CFW pedal shows its version and the CFW settings', (
+      tester,
+    ) async {
+      await openSettings(
+        tester,
+        size: const Size(1280, 800),
+        extra: cfwConnected,
+      );
+
+      for (final label in [
+        'CFW 1.0.2',
+        'Theme',
+        'BRIGHTNESS',
+        'Direct Monitor',
+        'USB Rec',
+        'Pedal mode',
+      ]) {
+        expect(inDialog(find.text(label)), findsOneWidget, reason: label);
+      }
+      expect(inDialog(find.text('BACKLIGHT')), findsNothing);
+      expect(inDialog(find.text('DRY')), findsNothing);
+    });
+
+    testWidgets('a stock pedal keeps the stock settings', (tester) async {
+      await openSettings(tester, size: const Size(1280, 800));
+
+      expect(inDialog(find.text('BACKLIGHT')), findsOneWidget);
+      expect(inDialog(find.text('DRY')), findsOneWidget);
+      expect(inDialog(find.text('Theme')), findsNothing);
+    });
+
+    testWidgets('CFW settings stay hidden while disconnected', (tester) async {
+      await openSettings(
+        tester,
+        size: const Size(1280, 800),
+        extra: [cfwInfoProvider.overrideWith((_) => cfw)],
+      );
+
+      expect(inDialog(find.text('Theme')), findsNothing);
+    });
+
+    testWidgets('picking a theme sends it and shows it', (tester) async {
+      final transport = await openSettings(
+        tester,
+        size: const Size(1280, 800),
+        extra: cfwConnected,
+      );
+
+      await tester.ensureVisible(inDialog(find.text('Synthwave')));
+      await tester.pumpAndSettle();
+      await tester.tap(inDialog(find.text('Synthwave')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Game Boy').last);
+      await tester.pumpAndSettle();
+
+      expect(
+        transport.sentFrames.map((f) => f.toLowerCase()),
+        contains(
+          CfwSettingWriter.setting(CfwSettingWriter.theme, 5).toLowerCase(),
+        ),
+      );
+      expect(inDialog(find.text('Game Boy')), findsOneWidget);
+      // The silent pedal never acks: let the ack wait time out.
+      await tester.pump(const Duration(seconds: 1));
+    });
+
+    testWidgets('an unknown theme value does not break the dialog', (
+      tester,
+    ) async {
+      await openSettings(
+        tester,
+        size: const Size(1280, 800),
+        extra: [
+          connectionStateProvider.overrideWith((_) => true),
+          cfwInfoProvider.overrideWith((_) => cfw.copyWithSetting(0x01, 9)),
+        ],
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(inDialog(find.text('Theme')), findsOneWidget);
+    });
+  });
 }

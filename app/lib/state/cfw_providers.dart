@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../model/cfw_info.dart';
+import '../protocol/cfw_setting_writer.dart';
 import '../protocol/cfw_settings_decoder.dart';
 import 'device_providers.dart';
 
@@ -37,4 +38,22 @@ Future<void> refreshDspLoad(WidgetRef ref) async {
   final load = await service.requestDspLoad();
 
   if (load != null && dsp.mounted) dsp.state = load;
+}
+
+/// Sets one CFW setting: shows it at once, then sends it and waits for the
+/// pedal's ack. Brightness ([CfwInfo.brightnessKey]) goes through its own
+/// frame, like the CFW app does.
+Future<void> setCfwSetting(WidgetRef ref, int key, int value) async {
+  final info = ref.read(cfwInfoProvider.notifier);
+  final service = ref.read(deviceServiceProvider);
+  final current = info.state;
+
+  if (current == null) return;
+
+  info.state = current.copyWithSetting(key, value);
+  await service.sendAndAwaitAck(
+    key == CfwInfo.brightnessKey
+        ? CfwSettingWriter.brightness(value)
+        : CfwSettingWriter.setting(key, value),
+  );
 }

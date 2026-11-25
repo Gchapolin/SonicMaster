@@ -4,6 +4,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../device/device_model.dart';
+import '../model/cfw_info.dart';
+import '../state/cfw_providers.dart';
 import '../state/connection_prefs.dart';
 import '../state/data_providers.dart';
 import '../state/device_providers.dart';
@@ -58,6 +60,11 @@ class GlobalSettingsDialog extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final g = ref.watch(globalSettingsProvider);
     final isLoading = ref.watch(presetLoadingProvider);
+    // Community custom firmware: its settings replace Backlight and the USB
+    // Mode, and add the theme, Direct Monitor and the pedal mode.
+    final cfw = ref.watch(connectionStateProvider)
+        ? ref.watch(cfwInfoProvider)
+        : null;
 
     return SonicDialog(
       maxWidth: 440,
@@ -65,7 +72,14 @@ class GlobalSettingsDialog extends ConsumerWidget {
         mainAxisSize: .min,
         crossAxisAlignment: .stretch,
         children: [
-          const Text('Settings', style: AppText.dialogTitle),
+          Row(
+            children: [
+              const Expanded(
+                child: Text('Settings', style: AppText.dialogTitle),
+              ),
+              if (cfw != null) _CfwBadge(cfw.version),
+            ],
+          ),
           const SizedBox(height: 8),
           if (g == null)
             const SizedBox(
@@ -122,17 +136,41 @@ class GlobalSettingsDialog extends ConsumerWidget {
                       ],
                     ),
                     const _SectionHeader('USB'),
-                    _SettingRow(
-                      label: 'Mode',
-                      child: SonicSegmented<int>(
-                        value: g.mode,
-                        segments: const [
-                          (value: 0, label: 'Dry'),
-                          (value: 1, label: 'Wet'),
-                        ],
-                        onChanged: (v) => setGlobalSetting(ref, 'mode', v),
+                    if (cfw == null)
+                      _SettingRow(
+                        label: 'Mode',
+                        child: SonicSegmented<int>(
+                          value: g.mode,
+                          segments: const [
+                            (value: 0, label: 'Dry'),
+                            (value: 1, label: 'Wet'),
+                          ],
+                          onChanged: (v) => setGlobalSetting(ref, 'mode', v),
+                        ),
+                      )
+                    else ...[
+                      _SwitchRow(
+                        label: 'Direct Monitor',
+                        name: 'directMonitor',
+                        value: cfw.directMonitor ? 1 : 0,
+                        isLoading: isLoading,
+                        write: (v) =>
+                            setCfwSetting(ref, CfwInfo.directMonitorKey, v),
                       ),
-                    ),
+                      _SettingRow(
+                        label: 'USB Rec',
+                        child: SonicSegmented<int>(
+                          value: cfw.usbRec,
+                          segments: const [
+                            (value: 0, label: 'Wet'),
+                            (value: 1, label: 'Dry DI'),
+                            (value: 2, label: 'DI L + Wet R'),
+                          ],
+                          onChanged: (v) =>
+                              setCfwSetting(ref, CfwInfo.usbRecKey, v),
+                        ),
+                      ),
+                    ],
                     _SwitchRow(
                       label: 'Re-amp',
                       name: 'reamp',
@@ -192,22 +230,53 @@ class GlobalSettingsDialog extends ConsumerWidget {
                       ),
                     ],
                     const _SectionHeader('Display'),
+                    if (cfw != null)
+                      _SettingRow(
+                        label: 'Theme',
+                        child: SonicDropdown<int>(
+                          value: cfw.theme,
+                          items: _cfwThemes,
+                          isEnabled: !isLoading,
+                          onChanged: (v) =>
+                              setCfwSetting(ref, CfwInfo.themeKey, v),
+                        ),
+                      ),
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 6),
                       child: Align(
                         alignment: .centerLeft,
-                        child: KnobControl(
-                          value: g.backlight,
-                          min: 0,
-                          max: 10,
-                          step: 1,
-                          label: 'Backlight',
-                          isEnabled: !isLoading,
-                          isHoldToTurnOnTouch: true,
-                          size: 60,
-                          onChanged: (v) =>
-                              setGlobalSetting(ref, 'backlight', v.round()),
-                        ),
+                        child: cfw == null
+                            ? KnobControl(
+                                value: g.backlight,
+                                min: 0,
+                                max: 10,
+                                step: 1,
+                                label: 'Backlight',
+                                isEnabled: !isLoading,
+                                isHoldToTurnOnTouch: true,
+                                size: 60,
+                                onChanged: (v) => setGlobalSetting(
+                                  ref,
+                                  'backlight',
+                                  v.round(),
+                                ),
+                              )
+                            : KnobControl(
+                                value: cfw.brightness.clamp(10, 100),
+                                min: 10,
+                                max: 100,
+                                step: 1,
+                                unit: '%',
+                                label: 'Brightness',
+                                isEnabled: !isLoading,
+                                isHoldToTurnOnTouch: true,
+                                size: 60,
+                                onChanged: (v) => setCfwSetting(
+                                  ref,
+                                  CfwInfo.brightnessKey,
+                                  v.round(),
+                                ),
+                              ),
                       ),
                     ),
                     _SwitchRow(
@@ -216,6 +285,22 @@ class GlobalSettingsDialog extends ConsumerWidget {
                       value: g.eco,
                       isLoading: isLoading,
                     ),
+                    if (cfw != null) ...[
+                      const _SectionHeader('Footswitches'),
+                      _SettingRow(
+                        label: 'Pedal mode',
+                        child: SonicSegmented<int>(
+                          value: cfw.pedalMode,
+                          segments: const [
+                            (value: 0, label: 'Preset'),
+                            (value: 1, label: 'Stomp'),
+                            (value: 2, label: 'Scene'),
+                          ],
+                          onChanged: (v) =>
+                              setCfwSetting(ref, CfwInfo.pedalModeKey, v),
+                        ),
+                      ),
+                    ],
                     const _SectionHeader('Power'),
                     _SwitchRow(
                       label: 'Confirm',
@@ -255,6 +340,40 @@ class GlobalSettingsDialog extends ConsumerWidget {
 }
 
 /// A small uppercase group header, e.g. "USB" / "Display".
+/// The CFW screen themes, in the pedal's order.
+const List<SonicItem<int>> _cfwThemes = [
+  (value: 0, label: 'Default'),
+  (value: 1, label: 'Amber CRT'),
+  (value: 2, label: 'Tube Amp'),
+  (value: 3, label: 'Synthwave'),
+  (value: 4, label: 'Stage Hi-Contrast'),
+  (value: 5, label: 'Game Boy'),
+];
+
+/// The firmware version badge (e.g. "CFW 1.0.2") in the dialog title.
+class _CfwBadge extends StatelessWidget {
+  const _CfwBadge(this.version);
+
+  final String version;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: Palette.outline),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        child: Text(
+          version.replaceFirst('CFW', 'CFW '),
+          style: AppText.dialogBody.copyWith(color: Palette.onSurfaceVariant),
+        ),
+      ),
+    );
+  }
+}
+
 class _SectionHeader extends StatelessWidget {
   const _SectionHeader(this.title);
 
@@ -304,6 +423,7 @@ class _SwitchRow extends ConsumerWidget {
     required this.name,
     required this.value,
     required this.isLoading,
+    this.write,
   });
 
   final String label;
@@ -311,9 +431,14 @@ class _SwitchRow extends ConsumerWidget {
   final int value;
   final bool isLoading;
 
+  /// Sends the new 0/1 value; null writes the stock setting [name].
+  final void Function(int value)? write;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    void flip() => setGlobalSetting(ref, name, value == 1 ? 0 : 1);
+    void set(int v) =>
+        write != null ? write!(v) : setGlobalSetting(ref, name, v);
+    void flip() => set(value == 1 ? 0 : 1);
 
     // Compact (touch): the whole row, label included, flips the switch; the
     // 26-px toggle alone is a small target for a finger. Regular leaves the
@@ -324,9 +449,7 @@ class _SwitchRow extends ConsumerWidget {
         label: label,
         child: SonicToggle(
           value: value == 1,
-          onChanged: isLoading
-              ? null
-              : (on) => setGlobalSetting(ref, name, on ? 1 : 0),
+          onChanged: isLoading ? null : (on) => set(on ? 1 : 0),
         ),
       ),
     );
