@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../model/cfw_models.dart';
 import '../model/chain_order.dart';
 import '../model/preset_json.dart';
 import '../protocol/cfw_scene_codec.dart';
@@ -108,6 +109,12 @@ Future<bool> pushImportedPreset(WidgetRef ref, ImportedPreset imported) async {
 
   if (ref.read(presetLoadingProvider)) return false;
 
+  if (cfwOnlyEffectName(ref, imported) case final name?) {
+    status.state = 'import failed: $name needs the CFW firmware';
+
+    return false;
+  }
+
   ref.read(presetLoadingProvider.notifier).state = true;
   final service = ref.read(deviceServiceProvider);
   final c = data.commands;
@@ -204,4 +211,18 @@ Future<bool> pushImportedPreset(WidgetRef ref, ImportedPreset imported) async {
   }
 
   return true;
+}
+
+/// The name of a CFW-only model [imported] uses when the pedal is not on the
+/// CFW (it would not understand the select), else null.
+String? cfwOnlyEffectName(WidgetRef ref, ImportedPreset imported) {
+  if (ref.read(cfwInfoProvider) != null) return null;
+
+  final data = ref.read(dataAssetsProvider).valueOrNull;
+
+  for (final fxId in imported.selectedEffects.values) {
+    if (cfwModelIds.contains(fxId)) return data?.effects.byId(fxId)?.name;
+  }
+
+  return null;
 }

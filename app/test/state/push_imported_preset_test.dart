@@ -179,4 +179,27 @@ void main() {
       ),
     );
   });
+
+  testWidgets('stock firmware: a CFW-only model is refused, nothing sent', (
+    tester,
+  ) async {
+    final (ref, spy) = await _pump(tester, isCfw: false);
+    final cfwDelay = ImportedPreset(
+      isCloneMode: false,
+      presetVolume: 75,
+      presetBpm: 120,
+      moduleStates: const {7: true},
+      selectedEffects: const {7: 751}, // Studio Delay
+      parameters: const {},
+      chainOrder: const ['DLY'],
+      warnings: const [],
+    );
+
+    expect(cfwOnlyEffectName(ref, cfwDelay), 'Studio Delay');
+
+    final ok = await tester.runAsync(() => pushImportedPreset(ref, cfwDelay));
+
+    expect(ok, isFalse);
+    expect(spy.sent, isEmpty);
+  });
 }

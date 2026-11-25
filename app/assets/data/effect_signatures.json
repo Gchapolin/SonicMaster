@@ -119,7 +119,9 @@
       "070006000001": "User IR 7",
       "070007000001": "User IR 8",
       "070008000001": "User IR 9",
-      "070009000001": "User IR 10"
+      "070009000001": "User IR 10",
+      "070306000000": "Mark 2x10",
+      "070308000000": "Ampg 4x10"
     }
   },
   "5": {
@@ -128,7 +130,11 @@
     "signatures": {
       "0A0305": "GT EQ 1",
       "0A0306": "GT EQ 2",
-      "0A030A": "Bass EQ"
+      "0A030A": "Bass EQ",
+      "0A0C00": "Studio EQ",
+      "0A0C01": "Cut 24",
+      "0A0C02": "Parametric 3",
+      "0A0C03": "Tilt EQ"
     }
   },
   "6": {
@@ -185,7 +191,15 @@
       "0008": "Glost",
       "0100": "Dark",
       "000E": "Shiny",
-      "0001": "Echo"
+      "0001": "Echo",
+      "0101": "Float",
+      "0305": "Shake",
+      "0C00": "Studio Delay",
+      "0C01": "Tape Echo",
+      "0C02": "Dual Delay",
+      "0C03": "Shimmer Delay",
+      "0C04": "Swell Delay",
+      "0C05": "Lo-Fi Delay"
     }
   },
   "8": {
@@ -201,7 +215,12 @@
       "0004": "Spring",
       "0006": "Light",
       "0007": "Ocean",
-      "0105": "Dream"
+      "0105": "Dream",
+      "0C00": "Studio Verb",
+      "0C01": "Ambient",
+      "0C02": "Freeze",
+      "0C03": "Duck Verb",
+      "0C04": "Gated"
     }
   },
   "9": {

@@ -148,7 +148,7 @@ void main() {
       expect(cfw.length, stock.length + 16);
     });
 
-    test('delays and modulations are added, unknown ids are not', () {
+    test('delays and modulations are added', () {
       final dly = caps.availableEffectIds(
         commands,
         .pocketMaster,
@@ -156,8 +156,9 @@ void main() {
         isCfw: true,
       );
 
-      expect(dly, containsAll([710, 716]));
-      expect(dly, isNot(contains(717))); // no command data for it yet
+      // 717 Float came with the CFW app's data (the CFW-only models, which
+      // the loader adds, are covered in cfw_models_test).
+      expect(dly, containsAll([710, 716, 717]));
       expect(
         caps.availableEffectIds(commands, .pocketMaster, 1, isCfw: true),
         contains(601),

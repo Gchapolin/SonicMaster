@@ -42,6 +42,8 @@ like upstream.
 | Scenes (BASE / SC1 / SC2), per-scene module state | Module editor |
 | EXP A-D assignment | Module editor |
 | The Smart Box effect set on a CFW Pocket Master | Model dropdowns |
+| The CFW's own models: 4 EQs, 6 delays, 5 reverbs | Model dropdowns |
+| Community presets (Try / Save to…), not on web | Top bar (globe) |
 | 10 User IR and 10 User Profile (Clone) slots: load, rename, clear | "Slots…" in the IR and Clone modules |
 | Tuner mirrored from the pedal | Top bar |
 | Move a User preset to another position | Settings dialog |
@@ -51,7 +53,7 @@ on a real pedal (CFW 1.0.2 and 1.0.3) by a live integration test, run on an iPad
 captures and results are in
 [docs/cfw-protocol/capture-notes.md](docs/cfw-protocol/capture-notes.md).
 
-**Not ported yet:** community presets, TONE3000 downloads per slot, and backup/restore.
+**Not ported yet:** TONE3000 downloads per slot, backup/restore, and the extra knobs the CFW adds to the stock delays and reverbs.
 
 ---
 

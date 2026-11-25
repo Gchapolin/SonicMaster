@@ -261,10 +261,7 @@ class ModuleEditor extends ConsumerWidget {
               for (final p in def.params) {
                 if (p.algId != 1) continue;
 
-                final syncAlg = p.syncToggleAlgId;
-                final isSynced = syncAlg != null && (values[syncAlg] ?? 0) != 0;
-
-                if (!isSynced) timeParam = p;
+                if (!p.isSynced(values)) timeParam = p;
 
                 break;
               }
@@ -359,9 +356,7 @@ class ModuleEditor extends ConsumerWidget {
         );
       case .knob:
       case .eqBand:
-        final syncAlg = param.syncToggleAlgId;
-
-        if (syncAlg != null && (values[syncAlg] ?? 0) != 0) {
+        if (param.isSynced(values)) {
           // Tempo-sync engaged: the pedal reads this slot as a note-division
           // index (0 = 1/1 … 10 = 1/16), so show a division selector instead
           // of the Hz knob.
@@ -392,6 +387,8 @@ class ModuleEditor extends ConsumerWidget {
           step: param.step ?? 1,
           label: param.name,
           unit: param.unit,
+          // The CFW models' data texts ("21Hz", "-3.5dB").
+          valueText: param.textFor(value),
           size: metrics.panelKnobSize,
           isEnabled: !isLoading,
           onChanged: (v) => setParameter(ref, moduleId, param.algId, v),

@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import '../model/effect_library.dart';
 import '../model/parameter_tables.dart';
 
@@ -68,15 +70,33 @@ class ParameterValuesDecoder {
         }
 
         final block = packet.sublist(loc.$2, loc.$2 + 6).join().toUpperCase();
-        final value = tables.valueLookup[block];
-
-        if (value != null) params[param.algId] = value;
+        // The table holds the captured values; any other is read as the
+        // float it is (the CFW models' knobs, values no capture hit).
+        params[param.algId] = tables.valueLookup[block] ?? floatOfBlock(block);
       }
 
       if (params.isNotEmpty) out[moduleId] = params;
     });
 
     return out;
+  }
+
+  /// The value in a 6-byte block: the top 3 bytes of a little-endian float32,
+  /// nibble-expanded ("000004080C02" -> C2 48 00 -> -50). The dropped low byte
+  /// is rounded away (2 decimals: the data has at most 1); whole values are
+  /// ints, like the lookup table's.
+  static num floatOfBlock(String block) {
+    int byte(int i) =>
+        int.parse('${block[i * 4 + 1]}${block[i * 4 + 3]}', radix: 16);
+
+    final b = ByteData(4)
+      ..setUint8(0, 0)
+      ..setUint8(1, byte(0))
+      ..setUint8(2, byte(1))
+      ..setUint8(3, byte(2));
+    final v = double.parse(b.getFloat32(0, Endian.little).toStringAsFixed(2));
+
+    return v == v.roundToDouble() ? v.round() : v;
   }
 
   static List<String> _toBytes(String hex) => [

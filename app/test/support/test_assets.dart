@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:sonicmaster/model/cfw_models.dart';
 import 'package:sonicmaster/model/character_map.dart';
 import 'package:sonicmaster/model/command_library.dart';
 import 'package:sonicmaster/model/data_assets.dart';
@@ -19,10 +20,17 @@ DataAssets loadTestDataAssets() {
           as Map<String, dynamic>;
 
   final effects = EffectLibrary.fromJson(read('effect_library'));
+  final commands = CommandLibrary.fromJson(read('command_library'));
+
+  addCfwModels(
+    effects,
+    commands,
+    parseCfwModels(read('cfw_fx_models'), read('cfw_eq_models')),
+  );
 
   return DataAssets(
     effects: effects,
-    commands: CommandLibrary.fromJson(read('command_library')),
+    commands: commands,
     modules: Modules.fromJson(read('modules')),
     characters: CharacterMap.fromJson(read('character_map')),
     signatures: EffectSignatures.build(read('effect_signatures'), effects),

@@ -92,8 +92,9 @@ void main() {
     // — alg 3 falls through to slot 0 on the pedal — which fits a slapback
     // (Time 20-300ms). It still has Trail. Measured, not inferred: every algId
     // here came off the device via tools/re/find_sync.py, and they follow no
-    // pattern (Phaser@1 … Auto Wah@6; DLY@3 but Sweep@6).
-    expect(syncCapable, 36);
+    // pattern (Phaser@1 … Auto Wah@6; DLY@3 but Sweep@6). Plus Float and
+    // Shake (717/718), whose definitions came with the CFW app's data.
+    expect(syncCapable, 38);
   });
 
   test('Fullchor #119 Rate is tempo-sync-capable via the Sync toggle', () {

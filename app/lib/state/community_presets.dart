@@ -52,6 +52,10 @@ Future<String?> tryCommunityPreset(
     return 'Could not download the preset. Check the connection and retry.';
   }
 
+  if (cfwOnlyEffectName(ref, imported) case final name?) {
+    return 'Uses $name, which needs the CFW firmware';
+  }
+
   return await pushImportedPreset(ref, imported)
       ? null
       : 'The preset could not be sent to the pedal';

@@ -1,3 +1,7 @@
+import 'dart:typed_data';
+
+import '../protocol/sysex_write_frame.dart';
+
 /// Which bank a preset lives in.
 enum PresetBank { user, factory }
 
@@ -45,8 +49,52 @@ class CommandLibrary {
       // path reaches that today, but it's a latent trap for any caller.
       (effectTypes[moduleId]?.keys.toList() ?? <int>[])..sort();
 
+  /// The captured frame for [value], else a built one (same bytes: see
+  /// [parameterFrame]); null for an unknown module or a non-number [value].
   String? parameterCommand(int moduleId, int algId, String value) =>
-      parameters[moduleId]?[algId]?[value];
+      parameters[moduleId]?[algId]?[value] ??
+      switch (num.tryParse(value)) {
+        final n? when parameters.containsKey(moduleId) => parameterFrame(
+          moduleId,
+          algId,
+          n,
+        ),
+        _ => null,
+      };
+
+  /// Selects effect [effectId] (the pedal's 32-bit id, e.g. 0x0b0000c0) in
+  /// [moduleId]: `11 47 module(u32) module(u32) effectId(u32)`, as the CFW
+  /// app builds it; matches every captured stock select frame.
+  static String effectTypeFrame(int moduleId, int effectId) =>
+      buildSysexWriteFrame([
+        0x11,
+        0x47,
+        ..._u32(moduleId),
+        ..._u32(moduleId),
+        ..._u32(effectId),
+      ]);
+
+  /// Sets knob [algId] of [moduleId] to [value]: `11 48 module(u32)
+  /// algId(u32) value(float32)`, little-endian; matches every captured knob
+  /// frame.
+  static String parameterFrame(int moduleId, int algId, num value) {
+    final f = ByteData(4)..setFloat32(0, value.toDouble(), Endian.little);
+
+    return buildSysexWriteFrame([
+      0x11,
+      0x48,
+      ..._u32(moduleId),
+      ..._u32(algId),
+      ...f.buffer.asUint8List(),
+    ]);
+  }
+
+  static List<int> _u32(int v) => [
+    v & 0xff,
+    (v >> 8) & 0xff,
+    (v >> 16) & 0xff,
+    (v >> 24) & 0xff,
+  ];
 
   String? chainOrderCommand(String orderKey) => chainOrderCommands[orderKey];
 

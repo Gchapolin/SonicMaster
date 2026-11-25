@@ -52,10 +52,12 @@ void main() {
         isNotNull,
       ); // negative key (EQ band)
       expect(cmd.parameterCommand(99, 99, '99'), isNull);
+      // No captured key: a built frame (CommandLibrary.parameterFrame).
       expect(
         cmd.parameterCommand(0, 0, '0.5'),
-        isNull,
-      ); // no decimal key for an int param
+        CommandLibrary.parameterFrame(0, 0, 0.5),
+      );
+      expect(cmd.parameterCommand(0, 0, 'x'), isNull);
     },
   );
 

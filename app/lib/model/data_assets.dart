@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/services.dart' show AssetBundle, rootBundle;
 
+import 'cfw_models.dart';
 import 'character_map.dart';
 import 'command_library.dart';
 import 'device_capabilities.dart';
@@ -37,10 +38,18 @@ class DataAssets {
             as Map<String, dynamic>;
 
     final effects = EffectLibrary.fromJson(await read('effect_library'));
+    final commands = CommandLibrary.fromJson(await read('command_library'));
+
+    // Before the signatures: they look the models up by name.
+    addCfwModels(
+      effects,
+      commands,
+      parseCfwModels(await read('cfw_fx_models'), await read('cfw_eq_models')),
+    );
 
     return DataAssets(
       effects: effects,
-      commands: CommandLibrary.fromJson(await read('command_library')),
+      commands: commands,
       modules: Modules.fromJson(await read('modules')),
       characters: CharacterMap.fromJson(await read('character_map')),
       signatures: EffectSignatures.build(

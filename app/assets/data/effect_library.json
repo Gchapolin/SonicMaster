@@ -5721,5 +5721,129 @@
         "widgetType": 0
       }
     ]
+  },
+  "717": {
+    "name": "Float",
+    "descriptionEn": "Smart Box delay voicing (firmware V1.0.6 model \"Float\").",
+    "alg": [
+      {
+        "name": "Mix",
+        "algId": 0,
+        "defaultValue": 20,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "widgetType": 0
+      },
+      {
+        "name": "Time",
+        "algId": 1,
+        "defaultValue": 500,
+        "min": 20,
+        "max": 1000,
+        "step": 1,
+        "unit": "ms",
+        "widgetType": 0,
+        "syncToggleAlgId": 3
+      },
+      {
+        "name": "F.Back",
+        "algId": 2,
+        "defaultValue": 30,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "widgetType": 0
+      },
+      {
+        "name": "Sync",
+        "algId": 3,
+        "defaultValue": 0,
+        "widgetType": 1
+      },
+      {
+        "name": "Trail",
+        "algId": 4,
+        "defaultValue": 0,
+        "widgetType": 1
+      }
+    ]
+  },
+  "718": {
+    "name": "Shake",
+    "descriptionEn": "Smart Box delay voicing (firmware V1.0.6 model \"Shake\").",
+    "alg": [
+      {
+        "name": "Mix",
+        "algId": 0,
+        "defaultValue": 20,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "widgetType": 0
+      },
+      {
+        "name": "Time",
+        "algId": 1,
+        "defaultValue": 500,
+        "min": 20,
+        "max": 1000,
+        "step": 1,
+        "unit": "ms",
+        "widgetType": 0,
+        "syncToggleAlgId": 3
+      },
+      {
+        "name": "F.Back",
+        "algId": 2,
+        "defaultValue": 30,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "widgetType": 0
+      },
+      {
+        "name": "Sync",
+        "algId": 3,
+        "defaultValue": 0,
+        "widgetType": 1
+      },
+      {
+        "name": "Trail",
+        "algId": 4,
+        "defaultValue": 0,
+        "widgetType": 1
+      }
+    ]
+  },
+  "427": {
+    "name": "Mark 2x10",
+    "descriptionEn": "2x10\" bass cabinet (Amphonix 2 factory cab \"Mark210\").",
+    "alg": [
+      {
+        "name": "Vol",
+        "algId": 0,
+        "defaultValue": 50,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "widgetType": 0
+      }
+    ]
+  },
+  "428": {
+    "name": "Ampg 4x10",
+    "descriptionEn": "4x10\" bass cabinet (Amphonix 2 factory cab \"Ampg410\").",
+    "alg": [
+      {
+        "name": "Vol",
+        "algId": 0,
+        "defaultValue": 50,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "widgetType": 0
+      }
+    ]
   }
 }

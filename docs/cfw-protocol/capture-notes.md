@@ -312,3 +312,20 @@ CFW 1.0.3 is out (Pocket Control / Stock-map CC fixes, .prst import messages, tu
 
 ## Live gate 2026-11-25 (integration_test/cfw_battery_live_test.dart, iPad over BLE, CFW 1.0.3)
 `12 2D` read 3 times: 4134 mV, charging (pedal on USB power), 4 bars, flags 0x01, empty 3540 mV. Same layout on 1.0.3.
+
+## CFW effect models in the modules (2026-11-25, from the CFW web app's code and data, no capture)
+The CFW app builds both frames itself (main.dart.js, functions a9V / zQ):
+- select: `11 47 <module u32> <module u32> <effectId u32>`, all little-endian. Matches every captured stock
+  select frame (stock ids from cfw_fx_models.json `stockIds`).
+- knob: `11 48 <module u32> <algId u32> <value float32>`. The value is the knob value itself, snapped to its step
+  (EQ dB knobs send -3.5, not a slot index). Matches the captured knob frames, except 39 (two FX2 knobs) whose
+  float is one bit higher, and one bad upstream capture: RVB algId 5 = 4 carried 2.0 (entry dropped).
+- models: EQ 504-507 (module 5, effectId 0x010000c0-c3), DLY 751-756 (0x0b0000c0-c5), RVB 851-855 (0x0c0000c0-c4).
+  Dump signatures (effect_signatures.json, from the CFW app): EQ `0A0C0x`, DLY/RVB `0C0x`.
+- CFW delays, slot 7 (CFW 0.9.4 on, `tempo094.cfwDelaySync`): 0 Off, 1 Trail, 2 Sync, 3 Both; with the Sync bit
+  set, Time is a note-division index (community preset MB-Thall-D: Trails 3, Time 4 = 1/4).
+- Param slots the stock tables lacked, by the 8-slots x 8-bytes layout: 5_6 (3,69), 5_7 (3,77), 7_7 (3,205),
+  8_3 (4,37), 8_6 (4,61), 8_7 (4,69). Values outside the captured lookup decode from the float itself.
+- Not done: the stock delays/reverbs' extra knobs on the CFW (`stockExtraParams`: DLY Tone/Duck/Trail at 5/6/7,
+  RVB High Cut/Low Cut/Trail at 3/6/7), and the Swell Delay variant some CFW versions use for slot 6.
+

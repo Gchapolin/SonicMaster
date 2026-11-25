@@ -1,5 +1,6 @@
 import '../device/device_model.dart';
 import '../device/transport.dart';
+import 'cfw_models.dart';
 import 'command_library.dart';
 
 /// User IR slots 6-10 (422-426) and User Profile slots 6-10 (906-910): they
@@ -109,7 +110,7 @@ class DeviceCapabilities {
   }) {
     final all = [
       for (final id in commands.effectIdsFor(moduleId))
-        if (isCfw || !cfwOnlySlotIds.contains(id)) id,
+        if (isCfw || !_isCfwOnly(id)) id,
     ];
     final allowed = _effects[model]?[moduleId];
 
@@ -124,10 +125,14 @@ class DeviceCapabilities {
           (id) =>
               allowed.contains(id) ||
               (extra?.contains(id) ?? false) ||
-              cfwOnlySlotIds.contains(id),
+              _isCfwOnly(id),
         )
         .toList();
   }
+
+  /// The CFW's extra slots and its own effect models.
+  static bool _isCfwOnly(int id) =>
+      cfwOnlySlotIds.contains(id) || cfwModelIds.contains(id);
 
   static DeviceModel? _modelFromKey(String key) => switch (key) {
     'pocketMaster' => .pocketMaster,

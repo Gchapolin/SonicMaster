@@ -2,6 +2,10 @@ import 'cfw_scenes.dart';
 import 'data_assets.dart';
 import 'decoded_preset_state.dart';
 
+/// How many tempo-sync note divisions there are (1/1 … 1/16): see
+/// `syncDivisions` in the module editor.
+const syncDivisionCount = 11;
+
 /// The `version` value every exported preset carries.
 const presetJsonVersion = '1.0';
 
@@ -174,17 +178,26 @@ ImportedPreset importedPresetFromJson(
     };
 
     final out = <int, num>{};
+    // The file's values by slot, for the tempo knobs' sync state.
+    final given = <int, num>{
+      for (final p in def.params)
+        if (upper[p.name.toUpperCase()] case final num v) p.algId: v,
+    };
 
     for (final p in def.params) {
       var v = upper[p.name.toUpperCase()] as num?;
+      // Synced, a tempo knob holds a note-division index, not ms / Hz.
+      final (lo, hi) = p.isSynced(given)
+          ? (0, syncDivisionCount - 1)
+          : (p.min, p.max);
 
       if (v == null) {
         v = p.defaultValue;
         warnings.add(
           '$key.${p.name} missing — using default ${p.defaultValue}',
         );
-      } else if (p.min != null && p.max != null) {
-        final c = v.clamp(p.min!, p.max!);
+      } else if (lo != null && hi != null) {
+        final c = v.clamp(lo, hi);
 
         if (c != v) {
           warnings.add('$key.${p.name} clamped from $v to $c');
