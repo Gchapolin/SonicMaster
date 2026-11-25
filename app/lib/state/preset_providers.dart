@@ -19,6 +19,7 @@ import '../protocol/preset_name_codec.dart';
 import '../protocol/preset_state_decoder.dart';
 import '../protocol/save_preset_frame.dart';
 import '../protocol/selected_effects_decoder.dart';
+import 'cfw_providers.dart';
 import 'data_providers.dart';
 import 'device_providers.dart';
 import 'edit_providers.dart'; // selectedModuleProvider (reset by setAmpMode)
@@ -139,6 +140,9 @@ Future<void> refreshDecodedState(WidgetRef ref) async {
     }
 
     applyDecodedDump(ref, data, dumpHex);
+    // CFW: the preset's scenes (a no-op on stock firmware).
+    clearSceneState(ref);
+    await refreshScenes(ref);
   } catch (_) {
     clear();
   }

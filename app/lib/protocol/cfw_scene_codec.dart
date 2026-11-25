@@ -30,6 +30,12 @@ String buildSceneRecordFrame(SceneRecord r) {
   ]);
 }
 
+/// Takes [module] out of the scenes: its record with no flags and no values.
+/// (Assumed from the record layout; the CFW app's own "scenes off" frame was
+/// not captured.)
+String clearSceneRecordFrame(int module) =>
+    buildSysexWriteFrame([0x11, 0x33, module & 0xFF, 0x00, 0x00, 0x00]);
+
 /// Selects the live scene: 0 BASE, 1 SC1, 2 SC2.
 String selectSceneFrame(int scene) =>
     buildSysexWriteFrame([0x11, 0x32, scene & 0xFF]);

@@ -7,7 +7,9 @@ import '../model/cfw_eq_models.dart';
 import '../model/cfw_global_eq.dart';
 
 import '../model/cfw_info.dart';
+import '../model/cfw_scenes.dart';
 import '../protocol/cfw_geq_codec.dart';
+import '../protocol/cfw_scene_codec.dart';
 import '../protocol/cfw_setting_writer.dart';
 import '../protocol/cfw_settings_decoder.dart';
 import 'device_providers.dart';
@@ -51,6 +53,7 @@ Future<void> refreshDspLoad(WidgetRef ref) async {
 
 /// Drops the CFW state, at the start of every connection.
 void clearCfwState(WidgetRef ref) {
+  clearSceneState(ref);
   ref.read(globalEqProvider.notifier).state = null;
   ref.read(cfwInfoProvider.notifier).state = null;
   ref.read(dspLoadProvider.notifier).state = null;
@@ -147,4 +150,125 @@ Future<void> setGlobalEq(WidgetRef ref, CfwGlobalEq value) async {
   } catch (_) {
     // A failed send leaves the shown value; the next read corrects it.
   }
+}
+
+/// The loaded preset's scene records on a CFW pedal, by module id.
+final sceneRecordsProvider = StateProvider<Map<int, SceneRecord>>(
+  (_) => const {},
+);
+
+/// The live scene: 0 BASE, 1 SC1, 2 SC2.
+final currentSceneProvider = StateProvider<int>((_) => 0);
+
+/// Drops the scene state (a new preset or a new connection).
+void clearSceneState(WidgetRef ref) {
+  ref.read(sceneRecordsProvider.notifier).state = const {};
+  ref.read(currentSceneProvider.notifier).state = 0;
+}
+
+/// Reads the loaded preset's scene records and the live scene. A no-op on
+/// stock firmware; best-effort (a missed read leaves the scenes empty).
+Future<void> refreshScenes(WidgetRef ref) async {
+  if (ref.read(cfwInfoProvider) == null) return;
+
+  final service = ref.read(deviceServiceProvider);
+  final records = ref.read(sceneRecordsProvider.notifier);
+  final scene = ref.read(currentSceneProvider.notifier);
+
+  try {
+    final recordsHex = await service.requestSceneRecords();
+    final sceneHex = await service.requestCurrentScene();
+
+    if (!records.mounted) return;
+    records.state = {
+      if (recordsHex != null)
+        for (final r in decodeSceneRecordsFrame(recordsHex)) r.module: r,
+    };
+    scene.state =
+        (sceneHex == null ? null : decodeCurrentSceneFrame(sceneHex)) ?? 0;
+  } catch (_) {
+    // Best-effort.
+  }
+}
+
+/// Whether an edit of [module] right now belongs to a scene: a CFW pedal, SC1
+/// or SC2 live, and the module taking part in scenes.
+bool isSceneEdit(WidgetRef ref, int module) =>
+    ref.read(cfwInfoProvider) != null &&
+    ref.read(currentSceneProvider) != 0 &&
+    ref.read(sceneRecordsProvider).containsKey(module);
+
+Future<void> _sendScene(WidgetRef ref, String frame) async {
+  try {
+    await ref.read(deviceServiceProvider).sendFrame(frame);
+  } catch (e) {
+    ref.read(presetLoadStatusProvider.notifier).state = 'edit failed: $e';
+  }
+}
+
+void _storeRecord(WidgetRef ref, SceneRecord r) {
+  ref.read(sceneRecordsProvider.notifier).state = {
+    ...ref.read(sceneRecordsProvider),
+    r.module: r,
+  };
+  ref.read(presetModifiedProvider.notifier).state = true;
+}
+
+/// Selects the live scene on the pedal.
+Future<void> selectScene(WidgetRef ref, int scene) async {
+  ref.read(currentSceneProvider.notifier).state = scene;
+  await _sendScene(ref, selectSceneFrame(scene));
+}
+
+/// Adds [module] to the scenes, or takes it out (dropping its overrides).
+Future<void> setModuleInScenes(
+  WidgetRef ref,
+  int module, {
+  required bool isIn,
+}) async {
+  if (isIn) {
+    final r =
+        ref.read(sceneRecordsProvider)[module] ?? SceneRecord(module: module);
+
+    _storeRecord(ref, r);
+    await _sendScene(ref, buildSceneRecordFrame(r));
+  } else {
+    ref.read(sceneRecordsProvider.notifier).state = {
+      for (final e in ref.read(sceneRecordsProvider).entries)
+        if (e.key != module) e.key: e.value,
+    };
+    ref.read(presetModifiedProvider.notifier).state = true;
+    await _sendScene(ref, clearSceneRecordFrame(module));
+  }
+}
+
+/// Sets one knob of [module] in the live scene (SC1 / SC2).
+Future<void> setSceneParam(
+  WidgetRef ref,
+  int module,
+  int algId,
+  num value,
+) async {
+  final scene = ref.read(currentSceneProvider);
+  final current = ref.read(sceneRecordsProvider)[module];
+
+  if (scene == 0 || current == null) return;
+
+  final r = current.withValue(scene, algId, value.toDouble());
+
+  _storeRecord(ref, r);
+  await _sendScene(ref, buildSceneRecordFrame(r));
+}
+
+/// Sets [module]'s on/off in the live scene; null follows BASE.
+Future<void> setSceneModuleState(WidgetRef ref, int module, bool? isOn) async {
+  final scene = ref.read(currentSceneProvider);
+  final current = ref.read(sceneRecordsProvider)[module];
+
+  if (scene == 0 || current == null) return;
+
+  final r = current.withOn(scene, isOn);
+
+  _storeRecord(ref, r);
+  await _sendScene(ref, buildSceneRecordFrame(r));
 }

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import '../protocol/cfw_geq_codec.dart';
+import '../protocol/cfw_scene_codec.dart';
 import '../protocol/cfw_setting_writer.dart';
 import '../protocol/cfw_settings_decoder.dart';
 import '../protocol/inbound_message.dart';
@@ -273,6 +274,30 @@ class DeviceService {
       inbound,
       () => sendFrame(readGlobalEqFrame()),
       (m) => m is DataFrame && _isReplyTo(m.hex, 0x3A) ? m.hex : null,
+      timeout: timeout,
+    ),
+  );
+
+  /// Requests the CFW scene records of the loaded preset (`12 33`).
+  Future<String?> requestSceneRecords({
+    Duration timeout = const Duration(seconds: 1),
+  }) => _serialized(
+    () => awaitFirst<String>(
+      inbound,
+      () => sendFrame(readSceneRecordsFrame()),
+      (m) => m is DataFrame && _isReplyTo(m.hex, 0x33) ? m.hex : null,
+      timeout: timeout,
+    ),
+  );
+
+  /// Requests the CFW's live scene (`12 32`).
+  Future<String?> requestCurrentScene({
+    Duration timeout = const Duration(seconds: 1),
+  }) => _serialized(
+    () => awaitFirst<String>(
+      inbound,
+      () => sendFrame(readCurrentSceneFrame()),
+      (m) => m is DataFrame && _isReplyTo(m.hex, 0x32) ? m.hex : null,
       timeout: timeout,
     ),
   );
