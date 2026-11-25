@@ -2,12 +2,15 @@ import 'dart:typed_data';
 
 import '../device/device_service.dart';
 import '../model/cfw_info.dart';
+import '../model/command_library.dart';
 import '../model/midi_map.dart';
 import '../protocol/cfw_backup.dart';
 import '../protocol/cfw_midi_map_codec.dart';
 import '../protocol/cfw_preset_order_codec.dart';
 import '../protocol/cfw_settings_decoder.dart';
+import '../protocol/global_setting_writer.dart';
 import '../protocol/global_settings_decoder.dart';
+import 'preset_providers.dart' show globalSettingAddress;
 
 /// Whole-pedal backup and restore, ported from the CFW web app's "Back up
 /// now" / "Restore…" (main.dart.js: `f0` reads, `bqj` plans, `de` writes).
@@ -766,6 +769,54 @@ String _editionMessage({required bool isFileNam}) {
     ),
     null,
   );
+}
+
+/// The write frame of global setting [name] through the app's own setters:
+/// master volume and levels by their captured frames, EXP/FS targets by
+/// their register for [expFsType], the rest as settings-dump records. Null
+/// for a setting the app cannot write (Re-amp, Func 2 outside DualFS).
+String? globalRestoreFrame(
+  CommandLibrary commands,
+  String name,
+  int value,
+  int expFsType,
+) {
+  switch (name) {
+    case 'globalVolume' ||
+        'inputLevel' ||
+        'fxRecLevel' ||
+        'monitorLevel' ||
+        'btRecLevel':
+      return commands.globalCommand(name, value);
+    case 'expFsTarget':
+      final (reg, sub) = switch (expFsType) {
+        0 => (0x17, 0x01),
+        1 => (0x16, 0x00),
+        _ => (0x16, 0x02),
+      };
+
+      return GlobalSettingWriter.registerWrite(
+        reg: reg,
+        sub: sub,
+        value: value,
+      );
+    case 'expFsTarget2':
+      return expFsType == 2
+          ? GlobalSettingWriter.registerWrite(
+              reg: 0x16,
+              sub: 0x04,
+              value: value,
+            )
+          : null;
+    case 'reamp':
+      return null;
+  }
+
+  final addr = globalSettingAddress[name];
+
+  return addr == null
+      ? null
+      : GlobalSettingWriter.dumpRecord(a0: addr.$1, a1: addr.$2, value: value);
 }
 
 class RestoreResult {

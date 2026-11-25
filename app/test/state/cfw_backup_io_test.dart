@@ -2,10 +2,12 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sonicmaster/protocol/cfw_backup.dart';
+import 'package:sonicmaster/protocol/global_setting_writer.dart';
 import 'package:sonicmaster/state/cfw_backup_io.dart';
 
 import '../support/backup_fixtures.dart';
 import '../support/fake_cfw_pedal.dart';
+import '../support/test_assets.dart';
 
 /// AMP SC1 p0 = 33.0, keyed with effect id 0x07000001 (captured).
 final _ampScenes = Uint8List.fromList([
@@ -332,6 +334,30 @@ void main() {
       expect(pedal.frames, ['frame-globalvolume-60']);
       expect(result.message, 'Restored 0 preset(s), 1 global setting(s)');
     });
+  });
+
+  test("global settings restore through the app's own writes", () {
+    final c = loadTestDataAssets().commands;
+
+    expect(
+      globalRestoreFrame(c, 'globalVolume', 60, 0),
+      c.globalCommand('globalVolume', 60),
+    );
+    expect(
+      globalRestoreFrame(c, 'eco', 1, 0),
+      GlobalSettingWriter.dumpRecord(a0: 4, a1: 2, value: 1),
+    );
+    expect(
+      globalRestoreFrame(c, 'expFsTarget', 3, 0),
+      GlobalSettingWriter.registerWrite(reg: 0x17, sub: 1, value: 3),
+    );
+    expect(
+      globalRestoreFrame(c, 'expFsTarget2', 3, 2),
+      GlobalSettingWriter.registerWrite(reg: 0x16, sub: 4, value: 3),
+    );
+    // Func 2 only exists for DualFS.
+    expect(globalRestoreFrame(c, 'expFsTarget2', 3, 0), isNull);
+    expect(globalRestoreFrame(c, 'reamp', 1, 0), isNull);
   });
 }
 

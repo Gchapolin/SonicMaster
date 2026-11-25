@@ -13,6 +13,7 @@ import '../state/device_providers.dart';
 import '../state/preset_providers.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text.dart';
+import 'cfw_backup_section.dart';
 import 'eq_curve_view.dart';
 import 'knob_control.dart';
 import 'midi_map_dialog.dart';
@@ -311,6 +312,8 @@ class GlobalSettingsDialog extends ConsumerWidget {
                     if (cfw != null) ...[
                       const _SectionHeader('Preset order'),
                       const PresetOrderSection(),
+                      const _SectionHeader('Whole pedal'),
+                      const CfwBackupSection(),
                     ],
                     const _SectionHeader('Power'),
                     _SwitchRow(

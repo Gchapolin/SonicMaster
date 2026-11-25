@@ -246,6 +246,8 @@ void main() {
         'Direct Monitor',
         'USB Rec',
         'Pedal mode',
+        'Back up now',
+        'Restore…',
       ]) {
         expect(inDialog(find.text(label)), findsOneWidget, reason: label);
       }
@@ -259,6 +261,7 @@ void main() {
       expect(inDialog(find.text('BACKLIGHT')), findsOneWidget);
       expect(inDialog(find.text('DRY')), findsOneWidget);
       expect(inDialog(find.text('Theme')), findsNothing);
+      expect(inDialog(find.text('Back up now')), findsNothing);
     });
 
     testWidgets('CFW settings stay hidden while disconnected', (tester) async {
