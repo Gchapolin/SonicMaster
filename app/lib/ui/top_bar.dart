@@ -18,6 +18,7 @@ import 'preset_rail.dart';
 import 'save_preset_dialog.dart';
 import 'sonic_controls.dart';
 import 'sonic_metrics.dart';
+import 'tuner_dialog.dart';
 import 'window_controls.dart';
 
 /// The title bar's flat surface with a hairline divider along the bottom. The
@@ -144,6 +145,18 @@ class TopBar extends ConsumerWidget {
                         const Spacer(),
                       ],
                       const DspChip(),
+                      // The pedal's tuner, mirrored (CFW only).
+                      if (isConnected && ref.watch(cfwInfoProvider) != null)
+                        SonicIconButton(
+                          icon: Icons.music_note,
+                          padding: metrics.topBarIconPadding,
+                          onPressed: isLoading
+                              ? null
+                              : () => showSonicDialog<void>(
+                                  context: context,
+                                  builder: (_) => const TunerDialog(),
+                                ),
+                        ),
                       SonicIconButton(
                         icon: Icons.tune,
                         padding: metrics.topBarIconPadding,

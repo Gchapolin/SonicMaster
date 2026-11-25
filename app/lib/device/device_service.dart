@@ -6,6 +6,7 @@ import '../protocol/cfw_scene_codec.dart';
 import '../protocol/cfw_setting_writer.dart';
 import '../protocol/cfw_settings_decoder.dart';
 import '../protocol/cfw_slot_names_codec.dart';
+import '../protocol/cfw_tuner_codec.dart';
 import '../protocol/inbound_message.dart';
 import 'ack_waiter.dart';
 import 'inbound_pipeline.dart';
@@ -314,6 +315,18 @@ class DeviceService {
       inbound,
       () => sendFrame(readExpFrame()),
       (m) => m is DataFrame && _isReplyTo(m.hex, 0x3D) ? m.hex : null,
+      timeout: timeout,
+    ),
+  );
+
+  /// Requests one reading of the CFW's tuner (`12 3F`).
+  Future<String?> requestTunerReading({
+    Duration timeout = const Duration(milliseconds: 400),
+  }) => _serialized(
+    () => awaitFirst<String>(
+      inbound,
+      () => sendFrame(readTunerFrame()),
+      (m) => m is DataFrame && _isReplyTo(m.hex, 0x3F) ? m.hex : null,
       timeout: timeout,
     ),
   );

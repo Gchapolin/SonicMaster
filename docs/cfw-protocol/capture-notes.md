@@ -197,3 +197,14 @@ Most likely 100 was an unsaved knob edit in the pedal's memory (e.g. from testin
 ### Registers 0x28 / 0x29: names with 10 slots, read at connect
 - `12 28` -> `01 0a 00` + 10 x 32-byte zero-padded ASCII names: the User IR names ("User IR 1" ...).
 - `12 29` -> `01 0a 01` + 10 x 32-byte names: the Clone (User Profile) names ("Randall SATAN 50 Mic Center", "Empty" ...).
+### Register 0x3F: tuner reading, decoded
+The CFW web app polls `12 3F` (about 8 times a second) while its tuner is open; the pedal does not push readings.
+Reply, little-endian, after `12 3F` (layout read from the web app's own parser, checked against the captured frames):
+`<version = 1> <flags> <note u8> <octave i8> <cents f32> <Hz f32> <A4 u16> <seq u16> <age u8> 00`
+- flags: bit0 tuner open, bit1 the pedal has a note (note / octave / cents valid). The web app also reads bit5
+  (0x20); it most likely means "output muted" (not confirmed on the pedal). Seen with no signal: 0x15, and 0x10
+  for the first frame after opening.
+- note: 0..11 counting from A (A, A#, B, C ... G#); FF = none. octave: 7F = none.
+- With no string playing: note FF, octave 7F, cents 0, and the Hz field wanders (noise).
+- Not captured: a reading with a note (the guitar gave the pedal no signal during the session), so the note path
+  is implemented from the parser only and needs the live check.
