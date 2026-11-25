@@ -211,3 +211,11 @@ Reply, little-endian, after `12 3F` (layout read from the web app's own parser, 
 ### EXP A-D sources
 The CFW web app labels the four slots CC 16, CC 17, CC 18 and CC 19 (EXP A-D): they are driven by MIDI CCs, the
 Pocket Master having no expression input.
+
+## Live gate 2026-11-25 (integration_test/cfw_session2_live_test.dart, iPad over BLE, CFW 1.0.2)
+- Slot names: `12 28` / `12 29` answer 324 payload bytes, not 325: the tenth name has 31 bytes. Both decode
+  ("User IR 1" ..., "Randall SATAN 50 Mic Center", "Empty" ...).
+- EXP: `11 3D` is acked; EXP D -> NR THRE toggle 10..90 read back from `12 3D`; original block (all free) restored.
+- Tuner: open / close are acked; flags 0x10 closed, 0x15 open. A4 441 -> flags 0x1D and the A4 field reads 441
+  (bit3 = A4 not 440); mute -> 0x05, bypass -> 0x15 (bit4 = output bypassed, clear = muted; bit5 was a wrong guess).
+  A4 440 and bypass restored, tuner closed. No string was played: a reading with a note is still unverified.

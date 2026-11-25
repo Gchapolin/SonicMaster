@@ -36,13 +36,18 @@ List<String>? decodeCfwSlotNames(String frameHex, int register) {
   final count = p[3] > _slotCount ? _slotCount : p[3];
   const namesAt = 5;
 
-  if (p.length < namesAt + count * _nameLength) return null;
+  // The pedal sends the last name one byte short (319 name bytes for ten
+  // slots, seen live): only that last field may be cut.
+  if (count == 0 || p.length < namesAt + (count - 1) * _nameLength + 1) {
+    return null;
+  }
 
   return [
     for (var i = 0; i < count; i++)
       String.fromCharCodes(
         p
-            .sublist(namesAt + i * _nameLength, namesAt + (i + 1) * _nameLength)
+            .skip(namesAt + i * _nameLength)
+            .take(_nameLength)
             .takeWhile((b) => b != 0),
       ).trim(),
   ];

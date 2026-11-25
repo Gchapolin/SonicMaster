@@ -15,7 +15,8 @@ class TunerReading {
     'A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', //
   ];
 
-  /// bit0 tuner open, bit1 the pedal hears a note, bit5 output muted.
+  /// bit0 tuner open, bit1 the pedal hears a note, bit3 A4 is not 440,
+  /// bit4 output bypassed (clear = muted). Bits 3 and 4 seen on the pedal.
   final int flags;
 
   /// Note index from A (0..11), null with no note.
@@ -33,7 +34,7 @@ class TunerReading {
 
   bool get hasNote => flags & 0x02 != 0 && note != null && octave != null;
 
-  bool get isMuted => flags & 0x20 != 0;
+  bool get isMuted => flags & 0x10 == 0;
 
   String? get noteName => note == null ? null : noteNames[note!];
 }

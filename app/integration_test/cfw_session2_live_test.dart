@@ -64,85 +64,8 @@ void main() {
           'NAMES 0x${register.toRadixString(16)} '
           '${hex == null ? 'no answer' : decodeCfwSlotNames(hex, register)}',
         );
+        log('NAMES raw len=${hex?.length} $hex');
       }
-
-      // --- EXP A-D: write slot D, read back, restore.
-      Future<List<ExpAssign?>?> readExp() async {
-        final hex = await service.requestExpAssigns(timeout: wait);
-
-        return hex == null ? null : decodeExpFrame(hex);
-      }
-
-      final exp0 = await readExp();
-
-      log('EXP original $exp0');
-      if (exp0 != null) {
-        const probe = ExpAssign(
-          module: 0,
-          algId: 0,
-          mode: ExpAssign.toggle,
-          min: 10,
-          max: 90,
-        );
-        final wrote = [...exp0]..[3] = probe;
-
-        log(
-          'EXP write ack=${await service.sendAndAwaitAck(buildExpFrame(wrote))}',
-        );
-        await pause();
-
-        final back = await readExp();
-
-        log('EXP read back $back ok=${back?[3] == probe}');
-        log(
-          'EXP restore ack=${await service.sendAndAwaitAck(buildExpFrame(exp0))}',
-        );
-        await pause();
-        log('EXP restored=${'${await readExp()}' == '$exp0'}');
-      }
-
-      // --- Tuner.
-      Future<TunerReading?> read() async {
-        final hex = await service.requestTunerReading(timeout: wait);
-
-        return hex == null ? null : decodeTunerFrame(hex);
-      }
-
-      String show(TunerReading? r) => r == null
-          ? 'no answer'
-          : 'flags=0x${r.flags.toRadixString(16)} open=${r.isOpen} '
-                'note=${r.noteName}${r.octave ?? ''} hasNote=${r.hasNote} '
-                'cents=${r.cents.toStringAsFixed(1)} '
-                'hz=${r.hz.toStringAsFixed(1)} a4=${r.a4} muted=${r.isMuted}';
-
-      log('TUNER before open: ${show(await read())}');
-      log(
-        'TUNER open ack=${await service.sendAndAwaitAck(tunerOpenFrame(isOpen: true))}',
-      );
-      for (var i = 0; i < 20; i++) {
-        await pause(250);
-        log('TUNER $i ${show(await read())}');
-      }
-
-      await service.sendFrame(tunerA4Frame(441));
-      await pause();
-      log('TUNER a4 441 -> ${show(await read())}');
-      await service.sendFrame(tunerA4Frame(440));
-      await pause();
-      log('TUNER a4 440 -> ${show(await read())}');
-
-      await service.sendFrame(tunerOutputFrame(isMuted: true));
-      await pause();
-      log('TUNER mute -> ${show(await read())}');
-      await service.sendFrame(tunerOutputFrame(isMuted: false));
-      await pause();
-      log('TUNER bypass -> ${show(await read())}');
-
-      log(
-        'TUNER close ack=${await service.sendAndAwaitAck(tunerOpenFrame(isOpen: false))}',
-      );
-      await pause();
-      log('TUNER after close: ${show(await read())}');
 
       await service.disconnect();
       log('DONE');

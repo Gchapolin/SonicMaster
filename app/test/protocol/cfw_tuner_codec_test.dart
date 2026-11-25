@@ -76,8 +76,12 @@ void main() {
     expect(decodeTunerFrame(_reply(note: 11))!.noteName, 'G#');
   });
 
-  test('flag 0x20 is the muted output, a closed tuner has no open flag', () {
-    expect(decodeTunerFrame(_reply(flags: 0x23))!.isMuted, isTrue);
+  test('flag 0x10 is the bypassed output (live: mute 0x05, bypass 0x15)', () {
+    expect(decodeTunerFrame(_reply(flags: 0x05))!.isMuted, isTrue);
+    expect(decodeTunerFrame(_reply(flags: 0x15))!.isMuted, isFalse);
+  });
+
+  test('a closed tuner has no open flag', () {
     expect(decodeTunerFrame(_reply(flags: 0x10))!.isOpen, isFalse);
   });
 

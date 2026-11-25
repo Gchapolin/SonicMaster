@@ -153,7 +153,7 @@ void main() {
   testWidgets('the pedal\'s own A4 and mute state are shown', (tester) async {
     await open(
       tester,
-      reading: _reading(flags: 0x35, note: 0xff, octave: 0x7f, a4: 442),
+      reading: _reading(flags: 0x0d, note: 0xff, octave: 0x7f, a4: 442),
     );
 
     expect(find.text('442 Hz'), findsOneWidget);

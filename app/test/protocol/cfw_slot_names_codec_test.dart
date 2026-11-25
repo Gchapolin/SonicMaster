@@ -52,11 +52,17 @@ void main() {
     expect(decodeCfwSlotNames(_reply(0x28, names), 0x28)!.first, long);
   });
 
+  test('the last name arrives one byte short on the pedal (live)', () {
+    final names = [for (var i = 1; i <= 10; i++) 'User IR $i'];
+
+    expect(decodeCfwSlotNames(_reply(0x28, names, cut: 319), 0x28), names);
+  });
+
   test('another register, a truncated block or garbage decode to null', () {
     final names = [for (var i = 1; i <= 10; i++) 'User IR $i'];
 
     expect(decodeCfwSlotNames(_reply(0x28, names), 0x29), isNull);
-    expect(decodeCfwSlotNames(_reply(0x28, names, cut: 300), 0x28), isNull);
+    expect(decodeCfwSlotNames(_reply(0x28, names, cut: 200), 0x28), isNull);
     expect(decodeCfwSlotNames('zz', 0x28), isNull);
   });
 
