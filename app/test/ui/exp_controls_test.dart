@@ -7,6 +7,7 @@ import 'package:sonicmaster/protocol/cfw_exp_codec.dart';
 import 'package:sonicmaster/protocol/cfw_settings_decoder.dart';
 import 'package:sonicmaster/state/cfw_providers.dart';
 import 'package:sonicmaster/state/device_providers.dart';
+import 'package:sonicmaster/state/edit_providers.dart';
 import 'package:sonicmaster/ui/exp_controls.dart';
 import 'package:sonicmaster/ui/module_editor.dart';
 
@@ -24,11 +25,13 @@ void main() {
     bool isCfw = true,
     List<ExpAssign?> slots = const [null, null, null, null],
     Size size = const Size(1280, 800),
+    Map<int, int> selectedEffects = const {0: 1},
   }) async {
     final transport = SilentTransport();
     final c = await pumpPage(
       tester,
       size: size,
+      selectedEffects: selectedEffects,
       overrides: [
         deviceServiceProvider.overrideWith((ref) {
           final service = DeviceService(transport)..startListening();
@@ -39,6 +42,7 @@ void main() {
         }),
         cfwInfoProvider.overrideWith((_) => isCfw ? cfw : null),
         expAssignsProvider.overrideWith((_) => slots),
+        expKnownProvider.overrideWith((_) => true),
       ],
     );
 
@@ -168,6 +172,24 @@ void main() {
       null,
       null,
     ]);
+  });
+
+  testWidgets('another module\'s editor opens on its own slot', (tester) async {
+    const amp = ExpAssign(module: 3, algId: 0);
+
+    final c = await pump(
+      tester,
+      slots: const [amp, null, nrThre, null],
+      selectedEffects: const {0: 1, 3: 301},
+    );
+
+    expect(inExp(find.text('C')), findsOneWidget);
+
+    // Select the AMP module: its editor reuses the element.
+    c.$1.read(selectedModuleProvider.notifier).state = 3;
+    await tester.pump();
+
+    expect(inExp(find.text('A')), findsOneWidget);
   });
 
   testWidgets('phone: the EXP controls fit', (tester) async {

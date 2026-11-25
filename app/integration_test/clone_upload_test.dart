@@ -66,7 +66,11 @@ void main() {
     );
 
     final chunks = CloUploadFrame.buildChunks(
-      CloUploadFrame.buildBlob(slot: _slot, name: _uploadName, profile: profile),
+      CloUploadFrame.buildBlob(
+        slot: _slot,
+        name: _uploadName,
+        profile: profile,
+      ),
     );
 
     final result = await service.uploadClone(chunks);

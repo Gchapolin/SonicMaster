@@ -8,6 +8,7 @@ const cfwIrNamesRegister = 0x28;
 const cfwProfileNamesRegister = 0x29;
 
 const _nameLength = 32;
+const _slotCount = 10;
 
 /// The effect id of User IR slot [slot] (0-based): 416-420 are the stock five,
 /// 421 is a factory cab, 422-426 are the CFW's slots 6-10.
@@ -32,7 +33,7 @@ List<String>? decodeCfwSlotNames(String frameHex, int register) {
 
   if (p[0] != 0x12 || p[1] != register) return null;
 
-  final count = p[3];
+  final count = p[3] > _slotCount ? _slotCount : p[3];
   const namesAt = 5;
 
   if (p.length < namesAt + count * _nameLength) return null;

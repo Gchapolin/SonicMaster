@@ -59,6 +59,10 @@ void main() {
 
     final after = await readBpm();
 
-    expect(after, target, reason: 'BPM $target must apply and read back 16-bit');
+    expect(
+      after,
+      target,
+      reason: 'BPM $target must apply and read back 16-bit',
+    );
   });
 }

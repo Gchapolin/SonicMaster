@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart' show Icons;
 import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sonicmaster/device/device_service.dart';
 import 'package:sonicmaster/protocol/cfw_settings_decoder.dart';
@@ -173,6 +174,32 @@ void main() {
     expect(pedal.sent.last, tunerOpenFrame(isOpen: false));
     expect(pedal.reads, reads);
     expect(find.byType(TunerDialog), findsNothing);
+  });
+
+  testWidgets('a lost connection closes the dialog', (tester) async {
+    await open(tester, reading: _silent);
+
+    final c = ProviderScope.containerOf(
+      tester.element(find.byType(TunerDialog)),
+    );
+
+    c.read(connectionStateProvider.notifier).state = true;
+    await tester.pump();
+    c.read(connectionStateProvider.notifier).state = false;
+    await tester.pumpAndSettle();
+
+    expect(find.byType(TunerDialog), findsNothing);
+  });
+
+  testWidgets('a pedal that reports its tuner closed is asked to open again', (
+    tester,
+  ) async {
+    final pedal = await open(tester, reading: _reading(flags: 0x10));
+
+    expect(
+      pedal.sent.where((f) => f == tunerOpenFrame(isOpen: true)).length,
+      greaterThan(1),
+    );
   });
 
   testWidgets('phone: the tuner fits', (tester) async {

@@ -217,6 +217,33 @@ void main() {
       expect(names.containsKey(906), isFalse);
     });
 
+    testWidgets('survive the stock IR name refresh after an upload', (
+      tester,
+    ) async {
+      final service = (await tester.runAsync(
+        () async =>
+            DeviceService(_ReplyingTransport(replies))..startListening(),
+      ))!;
+      final c = ProviderContainer(
+        overrides: [
+          deviceServiceProvider.overrideWithValue(service),
+          dataAssetsProvider.overrideWith((_) => loadTestDataAssets()),
+        ],
+      );
+
+      addTearDown(c.dispose);
+      addTearDown(service.dispose);
+      c.read(cfwInfoProvider.notifier).state = _cfw;
+
+      final ref = await _ref(tester, c);
+
+      await tester.runAsync(() => refreshIrNames(ref));
+      expect(c.read(userNamesProvider)[423], 'Mesa 412 V30');
+
+      await tester.runAsync(() => refreshCloneNames(ref));
+      expect(c.read(userNamesProvider)[901], 'Randall SATAN 50 Mic Center');
+    });
+
     testWidgets('are not read on stock firmware', (tester) async {
       final sent = <String>[];
       final service = DeviceService(_RecordingTransport(sent))

@@ -208,3 +208,6 @@ Reply, little-endian, after `12 3F` (layout read from the web app's own parser, 
 - With no string playing: note FF, octave 7F, cents 0, and the Hz field wanders (noise).
 - Not captured: a reading with a note (the guitar gave the pedal no signal during the session), so the note path
   is implemented from the parser only and needs the live check.
+### EXP A-D sources
+The CFW web app labels the four slots CC 16, CC 17, CC 18 and CC 19 (EXP A-D): they are driven by MIDI CCs, the
+Pocket Master having no expression input.

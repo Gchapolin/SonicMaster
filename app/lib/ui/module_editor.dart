@@ -262,6 +262,8 @@ class ModuleEditor extends ConsumerWidget {
         ),
         SceneControls(moduleId: physId),
         ExpControls(
+          // A fresh state per module: it opens on that module's own slot.
+          key: ValueKey(physId),
           moduleId: physId,
           params: [
             for (final p in def.params)

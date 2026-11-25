@@ -60,6 +60,12 @@ void main() {
     expect(decodeCfwSlotNames('zz', 0x28), isNull);
   });
 
+  test('a count above ten is cut to the ten slots', () {
+    final names = [for (var i = 1; i <= 12; i++) 'N$i'];
+
+    expect(decodeCfwSlotNames(_reply(0x28, names), 0x28), names.take(10));
+  });
+
   test('effect ids: IRs 416-420 then 422-426, profiles 901-910', () {
     expect(
       [for (var i = 0; i < 10; i++) cfwIrEffectId(i)],

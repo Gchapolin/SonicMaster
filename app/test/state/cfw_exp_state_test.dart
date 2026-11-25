@@ -153,6 +153,38 @@ void main() {
     );
   });
 
+  testWidgets('after a missed read, an edit reads the pedal first', (
+    tester,
+  ) async {
+    // The load-time read was missed: the app shows four free slots while the
+    // pedal still holds EXP A.
+    final (ref, c, fake) = await _pedal(tester, reply: _reply);
+
+    const amp = ExpAssign(module: 3, algId: 1);
+
+    await tester.runAsync(() => setExpAssign(ref, 1, amp));
+
+    expect(fake.expReads, 1);
+    expect(c.read(expAssignsProvider), const [_nrThre, amp, null, null]);
+    expect(
+      fake.sentFrames.single,
+      buildExpFrame(const [_nrThre, amp, null, null]),
+    );
+  });
+
+  testWidgets('with the pedal\'s slots unknown, nothing is written', (
+    tester,
+  ) async {
+    final (ref, c, fake) = await _pedal(tester);
+
+    await tester.runAsync(
+      () => setExpAssign(ref, 1, const ExpAssign(module: 3, algId: 1)),
+    );
+
+    expect(fake.sentFrames, isEmpty);
+    expect(c.read(expAssignsProvider), const [null, null, null, null]);
+  });
+
   testWidgets('a new preset or connection drops the slots', (tester) async {
     final (ref, c, _) = await _pedal(tester, reply: _reply);
 

@@ -205,10 +205,28 @@ const _noExp = <ExpAssign?>[null, null, null, null];
 /// belong to the preset, so they are read and dropped with its scenes.
 final expAssignsProvider = StateProvider<List<ExpAssign?>>((_) => _noExp);
 
+/// Whether [expAssignsProvider] holds what the pedal answered for the loaded
+/// preset. False after a preset change until the read lands: four free slots
+/// then only mean "not read", and writing them would erase the pedal's.
+final expKnownProvider = StateProvider<bool>((_) => false);
+
 /// Assigns EXP slot [index] (0 = A) to [assign], or frees it with null: shows
-/// it at once and sends all four slots. A no-op on stock firmware.
+/// it at once and sends all four slots. With the pedal's slots not read yet
+/// it reads them first, and writes nothing if that fails (the block carries
+/// all four slots). A no-op on stock firmware.
 Future<void> setExpAssign(WidgetRef ref, int index, ExpAssign? assign) async {
   if (ref.read(cfwInfoProvider) == null) return;
+
+  if (!ref.read(expKnownProvider)) {
+    await _readExp(ref);
+
+    if (!ref.read(expKnownProvider)) {
+      ref.read(presetLoadStatusProvider.notifier).state =
+          'EXP not changed: the pedal did not answer';
+
+      return;
+    }
+  }
 
   final slots = [...ref.read(expAssignsProvider)]..[index] = assign;
 
@@ -217,9 +235,28 @@ Future<void> setExpAssign(WidgetRef ref, int index, ExpAssign? assign) async {
   await _sendScene(ref, buildExpFrame(slots));
 }
 
+Future<void> _readExp(WidgetRef ref) async {
+  final service = ref.read(deviceServiceProvider);
+  final exp = ref.read(expAssignsProvider.notifier);
+  final known = ref.read(expKnownProvider.notifier);
+
+  try {
+    final hex = await service.requestExpAssigns();
+    final slots = hex == null ? null : decodeExpFrame(hex);
+
+    if (slots == null || !exp.mounted) return;
+
+    exp.state = slots;
+    known.state = true;
+  } catch (_) {
+    // Best-effort.
+  }
+}
+
 /// Drops the scene state (a new preset or a new connection).
 void clearSceneState(WidgetRef ref) {
   ref.read(expAssignsProvider.notifier).state = _noExp;
+  ref.read(expKnownProvider.notifier).state = false;
   ref.read(sceneRecordsProvider.notifier).state = const {};
   ref.read(currentSceneProvider.notifier).state = 0;
 }
@@ -232,18 +269,14 @@ Future<void> refreshScenes(WidgetRef ref) async {
   final service = ref.read(deviceServiceProvider);
   final records = ref.read(sceneRecordsProvider.notifier);
   final scene = ref.read(currentSceneProvider.notifier);
-  final exp = ref.read(expAssignsProvider.notifier);
 
   try {
     final recordsHex = await service.requestSceneRecords();
     final sceneHex = await service.requestCurrentScene();
-    final expHex = await service.requestExpAssigns();
+
+    await _readExp(ref);
 
     if (!records.mounted) return;
-
-    final slots = expHex == null ? null : decodeExpFrame(expHex);
-
-    if (slots != null) exp.state = slots;
 
     // A missed read keeps what we have: the scenes are cleared where the
     // preset changes, so nothing stale survives, and a timeout must not wipe

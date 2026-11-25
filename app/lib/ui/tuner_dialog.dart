@@ -47,7 +47,11 @@ class TunerDialog extends HookConsumerWidget {
           final hex = await service.requestTunerReading();
           final r = hex == null ? null : decodeTunerFrame(hex);
 
-          if (!isDisposed && r != null) reading.value = r;
+          if (isDisposed || r == null) return;
+
+          reading.value = r;
+          // The open frame may have been lost: ask again.
+          if (!r.isOpen) send(tunerOpenFrame(isOpen: true));
         } catch (_) {
           // A missed read keeps the last reading.
         } finally {
@@ -61,6 +65,12 @@ class TunerDialog extends HookConsumerWidget {
         send(tunerOpenFrame(isOpen: false));
       };
     }, [service]);
+
+    // A dropped link leaves nothing to mirror (and the close frame could not
+    // reach the pedal later): close with it.
+    ref.listen(connectionStateProvider, (_, isConnected) {
+      if (!isConnected) Navigator.maybePop(context);
+    });
 
     final r = reading.value;
     final hasNote = r != null && r.hasNote;

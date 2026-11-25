@@ -287,6 +287,10 @@ Future<void> refreshIrNames(WidgetRef ref) async {
     ref.read(userNamesProvider.notifier).state = userNames;
   } catch (_) {
     // best-effort
+  } finally {
+    // A CFW pedal has longer names (and ten slots): the stock dump just read
+    // cuts them short.
+    await refreshCfwSlotNames(ref);
   }
 }
 
@@ -324,6 +328,10 @@ Future<void> refreshCloneNames(WidgetRef ref) async {
     ref.read(userNamesProvider.notifier).state = userNames;
   } catch (_) {
     // best-effort
+  } finally {
+    // A CFW pedal has longer names (and ten slots): the stock dump just read
+    // cuts them short.
+    await refreshCfwSlotNames(ref);
   }
 }
 
