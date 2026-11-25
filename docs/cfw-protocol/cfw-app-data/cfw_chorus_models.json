@@ -1,0 +1,37 @@
+{
+ "generator": "RE/cfw/src/dsp/chorus/mcu_chorus.py",
+ "capabilityBit": 23,
+ "models": [
+  {
+   "block": 6,
+   "capabilityBit": 23,
+   "stockFxIds": [
+    106,
+    107
+   ],
+   "stockIds": [
+    "0x04000000",
+    "0x04000008"
+   ],
+   "stockIndices": [
+    8,
+    9
+   ],
+   "stockExtraParams": [
+    {
+     "name": "Stereo",
+     "algId": 7,
+     "min": -1,
+     "max": 0,
+     "step": 1,
+     "defaultValue": 0,
+     "kind": "stereo",
+     "texts": {
+      "-1": "Off",
+      "0": "On"
+     }
+    }
+   ]
+  }
+ ]
+}
