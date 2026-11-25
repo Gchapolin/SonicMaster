@@ -10,6 +10,7 @@ import '../state/preset_providers.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text.dart';
 import 'connection_controls.dart';
+import 'dsp_chip.dart';
 import 'fullscreen_button.dart';
 import 'global_settings_dialog.dart';
 import 'preset_rail.dart';
@@ -141,6 +142,7 @@ class TopBar extends ConsumerWidget {
                         ?well,
                         const Spacer(),
                       ],
+                      const DspChip(),
                       SonicIconButton(
                         icon: Icons.tune,
                         padding: metrics.topBarIconPadding,

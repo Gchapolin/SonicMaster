@@ -216,6 +216,7 @@ Future<void> deviceHeartbeat(WidgetRef ref) async {
   await checkUsbLiveness(ref);
 
   if (ref.read(connectionStateProvider)) await pollGlobalSettings(ref);
+  if (ref.read(connectionStateProvider)) await pollCfwStatus(ref);
 }
 
 /// Startup auto-connect: if the user's last intent was "connected", restore the

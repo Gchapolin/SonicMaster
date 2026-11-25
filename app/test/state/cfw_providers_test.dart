@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sonicmaster/device/device_service.dart';
 import 'package:sonicmaster/device/transport.dart';
 import 'package:sonicmaster/protocol/cfw_setting_writer.dart';
+import 'package:sonicmaster/protocol/cfw_settings_decoder.dart';
 import 'package:sonicmaster/protocol/sysex_write_frame.dart';
 import 'package:sonicmaster/state/cfw_providers.dart';
 import 'package:sonicmaster/state/device_providers.dart';
@@ -139,6 +140,34 @@ void main() {
 
     await tester.runAsync(() => refreshDspLoad(ref));
 
+    expect(c.read(dspLoadProvider), 57);
+  });
+
+  testWidgets('the status poll reads the DSP only on a CFW pedal', (
+    tester,
+  ) async {
+    final service = DeviceService(
+      _ReplyingTransport({CfwSettingWriter.readDsp().toLowerCase(): _dspReply}),
+    )..startListening();
+    final c = ProviderContainer(
+      overrides: [
+        deviceServiceProvider.overrideWithValue(service),
+        connectionStateProvider.overrideWith((_) => true),
+      ],
+    );
+
+    addTearDown(c.dispose);
+    addTearDown(service.dispose);
+
+    final ref = await _ref(tester, c);
+
+    await tester.runAsync(() => pollCfwStatus(ref));
+    expect(c.read(dspLoadProvider), isNull); // stock: no DSP read
+
+    c.read(cfwInfoProvider.notifier).state = decodeCfwSettingsFrame(
+      cfwSettingsOriginal,
+    );
+    await tester.runAsync(() => pollCfwStatus(ref));
     expect(c.read(dspLoadProvider), 57);
   });
 }

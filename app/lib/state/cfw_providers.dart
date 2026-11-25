@@ -57,3 +57,11 @@ Future<void> setCfwSetting(WidgetRef ref, int key, int value) async {
         : CfwSettingWriter.setting(key, value),
   );
 }
+
+/// The CFW part of the connection heartbeat: on a CFW pedal, reads the DSP
+/// load; a no-op on stock firmware.
+Future<void> pollCfwStatus(WidgetRef ref) async {
+  if (ref.read(cfwInfoProvider) == null) return;
+
+  await refreshDspLoad(ref);
+}
