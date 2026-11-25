@@ -14,12 +14,6 @@ Uint8List testPresetRecord(
   void u16(int v) => out.add([v & 0xFF, v >> 8]);
   void u32(int v) =>
       out.add([v & 0xFF, (v >> 8) & 0xFF, (v >> 16) & 0xFF, (v >> 24) & 0xFF]);
-  void tag(int t, List<int> data) {
-    u16(t);
-    u16(data.length);
-    out.add(data);
-  }
-
   List<int> le32(int v) => [
     v & 0xFF,
     (v >> 8) & 0xFF,

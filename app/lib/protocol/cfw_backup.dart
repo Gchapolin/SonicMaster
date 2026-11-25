@@ -655,8 +655,8 @@ Uint8List presetWritePayload(int slot, Uint8List record) => Uint8List.fromList([
   ...record.sublist(4),
 ]);
 
-/// `11 34 <slot u16 LE> <flags> <device> <record without FF..> <EXP A-D 24 B>
-/// <scene block>`: a stored preset with its scenes and EXP A-D in one write
+/// `11 34 <slot u16 LE> <flags> <device> <record without FF..>`
+/// `<EXP A-D 24 B> <scene block>`: a stored preset with its scenes and EXP A-D in one write
 /// (the CFW app's `lh`, used when capability word 2 has bit 11). flags: bit0
 /// always, bit1 when scenes or EXP are set; device 1 Pocket Master.
 /// No [scenes] / [midiPedals] clears them.
@@ -713,8 +713,8 @@ class BlockScene {
   final Uint8List values;
 }
 
-/// Decodes an "SC" block: `53 43 <version 1|2> <count> <total u16 LE>
-/// <CRC-16/MODBUS of the records u16 LE>`, then the records. Anything that
+/// Decodes an "SC" block: `53 43 <version 1|2> <count> <total u16 LE>`
+/// `<CRC-16/MODBUS of the records u16 LE>`, then the records. Anything that
 /// fails those checks is no scenes at all, as in the CFW app (`b83`).
 List<BlockScene> decodeSceneBlock(Uint8List? s) {
   if (s == null || s.length < 8) return const [];

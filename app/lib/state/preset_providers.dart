@@ -874,7 +874,7 @@ Future<void> setGlobalLevel(WidgetRef ref, String name, int value) async {
 /// Address `(a0,a1)` of each device-global setting written via a synthesized
 /// dumpRecord frame (bound from the 2026-07-24 labeled capture). Levels + master
 /// volume keep their own captured-frame path ([setGlobalLevel]/[setGlobalVolume]).
-const _globalSettingAddress = <String, (int, int)>{
+const globalSettingAddress = <String, (int, int)>{
   'mode': (0x04, 0x04),
   'reamp': (0x06, 0x04),
   'expFsType': (0x01, 0x05),
@@ -885,12 +885,12 @@ const _globalSettingAddress = <String, (int, int)>{
 };
 
 /// Writes a device-global setting by synthesizing its frame ([name] is a key of
-/// [_globalSettingAddress]), optimistically updating [globalSettingsProvider].
+/// [globalSettingAddress]), optimistically updating [globalSettingsProvider].
 /// Not a preset edit. No-op mid-load. Mirrors [setGlobalLevel].
 Future<void> setGlobalSetting(WidgetRef ref, String name, int value) async {
   if (ref.read(presetLoadingProvider)) return; // don't edit mid-load
 
-  final addr = _globalSettingAddress[name];
+  final addr = globalSettingAddress[name];
 
   if (addr == null) return;
 
