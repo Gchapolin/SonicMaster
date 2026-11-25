@@ -5,8 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../model/chain_order.dart';
 import '../model/preset_json.dart';
+import '../protocol/cfw_scene_codec.dart';
+import '../protocol/footswitch_frame.dart';
 import '../protocol/param_value_key.dart';
 import '../protocol/preset_field_frame.dart';
+import 'cfw_providers.dart';
 import 'data_providers.dart';
 import 'device_providers.dart';
 import 'file_download.dart';
@@ -89,7 +92,21 @@ Future<void> importPreset(WidgetRef ref) async {
     return;
   }
 
-  if (ref.read(presetLoadingProvider)) return;
+  await pushImportedPreset(ref, imported);
+}
+
+/// Pushes an [imported] preset to the connected pedal's live state (Save
+/// persists it to a slot): volume, BPM, modules, effects, chain, knobs, and,
+/// when the file has them, the footswitches and the CFW scenes. No-op while a
+/// preset is loading. Returns false when it did not complete.
+Future<bool> pushImportedPreset(WidgetRef ref, ImportedPreset imported) async {
+  final data = ref.read(dataAssetsProvider).valueOrNull;
+
+  if (data == null) return false;
+
+  final status = ref.read(presetLoadStatusProvider.notifier);
+
+  if (ref.read(presetLoadingProvider)) return false;
 
   ref.read(presetLoadingProvider.notifier).state = true;
   final service = ref.read(deviceServiceProvider);
@@ -139,7 +156,38 @@ Future<void> importPreset(WidgetRef ref) async {
       }
     }
 
+    // CFW extras, when the file has them (the CFW app's export).
+    if (imported.footswitch case final fs?) {
+      for (var m = 0; m < 9; m++) {
+        for (final (isFs2, mask) in [(false, fs.fs1), (true, fs.fs2)]) {
+          await send(
+            FootswitchFrame.build(
+              moduleId: m,
+              isFs2: isFs2,
+              isOn: (mask >> m) & 1 == 1,
+            ),
+          );
+        }
+      }
+    }
+
+    final scenes = imported.scenes;
+    final isCfw = ref.read(cfwInfoProvider) != null;
+
+    if (scenes != null && isCfw) {
+      // Clear only records the pedal is known to hold, then write the file's.
+      for (final m in ref.read(sceneRecordsProvider).keys) {
+        if (!scenes.containsKey(m)) await send(clearSceneRecordFrame(m));
+      }
+
+      for (final r in scenes.values) {
+        await send(buildSceneRecordFrame(r));
+      }
+    }
+
     await refreshDecodedState(ref);
+
+    if (isCfw) await refreshScenes(ref);
     ref.read(presetModifiedProvider.notifier).state = true;
 
     final warn = imported.warnings.isEmpty
@@ -149,7 +197,11 @@ Future<void> importPreset(WidgetRef ref) async {
     status.state = 'imported${skipped > 0 ? ', $skipped skipped' : ''}$warn';
   } catch (e) {
     status.state = 'import push failed: $e';
+
+    return false;
   } finally {
     ref.read(presetLoadingProvider.notifier).state = false;
   }
+
+  return true;
 }

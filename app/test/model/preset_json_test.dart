@@ -193,4 +193,89 @@ void main() {
     expect(imp.presetVolume, 60);
     expect(imp.presetBpm, 90);
   });
+
+  // The CFW app's export adds "footswitch" (module bit masks) and "scenes"
+  // (per module: SC1 / SC2 knob overrides by name, "onOff" overrides).
+  group('CFW extras', () {
+    Map<String, dynamic> doc({Object? footswitch, Object? scenes}) => {
+      'version': '1.0',
+      'ampMode': 'Normal',
+      'modules': {
+        'NR': {
+          'enabled': true,
+          'effect': 'Gate',
+          'parameters': {'THRE': 8},
+        },
+      },
+      'signalChain': ['NR'],
+      'footswitch': ?footswitch,
+      'scenes': ?scenes,
+    };
+
+    test('absent: no footswitch and no scenes to apply', () {
+      final imp = importedPresetFromJson(doc(), data);
+
+      expect(imp.footswitch, isNull);
+      expect(imp.scenes, isNull);
+    });
+
+    test('footswitch masks are read as given', () {
+      final imp = importedPresetFromJson(
+        doc(footswitch: {'fs1': 0x12, 'fs2': 0x80}),
+        data,
+      );
+
+      expect(imp.footswitch, (fs1: 0x12, fs2: 0x80));
+    });
+
+    test('scenes map knob names and on/off per scene', () {
+      final imp = importedPresetFromJson(
+        doc(
+          scenes: {
+            'NR': {
+              'enabled': true,
+              'SC1': {'THRE': 20},
+              'SC2': {},
+              'onOff': {'SC2': false},
+            },
+          },
+        ),
+        data,
+      );
+
+      final r = imp.scenes![0]!;
+
+      expect(r.module, 0);
+      expect(r.sc1, {0: 20.0}); // THRE is algId 0
+      expect(r.sc2, isEmpty);
+      expect(r.sc1On, isNull);
+      expect(r.sc2On, false);
+    });
+
+    test('an empty scenes object clears every module', () {
+      final imp = importedPresetFromJson(doc(scenes: {}), data);
+
+      expect(imp.scenes, isEmpty);
+    });
+
+    test('a module out of scenes or with no effect is skipped', () {
+      final imp = importedPresetFromJson(
+        doc(
+          scenes: {
+            'NR': {'enabled': false, 'SC1': {}, 'SC2': {}},
+            'DLY': {
+              'enabled': true,
+              'SC1': {'Mix': 10},
+              'SC2': {},
+            },
+            'XYZ': {'enabled': true, 'SC1': {}, 'SC2': {}},
+          },
+        ),
+        data,
+      );
+
+      expect(imp.scenes, isEmpty);
+      expect(imp.warnings, hasLength(2));
+    });
+  });
 }

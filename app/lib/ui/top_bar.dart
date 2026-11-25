@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/material.dart'; // Icons glyph font only
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -14,6 +14,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_text.dart';
 import 'bar_preset_fields.dart';
 import 'battery_chip.dart';
+import 'community_presets_dialog.dart';
 import 'connection_controls.dart';
 import 'dsp_chip.dart';
 import 'fullscreen_button.dart';
@@ -210,6 +211,18 @@ class TopBar extends ConsumerWidget {
                             ? () => importPreset(ref)
                             : null,
                       ),
+                      // The CFW community's shared presets (downloaded). Not
+                      // on web: their server sends no CORS header, so a
+                      // browser may not read it from another site.
+                      if (!kIsWeb)
+                        SonicIconButton(
+                          icon: Icons.public,
+                          padding: metrics.topBarIconPadding,
+                          onPressed: () => showSonicDialog<void>(
+                            context: context,
+                            builder: (_) => const CommunityPresetsDialog(),
+                          ),
+                        ),
                       SonicIconButton(
                         icon: Icons.save,
                         padding: metrics.topBarIconPadding,

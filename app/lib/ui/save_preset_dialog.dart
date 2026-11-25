@@ -14,16 +14,21 @@ import 'sonic_metrics.dart';
 /// on an outside tap (the in-flight save is guarded by the dialog's own
 /// PopScope, not by a non-dismissible barrier). Resolves to true when the save
 /// ACKed, false on Cancel, null when dismissed.
-Future<bool?> showSavePresetDialog(BuildContext context) {
+/// [name] replaces the loaded preset's name as the prefill.
+Future<bool?> showSavePresetDialog(BuildContext context, {String? name}) {
   return showSonicDialog<bool>(
     context: context,
-    builder: (_) => const SavePresetDialog(),
+    builder: (_) => SavePresetDialog(initialName: name),
   );
 }
 
 /// Name + target-slot dialog for saving the current edits to flash (`040A`).
 class SavePresetDialog extends HookConsumerWidget {
-  const SavePresetDialog({super.key});
+  const SavePresetDialog({super.key, this.initialName});
+
+  /// Prefilled name (cut to the pedal's 10 characters); null takes the loaded
+  /// preset's.
+  final String? initialName;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -36,7 +41,11 @@ class SavePresetDialog extends HookConsumerWidget {
     // a stored name, and writing it to flash would be misleading. Empty when the
     // name dump hasn't been decoded yet.
     final name = useTextEditingController(
-      text: current == null ? '' : ref.read(presetNamesProvider)[current] ?? '',
+      text: initialName != null
+          ? initialName!.substring(0, initialName!.length.clamp(0, 10))
+          : current == null
+          ? ''
+          : ref.read(presetNamesProvider)[current] ?? '',
     );
 
     final nameText = useValueListenable(name).text;

@@ -1,3 +1,4 @@
+import 'cfw_scenes.dart';
 import 'data_assets.dart';
 import 'decoded_preset_state.dart';
 
@@ -72,6 +73,8 @@ class ImportedPreset {
     required this.parameters,
     required this.chainOrder,
     required this.warnings,
+    this.footswitch,
+    this.scenes,
   });
 
   final bool isCloneMode;
@@ -82,6 +85,14 @@ class ImportedPreset {
   final Map<int, Map<int, num>> parameters; // effect moduleId -> algId -> value
   final List<String> chainOrder; // module names
   final List<String> warnings;
+
+  /// FS1 / FS2 module bit masks (bit = 1 << moduleId); null when the file has
+  /// none (a stock export), so the pedal's assignment is left alone.
+  final ({int fs1, int fs2})? footswitch;
+
+  /// CFW scene records by module; null when the file has no "scenes" (leave the
+  /// pedal's scenes alone), empty when it has none in use (clear them all).
+  final Map<int, SceneRecord>? scenes;
 }
 
 /// Validates and converts a preset JSON doc. Throws [FormatException] on an
@@ -187,7 +198,19 @@ ImportedPreset importedPresetFromJson(
     parameters[effModuleId] = out;
   });
 
+  final fs = (json['footswitch'] as Map?)?.cast<String, dynamic>();
+  final scenesJson = (json['scenes'] as Map?)?.cast<String, dynamic>();
+
   return ImportedPreset(
+    footswitch: fs == null
+        ? null
+        : (
+            fs1: (fs['fs1'] as num? ?? 0).toInt(),
+            fs2: (fs['fs2'] as num? ?? 0).toInt(),
+          ),
+    scenes: scenesJson == null
+        ? null
+        : _scenesFromJson(scenesJson, selectedEffects, data, warnings),
     isCloneMode: isCloneMode,
     presetVolume: presetVolume,
     presetBpm: presetBpm,
@@ -197,4 +220,56 @@ ImportedPreset importedPresetFromJson(
     chainOrder: ((json['signalChain'] as List?) ?? const []).cast<String>(),
     warnings: warnings,
   );
+}
+
+/// The CFW app's "scenes" object: per module ("Clone" = 9), SC1 / SC2 knob
+/// values by name and an optional "onOff" {SC1|SC2: bool}. A module with
+/// "enabled": false is not in the scenes.
+Map<int, SceneRecord> _scenesFromJson(
+  Map<String, dynamic> json,
+  Map<int, int> selectedEffects,
+  DataAssets data,
+  List<String> warnings,
+) {
+  final out = <int, SceneRecord>{};
+
+  json.forEach((key, raw) {
+    final module = key == 'Clone' ? 9 : data.modules.idOf(key);
+
+    if (module == null || module > 9 || raw is! Map) {
+      warnings.add('scenes: unknown module "$key" — skipped');
+      return;
+    }
+
+    final m = raw.cast<String, dynamic>();
+
+    if (m['enabled'] == false) return;
+
+    final fxId = selectedEffects[module];
+    final def = fxId == null ? null : data.effects.byId(fxId);
+
+    if (def == null) {
+      warnings.add('scenes: $key has no effect in this preset — skipped');
+      return;
+    }
+
+    final byName = {for (final p in def.params) p.name.toUpperCase(): p.algId};
+
+    Map<int, double> values(Object? v) => {
+      for (final e in ((v as Map?) ?? const {}).entries)
+        ?byName[(e.key as String).toUpperCase()]: (e.value as num).toDouble(),
+    };
+
+    final onOff = (m['onOff'] as Map?) ?? const {};
+
+    out[module] = SceneRecord(
+      module: module,
+      sc1On: onOff['SC1'] as bool?,
+      sc2On: onOff['SC2'] as bool?,
+      sc1: values(m['SC1']),
+      sc2: values(m['SC2']),
+    );
+  });
+
+  return out;
 }
