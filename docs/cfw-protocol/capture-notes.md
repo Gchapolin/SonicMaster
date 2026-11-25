@@ -173,3 +173,11 @@ Covers the extra effects, 10 IR/Clone slots and Global EQ knob tables, so these 
 ## Side effect to tell the user
 P01 "Ponty" AMP BASS showed 100 at the start and 62 after reloading P01 (nothing was saved by us; NR THRE stayed 10).
 Most likely 100 was an unsaved knob edit in the pedal's memory (e.g. from testing the iPhone app) and 62 is the saved value.
+
+## Live gate 2026-11-24 (integration_test/cfw_scenes_geq_live_test.dart, iPad over BLE, CFW 1.0.2)
+- Global EQ: wrote model 2 (Cut 24 defaults) and model 3 (Tilt defaults); `12 3A` read both back unchanged; original block restored.
+  This proves the pedal accepts and stores models 2 and 3. That 2 = Cut 24 and 3 = Tilt (and not the reverse) is still
+  the app-list-order assumption: confirm by ear / on the pedal's G-EQ screen.
+- Scenes: `11 33 00 01 01 00 <23.0>` then `12 33` -> NR sc1 {0: 23}. `11 33 00 00 00 00` (clear) then `12 33` -> no record:
+  the assumed "module out of scenes" frame works.
+- `12 32` current scene = 0 (BASE). Nothing saved.
