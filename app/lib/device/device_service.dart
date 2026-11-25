@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import '../protocol/cfw_setting_writer.dart';
+import '../protocol/cfw_settings_decoder.dart';
 import '../protocol/inbound_message.dart';
 import 'ack_waiter.dart';
 import 'inbound_pipeline.dart';
@@ -229,6 +231,45 @@ class DeviceService {
       timeout: timeout,
     ),
   );
+
+  /// Requests the CFW settings block (`12 2A`); returns the reply frame hex,
+  /// or null on timeout (stock firmware never answers it).
+  Future<String?> requestCfwSettings({
+    Duration timeout = const Duration(seconds: 1),
+  }) => _serialized(
+    () => awaitFirst<String>(
+      inbound,
+      () => sendFrame(CfwSettingWriter.readSettings()),
+      (m) => m is DataFrame && _isReplyTo(m.hex, 0x2A) ? m.hex : null,
+      timeout: timeout,
+    ),
+  );
+
+  /// Requests the CFW status block (`12 2B`) and returns the DSP load in %,
+  /// or null on timeout.
+  Future<int?> requestDspLoad({
+    Duration timeout = const Duration(seconds: 1),
+  }) => _serialized(
+    () => awaitFirst<int>(
+      inbound,
+      () => sendFrame(CfwSettingWriter.readDsp()),
+      (m) {
+        if (m is! DataFrame || !_isReplyTo(m.hex, 0x2B)) return null;
+
+        final b = collapseFrame(m.hex)!;
+
+        return b.length < 10 ? null : b[8] | (b[9] << 8);
+      },
+      timeout: timeout,
+    ),
+  );
+
+  /// Whether [hex] is the pedal's `12 <register>` read reply.
+  static bool _isReplyTo(String hex, int register) {
+    final b = collapseFrame(hex);
+
+    return b != null && b.length > 5 && b[4] == 0x12 && b[5] == register;
+  }
 
   /// Request all 100 preset names (`020400`); returns the reassembled dump
   /// frame hex, or null on timeout. One reassembled DataFrame (verified live).

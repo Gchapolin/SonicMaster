@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../device/device_model.dart';
 import '../device/transport.dart';
+import 'cfw_providers.dart';
 import 'connection_prefs.dart';
 import 'data_providers.dart';
 import 'device_providers.dart';
@@ -61,6 +62,9 @@ Future<bool> connectAndSync(
 
   await refreshGlobalSettings(ref);
   unawaited(refreshNames(ref));
+  // Community custom firmware (CFW) settings block; stock firmware never
+  // answers, which leaves cfwInfoProvider null after the read times out.
+  unawaited(refreshCfwInfo(ref));
 
   return true;
 }
