@@ -4,15 +4,19 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../model/cfw_eq_models.dart';
+import '../model/cfw_exp.dart';
 import '../model/cfw_global_eq.dart';
 
 import '../model/cfw_info.dart';
 import '../model/cfw_scenes.dart';
+import '../protocol/cfw_exp_codec.dart';
 import '../protocol/cfw_geq_codec.dart';
 import '../protocol/cfw_scene_codec.dart';
 import '../protocol/cfw_setting_writer.dart';
 import '../protocol/cfw_settings_decoder.dart';
+import '../protocol/cfw_slot_names_codec.dart';
 import 'device_providers.dart';
+import 'names_providers.dart';
 import 'preset_providers.dart';
 
 /// What the connected pedal's community custom firmware (CFW) reports; null
@@ -65,9 +69,41 @@ void clearCfwState(WidgetRef ref) {
 Future<void> refreshNamesThenCfw(WidgetRef ref) async {
   await refreshNames(ref);
   await refreshCfwInfo(ref);
+  await refreshCfwSlotNames(ref);
   // The preset loaded at connect arrives as a pushed dump, before the CFW is
   // known: read its scenes now.
   await refreshScenes(ref);
+}
+
+/// On a CFW pedal, reads the names of its ten User IR and ten User Profile
+/// slots into [userNamesProvider] (the stock dumps only carry five, cut
+/// short). A slot the pedal calls "Empty" keeps the name it had. Best-effort,
+/// like the stock name reads; a no-op on stock firmware.
+Future<void> refreshCfwSlotNames(WidgetRef ref) async {
+  if (ref.read(cfwInfoProvider) == null) return;
+
+  final service = ref.read(deviceServiceProvider);
+  final names = ref.read(userNamesProvider.notifier);
+
+  for (final (register, idOf) in const [
+    (cfwIrNamesRegister, cfwIrEffectId),
+    (cfwProfileNamesRegister, cfwProfileEffectId),
+  ]) {
+    try {
+      final hex = await service.requestCfwSlotNames(register);
+      final decoded = hex == null ? null : decodeCfwSlotNames(hex, register);
+
+      if (decoded == null || !names.mounted) continue;
+
+      names.state = {
+        ...names.state,
+        for (final (slot, name) in decoded.indexed)
+          if (name.isNotEmpty && name != 'Empty') idOf(slot): name,
+      };
+    } catch (_) {
+      // best-effort
+    }
+  }
 }
 
 /// Sets one CFW setting: shows it at once, then sends it and waits for the
@@ -163,8 +199,27 @@ final sceneRecordsProvider = StateProvider<Map<int, SceneRecord>>(
 /// The live scene: 0 BASE, 1 SC1, 2 SC2.
 final currentSceneProvider = StateProvider<int>((_) => 0);
 
+const _noExp = <ExpAssign?>[null, null, null, null];
+
+/// EXP A-D of the loaded preset on a CFW pedal; null is a free slot. They
+/// belong to the preset, so they are read and dropped with its scenes.
+final expAssignsProvider = StateProvider<List<ExpAssign?>>((_) => _noExp);
+
+/// Assigns EXP slot [index] (0 = A) to [assign], or frees it with null: shows
+/// it at once and sends all four slots. A no-op on stock firmware.
+Future<void> setExpAssign(WidgetRef ref, int index, ExpAssign? assign) async {
+  if (ref.read(cfwInfoProvider) == null) return;
+
+  final slots = [...ref.read(expAssignsProvider)]..[index] = assign;
+
+  ref.read(expAssignsProvider.notifier).state = slots;
+  ref.read(presetModifiedProvider.notifier).state = true;
+  await _sendScene(ref, buildExpFrame(slots));
+}
+
 /// Drops the scene state (a new preset or a new connection).
 void clearSceneState(WidgetRef ref) {
+  ref.read(expAssignsProvider.notifier).state = _noExp;
   ref.read(sceneRecordsProvider.notifier).state = const {};
   ref.read(currentSceneProvider.notifier).state = 0;
 }
@@ -177,12 +232,18 @@ Future<void> refreshScenes(WidgetRef ref) async {
   final service = ref.read(deviceServiceProvider);
   final records = ref.read(sceneRecordsProvider.notifier);
   final scene = ref.read(currentSceneProvider.notifier);
+  final exp = ref.read(expAssignsProvider.notifier);
 
   try {
     final recordsHex = await service.requestSceneRecords();
     final sceneHex = await service.requestCurrentScene();
+    final expHex = await service.requestExpAssigns();
 
     if (!records.mounted) return;
+
+    final slots = expHex == null ? null : decodeExpFrame(expHex);
+
+    if (slots != null) exp.state = slots;
 
     // A missed read keeps what we have: the scenes are cleared where the
     // preset changes, so nothing stale survives, and a timeout must not wipe

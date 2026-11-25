@@ -1,9 +1,11 @@
 import 'dart:async';
 
+import '../protocol/cfw_exp_codec.dart';
 import '../protocol/cfw_geq_codec.dart';
 import '../protocol/cfw_scene_codec.dart';
 import '../protocol/cfw_setting_writer.dart';
 import '../protocol/cfw_settings_decoder.dart';
+import '../protocol/cfw_slot_names_codec.dart';
 import '../protocol/inbound_message.dart';
 import 'ack_waiter.dart';
 import 'inbound_pipeline.dart';
@@ -286,6 +288,32 @@ class DeviceService {
       inbound,
       () => sendFrame(readSceneRecordsFrame()),
       (m) => m is DataFrame && _isReplyTo(m.hex, 0x33) ? m.hex : null,
+      timeout: timeout,
+    ),
+  );
+
+  /// Requests the CFW's ten slot names of [register] (`12 28` User IRs,
+  /// `12 29` User Profiles).
+  Future<String?> requestCfwSlotNames(
+    int register, {
+    Duration timeout = const Duration(seconds: 1),
+  }) => _serialized(
+    () => awaitFirst<String>(
+      inbound,
+      () => sendFrame(readCfwSlotNamesFrame(register)),
+      (m) => m is DataFrame && _isReplyTo(m.hex, register) ? m.hex : null,
+      timeout: timeout,
+    ),
+  );
+
+  /// Requests the loaded preset's EXP A-D slots (`12 3D`).
+  Future<String?> requestExpAssigns({
+    Duration timeout = const Duration(seconds: 1),
+  }) => _serialized(
+    () => awaitFirst<String>(
+      inbound,
+      () => sendFrame(readExpFrame()),
+      (m) => m is DataFrame && _isReplyTo(m.hex, 0x3D) ? m.hex : null,
       timeout: timeout,
     ),
   );

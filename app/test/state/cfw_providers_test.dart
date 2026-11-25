@@ -8,10 +8,12 @@ import 'package:sonicmaster/device/device_service.dart';
 import 'package:sonicmaster/device/transport.dart';
 import 'package:sonicmaster/protocol/cfw_setting_writer.dart';
 import 'package:sonicmaster/protocol/cfw_settings_decoder.dart';
+import 'package:sonicmaster/protocol/cfw_slot_names_codec.dart';
 import 'package:sonicmaster/protocol/sysex_write_frame.dart';
 import 'package:sonicmaster/state/cfw_providers.dart';
 import 'package:sonicmaster/state/data_providers.dart';
 import 'package:sonicmaster/state/device_providers.dart';
+import 'package:sonicmaster/state/names_providers.dart';
 import 'package:sonicmaster/state/preset_providers.dart';
 
 import '../fixtures/cfw_dumps.dart';
@@ -55,6 +57,16 @@ class _ReplyingTransport implements Transport {
       scheduleMicrotask(() => _packets.add(_bytes(reply)));
     }
   }
+}
+
+/// A silent pedal that records what it is sent.
+class _RecordingTransport extends _ReplyingTransport {
+  _RecordingTransport(this.sent) : super(const {});
+
+  final List<String> sent;
+
+  @override
+  Future<void> sendFrame(String frameHex) async => sent.add(frameHex);
 }
 
 /// The DSP status reply, built with the captured payload
@@ -139,7 +151,92 @@ Future<WidgetRef> _ref(WidgetTester tester, ProviderContainer c) async {
   return captured;
 }
 
+/// A multi-packet reply as the reassembler hands it over: a synthetic
+/// `<crc> 01 00 00` header, then the nibble-expanded payload.
+String _reassembled(List<int> payload) => [
+  '8080f0', '0000', '0001', '0000', '0000', //
+  for (final b in payload)
+    '0${(b >> 4).toRadixString(16)}0${(b & 0xF).toRadixString(16)}',
+  'f7',
+].join();
+
+/// A captured-shape `12 <register>` names reply: `01 0a <kind>` + 10 x 32.
+String _slotNames(int register, List<String> names) => _reassembled([
+  0x12,
+  register,
+  0x01,
+  names.length,
+  register == 0x28 ? 0 : 1,
+  for (final n in names) ...[...n.codeUnits, ...List.filled(32 - n.length, 0)],
+]);
+
 void main() {
+  group('the CFW slot names', () {
+    final replies = {
+      readCfwSlotNamesFrame(0x28).toLowerCase(): _slotNames(0x28, [
+        for (var i = 1; i <= 10; i++) i == 7 ? 'Mesa 412 V30' : 'User IR $i',
+      ]),
+      readCfwSlotNamesFrame(0x29).toLowerCase(): _slotNames(0x29, [
+        'Randall SATAN 50 Mic Center',
+        for (var i = 2; i <= 10; i++) i == 10 ? 'Plexi' : 'Empty',
+      ]),
+    };
+
+    testWidgets('fill the ten IR and ten profile names on a CFW pedal', (
+      tester,
+    ) async {
+      // Two reads in a row: the inbound pipeline must live in the real-async
+      // zone, or its second frame waits for a pump that never comes.
+      final service = (await tester.runAsync(
+        () async =>
+            DeviceService(_ReplyingTransport(replies))..startListening(),
+      ))!;
+      final c = ProviderContainer(
+        overrides: [deviceServiceProvider.overrideWithValue(service)],
+      );
+
+      addTearDown(c.dispose);
+      addTearDown(service.dispose);
+      c.read(cfwInfoProvider.notifier).state = _cfw;
+      c.read(userNamesProvider.notifier).state = {902: 'User Profile 2'};
+
+      final ref = await _ref(tester, c);
+
+      await tester.runAsync(() => refreshCfwSlotNames(ref));
+
+      final names = c.read(userNamesProvider);
+
+      expect(names[416], 'User IR 1');
+      expect(names[423], 'Mesa 412 V30'); // slot 7
+      expect(names[426], 'User IR 10');
+      expect(names.containsKey(421), isFalse); // a factory cab, not a slot
+      expect(names[901], 'Randall SATAN 50 Mic Center');
+      expect(names[910], 'Plexi');
+      // An empty slot keeps what was there (or the library name).
+      expect(names[902], 'User Profile 2');
+      expect(names.containsKey(906), isFalse);
+    });
+
+    testWidgets('are not read on stock firmware', (tester) async {
+      final sent = <String>[];
+      final service = DeviceService(_RecordingTransport(sent))
+        ..startListening();
+      final c = ProviderContainer(
+        overrides: [deviceServiceProvider.overrideWithValue(service)],
+      );
+
+      addTearDown(c.dispose);
+      addTearDown(service.dispose);
+
+      final ref = await _ref(tester, c);
+
+      await tester.runAsync(() => refreshCfwSlotNames(ref));
+
+      expect(sent, isEmpty);
+      expect(c.read(userNamesProvider), isEmpty);
+    });
+  });
+
   testWidgets('a CFW pedal fills cfwInfoProvider with its version', (
     tester,
   ) async {

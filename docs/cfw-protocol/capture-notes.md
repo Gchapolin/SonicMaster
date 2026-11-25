@@ -187,3 +187,13 @@ Most likely 100 was an unsaved knob edit in the pedal's memory (e.g. from testin
 - 2026-11-25 live gate (integration_test/cfw_effects_live_test.dart): a CFW Pocket Master takes the Smart Box effects with the
   stock `0407` select commands — AMP 329 (Superb CL), DLY 716 (Echo), FX1 601 (BBD Phaser) acked and read back from the state
   dump; reloading the preset discarded them.
+
+## Capture session 2 (2026-11-25, CFW web app over BLE)
+### Register 0x3D: EXP A-D of the loaded preset (assignment removed after capture)
+- write `11 3D` + 4 x 6 bytes (EXP A, B, C, D): `<module> <algId> <mode> <min %> <max %> 00`; a free slot is `ff 00 00 00 00 00`.
+  mode: 0 continuous, 1 toggle, 2 momentary. Sample (EXP A -> NR THRE, 0..35 %): `11 3d 00 00 00 00 23 00 ff 00 00 00 00 00 ...`
+- read `12 3D` -> `01 01` + the same 24 bytes.
+- The 24 bytes span two BLE packets: the frame is split by the transport, not by the protocol.
+### Registers 0x28 / 0x29: names with 10 slots, read at connect
+- `12 28` -> `01 0a 00` + 10 x 32-byte zero-padded ASCII names: the User IR names ("User IR 1" ...).
+- `12 29` -> `01 0a 01` + 10 x 32-byte names: the Clone (User Profile) names ("Randall SATAN 50 Mic Center", "Empty" ...).

@@ -52,7 +52,10 @@ void main() {
     );
 
     expect(chunks.length, 112);
-    expect(chunks.every((c) => c.startsWith('8080F0') && c.endsWith('F7')), isTrue);
+    expect(
+      chunks.every((c) => c.startsWith('8080F0') && c.endsWith('F7')),
+      isTrue,
+    );
   });
 
   test('rejects non-WAV bytes', () {
@@ -71,7 +74,12 @@ Uint8List _wav16({
 }) {
   final dataBytes = pcm.length * 2;
 
-  List<int> u32(int v) => [v & 0xFF, (v >> 8) & 0xFF, (v >> 16) & 0xFF, (v >> 24) & 0xFF];
+  List<int> u32(int v) => [
+    v & 0xFF,
+    (v >> 8) & 0xFF,
+    (v >> 16) & 0xFF,
+    (v >> 24) & 0xFF,
+  ];
   List<int> u16(int v) => [v & 0xFF, (v >> 8) & 0xFF];
 
   return Uint8List.fromList([

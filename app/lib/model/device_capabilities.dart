@@ -2,6 +2,10 @@ import '../device/device_model.dart';
 import '../device/transport.dart';
 import 'command_library.dart';
 
+/// User IR slots 6-10 (422-426) and User Profile slots 6-10 (906-910): they
+/// exist only on the community custom firmware, on every model.
+const cfwOnlySlotIds = {422, 423, 424, 425, 426, 906, 907, 908, 909, 910};
+
 /// Per-device effect/amp capability manifest, loaded from
 /// `device_capabilities.json`. Holds, per model: the connection-name substrings
 /// used to identify it, a display name, and (for subset models only) the set of
@@ -103,7 +107,10 @@ class DeviceCapabilities {
     int moduleId, {
     bool isCfw = false,
   }) {
-    final all = commands.effectIdsFor(moduleId);
+    final all = [
+      for (final id in commands.effectIdsFor(moduleId))
+        if (isCfw || !cfwOnlySlotIds.contains(id)) id,
+    ];
     final allowed = _effects[model]?[moduleId];
 
     if (allowed == null) return all;
@@ -113,7 +120,12 @@ class DeviceCapabilities {
     final extra = isCfw ? (_cfwEffects[model] ?? const {})[moduleId] : null;
 
     return all
-        .where((id) => allowed.contains(id) || (extra?.contains(id) ?? false))
+        .where(
+          (id) =>
+              allowed.contains(id) ||
+              (extra?.contains(id) ?? false) ||
+              cfwOnlySlotIds.contains(id),
+        )
         .toList();
   }
 

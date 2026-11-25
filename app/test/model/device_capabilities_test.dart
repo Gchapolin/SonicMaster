@@ -54,7 +54,11 @@ void main() {
   group('availableEffectIds', () {
     test('smartBox and unknown pass through the full pickable set', () {
       for (final moduleId in modules) {
-        final all = commands.effectIdsFor(moduleId);
+        // Slots 6-10 of the User IRs and User Profiles exist only on the CFW.
+        final all = commands
+            .effectIdsFor(moduleId)
+            .where((id) => !cfwOnlySlotIds.contains(id))
+            .toList();
 
         expect(caps.availableEffectIds(commands, .smartBox, moduleId), all);
         expect(caps.availableEffectIds(commands, .unknown, moduleId), all);
@@ -107,6 +111,28 @@ void main() {
   });
 
   group('CFW', () {
+    test('User IR and User Profile slots 6-10 appear only with the CFW', () {
+      for (final model in DeviceModel.values) {
+        final ir = caps.availableEffectIds(commands, model, 4);
+        final clone = caps.availableEffectIds(commands, model, 9);
+
+        expect(ir, isNot(contains(422)), reason: '$model');
+        expect(clone, contains(905), reason: '$model');
+        expect(clone, isNot(contains(906)), reason: '$model');
+
+        expect(
+          caps.availableEffectIds(commands, model, 4, isCfw: true),
+          containsAll([416, 420, 422, 426]),
+          reason: '$model',
+        );
+        expect(
+          caps.availableEffectIds(commands, model, 9, isCfw: true),
+          containsAll([901, 905, 906, 910]),
+          reason: '$model',
+        );
+      }
+    });
+
     test('a CFW Pocket Master also gets the Smart Box amps', () {
       final stock = caps.availableEffectIds(commands, .pocketMaster, 3);
       final cfw = caps.availableEffectIds(

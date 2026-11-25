@@ -5391,5 +5391,335 @@
         "widgetType": 1
       }
     ]
+  },
+  "422": {
+    "name": "User IR 6",
+    "descriptionEn": "User-loaded cabinet impulse response.",
+    "alg": [
+      {
+        "name": "Vol",
+        "algId": 0,
+        "defaultValue": 50,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "widgetType": 0
+      }
+    ]
+  },
+  "423": {
+    "name": "User IR 7",
+    "descriptionEn": "User-loaded cabinet impulse response.",
+    "alg": [
+      {
+        "name": "Vol",
+        "algId": 0,
+        "defaultValue": 50,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "widgetType": 0
+      }
+    ]
+  },
+  "424": {
+    "name": "User IR 8",
+    "descriptionEn": "User-loaded cabinet impulse response.",
+    "alg": [
+      {
+        "name": "Vol",
+        "algId": 0,
+        "defaultValue": 50,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "widgetType": 0
+      }
+    ]
+  },
+  "425": {
+    "name": "User IR 9",
+    "descriptionEn": "User-loaded cabinet impulse response.",
+    "alg": [
+      {
+        "name": "Vol",
+        "algId": 0,
+        "defaultValue": 50,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "widgetType": 0
+      }
+    ]
+  },
+  "426": {
+    "name": "User IR 10",
+    "descriptionEn": "User-loaded cabinet impulse response.",
+    "alg": [
+      {
+        "name": "Vol",
+        "algId": 0,
+        "defaultValue": 50,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "widgetType": 0
+      }
+    ]
+  },
+  "906": {
+    "name": "User Profile 6",
+    "descriptionEn": "Your own captured amp profile with a 3-band EQ.",
+    "alg": [
+      {
+        "name": "Gain",
+        "algId": 0,
+        "defaultValue": 50,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "widgetType": 0
+      },
+      {
+        "name": "Vol",
+        "algId": 1,
+        "defaultValue": 50,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "widgetType": 0
+      },
+      {
+        "name": "Bass",
+        "algId": 2,
+        "defaultValue": 50,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "widgetType": 0
+      },
+      {
+        "name": "Middle",
+        "algId": 3,
+        "defaultValue": 50,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "widgetType": 0
+      },
+      {
+        "name": "Treble",
+        "algId": 4,
+        "defaultValue": 50,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "widgetType": 0
+      }
+    ]
+  },
+  "907": {
+    "name": "User Profile 7",
+    "descriptionEn": "Your own captured amp profile with a 3-band EQ.",
+    "alg": [
+      {
+        "name": "Gain",
+        "algId": 0,
+        "defaultValue": 50,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "widgetType": 0
+      },
+      {
+        "name": "Vol",
+        "algId": 1,
+        "defaultValue": 50,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "widgetType": 0
+      },
+      {
+        "name": "Bass",
+        "algId": 2,
+        "defaultValue": 50,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "widgetType": 0
+      },
+      {
+        "name": "Middle",
+        "algId": 3,
+        "defaultValue": 50,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "widgetType": 0
+      },
+      {
+        "name": "Treble",
+        "algId": 4,
+        "defaultValue": 50,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "widgetType": 0
+      }
+    ]
+  },
+  "908": {
+    "name": "User Profile 8",
+    "descriptionEn": "Your own captured amp profile with a 3-band EQ.",
+    "alg": [
+      {
+        "name": "Gain",
+        "algId": 0,
+        "defaultValue": 50,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "widgetType": 0
+      },
+      {
+        "name": "Vol",
+        "algId": 1,
+        "defaultValue": 50,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "widgetType": 0
+      },
+      {
+        "name": "Bass",
+        "algId": 2,
+        "defaultValue": 50,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "widgetType": 0
+      },
+      {
+        "name": "Middle",
+        "algId": 3,
+        "defaultValue": 50,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "widgetType": 0
+      },
+      {
+        "name": "Treble",
+        "algId": 4,
+        "defaultValue": 50,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "widgetType": 0
+      }
+    ]
+  },
+  "909": {
+    "name": "User Profile 9",
+    "descriptionEn": "Your own captured amp profile with a 3-band EQ.",
+    "alg": [
+      {
+        "name": "Gain",
+        "algId": 0,
+        "defaultValue": 50,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "widgetType": 0
+      },
+      {
+        "name": "Vol",
+        "algId": 1,
+        "defaultValue": 50,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "widgetType": 0
+      },
+      {
+        "name": "Bass",
+        "algId": 2,
+        "defaultValue": 50,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "widgetType": 0
+      },
+      {
+        "name": "Middle",
+        "algId": 3,
+        "defaultValue": 50,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "widgetType": 0
+      },
+      {
+        "name": "Treble",
+        "algId": 4,
+        "defaultValue": 50,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "widgetType": 0
+      }
+    ]
+  },
+  "910": {
+    "name": "User Profile 10",
+    "descriptionEn": "Your own captured amp profile with a 3-band EQ.",
+    "alg": [
+      {
+        "name": "Gain",
+        "algId": 0,
+        "defaultValue": 50,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "widgetType": 0
+      },
+      {
+        "name": "Vol",
+        "algId": 1,
+        "defaultValue": 50,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "widgetType": 0
+      },
+      {
+        "name": "Bass",
+        "algId": 2,
+        "defaultValue": 50,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "widgetType": 0
+      },
+      {
+        "name": "Middle",
+        "algId": 3,
+        "defaultValue": 50,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "widgetType": 0
+      },
+      {
+        "name": "Treble",
+        "algId": 4,
+        "defaultValue": 50,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "widgetType": 0
+      }
+    ]
   }
 }

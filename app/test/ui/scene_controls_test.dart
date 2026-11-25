@@ -70,7 +70,9 @@ void main() {
     await pump(
       tester,
       scene: 1,
-      records: {0: const SceneRecord(module: 0, sc1: {0: 23})},
+      records: {
+        0: const SceneRecord(module: 0, sc1: {0: 23}),
+      },
     );
 
     expect(inEditor(find.text('23')), findsOneWidget); // THRE: base is 50
@@ -83,7 +85,9 @@ void main() {
   testWidgets('in BASE the knob keeps the base value', (tester) async {
     await pump(
       tester,
-      records: {0: const SceneRecord(module: 0, sc1: {0: 23})},
+      records: {
+        0: const SceneRecord(module: 0, sc1: {0: 23}),
+      },
     );
 
     expect(inEditor(find.text('50')), findsOneWidget);
@@ -96,7 +100,9 @@ void main() {
     await pump(
       tester,
       scene: 1,
-      records: {0: const SceneRecord(module: 0, sc1: {6: 99})},
+      records: {
+        0: const SceneRecord(module: 0, sc1: {6: 99}),
+      },
     );
 
     expect(tester.takeException(), isNull);
@@ -107,7 +113,9 @@ void main() {
     final (_, transport) = await pump(
       tester,
       scene: 1,
-      records: {0: const SceneRecord(module: 0, sc1: {0: 23})},
+      records: {
+        0: const SceneRecord(module: 0, sc1: {0: 23}),
+      },
     );
 
     await tester.tap(inEditor(find.text('OFF')));
@@ -165,7 +173,9 @@ void main() {
       tester,
       scene: 1,
       size: const Size(956, 440),
-      records: {0: const SceneRecord(module: 0, sc1: {0: 23})},
+      records: {
+        0: const SceneRecord(module: 0, sc1: {0: 23}),
+      },
     );
 
     expectNoOverflow(tester);

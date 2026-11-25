@@ -55,11 +55,7 @@ void main() {
   });
 
   test('slot maps to byte[6] (User IR 5 = slot 4)', () {
-    final blob = IrUploadFrame.buildBlob(
-      slot: 4,
-      name: 'x',
-      samples: samples,
-    );
+    final blob = IrUploadFrame.buildBlob(slot: 4, name: 'x', samples: samples);
 
     expect(blob[6], 4);
   });
@@ -72,10 +68,7 @@ void main() {
     );
 
     expect(blob[9], IrUploadFrame.nameMaxChars);
-    expect(
-      String.fromCharCodes(blob.sublist(10, 20)),
-      'verylongna',
-    );
+    expect(String.fromCharCodes(blob.sublist(10, 20)), 'verylongna');
   });
 
   test('rejects a sample count other than 512', () {

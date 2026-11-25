@@ -58,46 +58,43 @@ void main() {
     expect(rate.max, 10.0);
   });
 
-  test(
-    'sync-capable tempo params are knobs pointing at a real Sync toggle',
-    () {
-      var syncCapable = 0;
+  test('sync-capable tempo params are knobs pointing at a real Sync toggle', () {
+    var syncCapable = 0;
 
-      for (final e in lib.effects.values) {
-        for (final p in e.params) {
-          if (p.syncToggleAlgId == null) continue;
+    for (final e in lib.effects.values) {
+      for (final p in e.params) {
+        if (p.syncToggleAlgId == null) continue;
 
-          syncCapable++;
-          // The gated control is a tempo knob — Hz for modulation Rate, ms for
-          // DLY Time. Both are the slot the firmware rereads as a division
-          // index once the gate engages.
-          expect(p.widgetType, WidgetType.knob, reason: '${e.name}/${p.name}');
-          expect(p.unit, anyOf('Hz', 'ms'), reason: '${e.name}/${p.name}');
+        syncCapable++;
+        // The gated control is a tempo knob — Hz for modulation Rate, ms for
+        // DLY Time. Both are the slot the firmware rereads as a division
+        // index once the gate engages.
+        expect(p.widgetType, WidgetType.knob, reason: '${e.name}/${p.name}');
+        expect(p.unit, anyOf('Hz', 'ms'), reason: '${e.name}/${p.name}');
 
-          // …and the referenced algId is a real toggle in the same effect.
-          final gate = e.params.firstWhere(
-            (q) => q.algId == p.syncToggleAlgId,
-            orElse: () => throw StateError(
-              '${e.name}: syncToggleAlgId ${p.syncToggleAlgId} not found',
-            ),
-          );
+        // …and the referenced algId is a real toggle in the same effect.
+        final gate = e.params.firstWhere(
+          (q) => q.algId == p.syncToggleAlgId,
+          orElse: () => throw StateError(
+            '${e.name}: syncToggleAlgId ${p.syncToggleAlgId} not found',
+          ),
+        );
 
-          expect(gate.widgetType, WidgetType.toggle, reason: e.name);
-        }
+        expect(gate.widgetType, WidgetType.toggle, reason: e.name);
       }
+    }
 
-      // 11 recovered modulations (every one except C-Wah) + 10 whose Sync the
-      // desktop capture missed (Auto Wah, A/B-Chorus, Flanger, Phaser, Vibe,
-      // Vibrato, Tremolo, Sine/Bias Trem) + 15 of the 16 DLY voicings.
-      //
-      // Slap is the deliberate exception: it is the one DLY with no Sync at all
-      // — alg 3 falls through to slot 0 on the pedal — which fits a slapback
-      // (Time 20-300ms). It still has Trail. Measured, not inferred: every algId
-      // here came off the device via tools/re/find_sync.py, and they follow no
-      // pattern (Phaser@1 … Auto Wah@6; DLY@3 but Sweep@6).
-      expect(syncCapable, 36);
-    },
-  );
+    // 11 recovered modulations (every one except C-Wah) + 10 whose Sync the
+    // desktop capture missed (Auto Wah, A/B-Chorus, Flanger, Phaser, Vibe,
+    // Vibrato, Tremolo, Sine/Bias Trem) + 15 of the 16 DLY voicings.
+    //
+    // Slap is the deliberate exception: it is the one DLY with no Sync at all
+    // — alg 3 falls through to slot 0 on the pedal — which fits a slapback
+    // (Time 20-300ms). It still has Trail. Measured, not inferred: every algId
+    // here came off the device via tools/re/find_sync.py, and they follow no
+    // pattern (Phaser@1 … Auto Wah@6; DLY@3 but Sweep@6).
+    expect(syncCapable, 36);
+  });
 
   test('Fullchor #119 Rate is tempo-sync-capable via the Sync toggle', () {
     final rate = lib.byId(119)!.params.firstWhere((p) => p.name == 'Rate');

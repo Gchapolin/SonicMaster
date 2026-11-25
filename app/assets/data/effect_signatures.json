@@ -114,7 +114,12 @@
       "070002000001": "User IR 3",
       "070003000001": "User IR 4",
       "070004000001": "User IR 5",
-      "07010E000000": "Bass 4x10"
+      "07010E000000": "Bass 4x10",
+      "070005000001": "User IR 6",
+      "070006000001": "User IR 7",
+      "070007000001": "User IR 8",
+      "070008000001": "User IR 9",
+      "070009000001": "User IR 10"
     }
   },
   "5": {
@@ -207,7 +212,12 @@
       "01": "User Profile 2",
       "02": "User Profile 3",
       "03": "User Profile 4",
-      "04": "User Profile 5"
+      "04": "User Profile 5",
+      "05": "User Profile 6",
+      "06": "User Profile 7",
+      "07": "User Profile 8",
+      "08": "User Profile 9",
+      "09": "User Profile 10"
     }
   }
 }

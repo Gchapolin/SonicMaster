@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sonicmaster/device/device_service.dart';
 import 'package:sonicmaster/model/cfw_scenes.dart';
+import 'package:sonicmaster/protocol/cfw_exp_codec.dart';
 import 'package:sonicmaster/protocol/cfw_scene_codec.dart';
 import 'package:sonicmaster/protocol/cfw_settings_decoder.dart';
 import 'package:sonicmaster/state/cfw_providers.dart';
@@ -56,6 +57,17 @@ class _FakeCfw extends DeviceService {
   Future<String?> requestCurrentScene({
     Duration timeout = const Duration(seconds: 1),
   }) async => buildSysexWriteFrame([0x12, 0x32, 0x01, 0x01, 0, 0, 0, 0]);
+
+  @override
+  Future<String?> requestCfwSlotNames(
+    int register, {
+    Duration timeout = const Duration(seconds: 1),
+  }) async => null;
+
+  @override
+  Future<String?> requestExpAssigns({
+    Duration timeout = const Duration(seconds: 1),
+  }) async => null;
 
   @override
   Future<String?> requestStateDump({
@@ -304,10 +316,12 @@ void main() {
     await tester.runAsync(() => setModuleInScenes(ref, 0, isIn: true));
     await tester.runAsync(() => setSceneModuleState(ref, 0, false));
 
-    // The first switch-on asks the pedal for its records first (two reads).
+    // The first switch-on asks the pedal for its records first (the scene
+    // reads, with the preset's EXP slots).
     final reads = {
       readSceneRecordsFrame().toLowerCase(),
       readCurrentSceneFrame().toLowerCase(),
+      readExpFrame().toLowerCase(),
     };
 
     expect(sent(t).where((f) => !reads.contains(f)), [

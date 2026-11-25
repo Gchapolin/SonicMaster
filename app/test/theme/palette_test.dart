@@ -60,7 +60,10 @@ void main() {
   });
 
   test('text stays readable: 7:1 for main text, 4.5:1 for secondary', () {
-    expect(contrast(Palette.onSurface, Palette.surface), greaterThanOrEqualTo(7));
+    expect(
+      contrast(Palette.onSurface, Palette.surface),
+      greaterThanOrEqualTo(7),
+    );
     expect(
       contrast(Palette.onSurface, Palette.surfaceContainer),
       greaterThanOrEqualTo(7),
@@ -73,7 +76,13 @@ void main() {
       contrast(Palette.onSurfaceVariant, Palette.surfaceContainer),
       greaterThanOrEqualTo(4.5),
     );
-    expect(contrast(Palette.outline, Palette.surface), greaterThanOrEqualTo(4.5));
-    expect(contrast(Palette.onPrimary, Palette.primary), greaterThanOrEqualTo(4.5));
+    expect(
+      contrast(Palette.outline, Palette.surface),
+      greaterThanOrEqualTo(4.5),
+    );
+    expect(
+      contrast(Palette.onPrimary, Palette.primary),
+      greaterThanOrEqualTo(4.5),
+    );
   });
 }
