@@ -1,193 +1,106 @@
-# SonicMaster
+# SonicMaster for iOS (CFW fork)
 
-**SonicMaster** is a desktop **and browser** editor that gives you deep, real-time control over
-the **Sonicake Pocket Master** and **Sonicake Smart Box** multi-effects pedals. Browse and manage
-presets, edit every effect, reshape your signal chain, map footswitches, and load your own
-amp captures and cabinets — from a fast native app or straight from your browser, with the same
-full feature set either way.
+A fork of **[SonicMaster](https://github.com/Skyggedans/SonicMaster)** by Andrii Klaptsov, the
+editor for the **Sonicake Pocket Master** and **Smart Box** pedals. This fork adds two things:
 
-It began as a side project and is written **≈99.9% by AI**. The remaining 0.1% is the stubborn
-human work: reverse-engineering the device protocol by hand, reading BLE/HCI and USB-MIDI
-packet captures until the pedal gave up its secrets.
+1. **A native iOS / iPadOS app.** Browsers on iPhone and iPad cannot reach the pedal: WebKit has
+   neither Web MIDI nor Web Bluetooth. This build talks to the pedal directly over Bluetooth LE.
+2. **The features of the community custom firmware (CFW)** for the Pocket Master, brought over
+   from the [Sonicake CFW web app](https://pocketmaster-cfw.guitar-training-generator.com/).
+   The CFW web app is itself a fork of SonicMaster.
 
-![SonicMaster](screenshot.png)
+Everything from upstream is still here: presets, the full effect editor, signal chain,
+footswitches, NAM to `.clo` conversion, user IRs, and JSON preset import/export. See the
+[upstream README](https://github.com/Skyggedans/SonicMaster#readme) for those features.
 
-**▶ Try it now in your browser — no install:** **[skyggedans.github.io/SonicMaster](https://skyggedans.github.io/SonicMaster/)**
-(Chrome / Edge / Opera on desktop, Chrome or Samsung Internet on Android; see [Platforms](#platforms) for USB-MIDI / Bluetooth support.)
+> Not affiliated with, or endorsed by, Sonicake or the CFW authors.
 
 ---
 
-## Supported devices & connections
+## What this fork adds
 
-SonicMaster auto-detects your hardware on connect and tailors the editable effect set to it.
+### iOS / iPadOS
 
-### Devices
+* Native iOS runner (iOS 15+), with a layout for the iPad and a compact layout for the iPhone.
+* Bluetooth LE connection to the pedal (`Sonic Master BLE`), tested on an iPad.
+* USB-MIDI goes through CoreMIDI. It is built in but has not been tested on an iOS device.
+* **Demo mode** ("Try demo" on the start screen): a virtual CFW Pocket Master, for trying the UI
+  without a pedal.
+* Flat Material 3 dark look. Preset volume, BPM and a quick preset selector sit in the top bar.
 
-| Device | |
+### Custom firmware (CFW) features
+
+These appear only when the connected pedal runs the CFW. On the stock firmware the app works
+like upstream.
+
+| Feature | Where |
 | --- | --- |
-| **Sonicake Pocket Master** | Full editing; effect choices per module are gated to the model's capabilities. |
-| **Sonicake Smart Box** | Full editing; the larger, superset effect set. |
+| CFW settings (read and write) | Settings dialog |
+| Global EQ, with response curve | Settings dialog |
+| MIDI settings and a custom MIDI map editor | Settings dialog |
+| DSP load and pedal battery | Top bar |
+| Scenes (BASE / SC1 / SC2), per-scene module state | Module editor |
+| EXP A-D assignment | Module editor |
+| The Smart Box effect set on a CFW Pocket Master | Model dropdowns |
+| 10 User IR and 10 User Profile (Clone) slots: load, rename, clear | "Slots…" in the IR and Clone modules |
+| Tuner mirrored from the pedal | Top bar |
+| Move a User preset to another position | Settings dialog |
 
-### Connection interfaces
+Each protocol register was decoded from captures of the CFW web app. Each one was then checked
+on a real pedal (CFW 1.0.2 and 1.0.3) by a live integration test, run on an iPad over BLE. The
+captures and results are in
+[docs/cfw-protocol/capture-notes.md](docs/cfw-protocol/capture-notes.md).
 
-Connect over either transport, with live **two-way sync** — parameters you change in the app
-land on the pedal instantly, and edits made on the pedal itself show up in the app.
-
-| Interface | |
-| --- | --- |
-| **USB-MIDI** | Recommended. Plug in and go. |
-| **Bluetooth LE (BLE-MIDI)** | Wireless. Automatically reconnects if the link drops. |
-
-Both transports work identically in the **web app**, driven by the browser's **Web MIDI** and
-**Web Bluetooth** APIs — no native drivers or plugins. See [Platforms](#platforms) for browser
-support.
-
----
-
-## Features
-
-* **Real-time editing** — tweak any parameter and hear the change on your device immediately.
-* **Two-way communication** — changes made directly on the pedal are reflected live in the editor.
-* **Full preset management** — browse, search, and load all **50 Factory** and **50 User** presets with a click.
-* **Visual signal chain** — see the whole chain at a glance; click a module to edit it, and **drag to reorder** the movable modules (NR, FX1, FX2, DLY, RVB).
-* **A deep model library** — swap any module's type from a dropdown, drawing on **130+ models** of classic amps, cabinets, overdrives, distortions, fuzzes, modulation, delay, and reverb.
-* **Footswitch mapping** — assign modules to the pedal's FS1 / FS2 switches (see below).
-* **NAM amp profiles** — import and convert your own captures (see below).
-* **Custom cabinets** — load your own `.wav` impulse responses.
-* **Tap tempo & BPM** — set a per-preset tempo, with note divisions (1/8, dotted 1/8, 1/4, 1/2) for delay times.
-* **Master & preset volume** — one global level plus per-preset trim.
-* **Automatic sync on connect** — preset names, effect types, user IRs, user profiles, and global settings are pulled from the hardware so the editor always matches your pedal.
-* **Unsaved-change guard** — an edited preset is marked, and the app warns you before you switch away without saving.
-* **Instant, reliable saves** — precise CRC-8 preset writing (no brute-forcing).
-* **Log panel** — manual sync buttons and a raw communication log for troubleshooting.
+**Not ported yet:** community presets, TONE3000 downloads per slot, and backup/restore.
 
 ---
 
-## Footswitch support
+## Building for iPhone / iPad
 
-The pedal has two assignable footswitches, **FS1** and **FS2**, and each can toggle **up to
-three modules at once**. In SonicMaster every module carries a **None / FS1 / FS2** selector,
-and its current assignment is shown as a **corner badge** on the module card — so you can build
-and read your entire stomp layout at a glance, then sync it to the pedal.
-
----
-
-## NAM amp profiles (Clone Mode)
-
-The **AMP** module has a **Clone Mode** that plays a captured amp model instead of a built-in
-voicing. SonicMaster takes a standard **NAM (Neural Amp Modeler) `.nam`** profile and converts
-it — **entirely on your machine, with no vendor tools or DLLs** — into the pedal's native `.clo`
-clone model, then uploads it into one of the five **User Profile** slots.
-
-The conversion runs a WaveNet inference plus a Wiener–Hammerstein post-filter design — native
-(Rust) DSP on desktop, and a **bit-exact pure-Dart port** on the web (run off the UI thread in
-Web Workers) — reproducing the amp's response on the hardware's own clone engine.
-
-### Supported capture formats
-
-| Format | Status |
-| --- | --- |
-| **NAM WaveNet** — standard (`v0.5.x` – `v0.7.x`) | ✅ Imported & converted |
-| **NAM WaveNet** inside a `SlimmableContainer` (Tone3000, `v0.7.0`) | ✅ Uses the highest-quality WaveNet inside |
-| NAM **LSTM** / other architectures | ❌ Not convertible to this hardware |
-
-`.nam` files are the standard captures shared on ToneHunt, Tone3000, and similar sites — drop
-one in and it becomes a slot on your pedal.
-
----
-
-## Cabinets, impulse responses & presets
-
-| Data | Format | Destination |
-| --- | --- | --- |
-| **Amp captures** | NAM `.nam` (WaveNet) → converted to `.clo` | User Profile 1–5 |
-| **Cabinets / IRs** | `.wav` impulse responses | User IR 1–5 |
-| **Presets** | `.json` (import / export) | User bank |
-
-Presets import and export as plain **JSON**, so you can back them up, share them, and
-version-control your tones in an open format.
-
----
-
-## Getting started
-
-1. Connect your **Pocket Master** or **Smart Box** over USB, or power it on for Bluetooth.
-2. Launch the SonicMaster app — or open the web app in a supported browser (see
-   [Platforms](#platforms)) — and click **Connect**.
-3. Pick the **USB-MIDI** port, or choose **Bluetooth** and pair with **"Sonic Master BLE"**.
-   In the browser, the first connect prompts for MIDI / Bluetooth access and opens the device
-   chooser — this must come from your click.
-4. Wait for the initial sync overlay to finish — then start editing.
-
-### Using the editor
-
-* **Load a preset** — click any entry in the Factory / User lists in the sidebar.
-* **Edit a module** — click a module in the chain to open its controls below.
-* **Change a model** — use the module's type dropdown (e.g. swap a *Scream* overdrive for a *Red Fuzz*).
-* **Reorder the chain** — drag the movable modules (NR, FX1, FX2, DLY, RVB) into a new order.
-* **Save** — edited presets show a marker; save to write your changes back to the pedal.
-
----
-
-## Platforms
-
-**Desktop** — **Windows**, **Linux**, and **macOS**, shipped as a Windows installer, a Linux
-AppImage / tarball, and a macOS `.dmg`.
-
-**Web** — live at **[skyggedans.github.io/SonicMaster](https://skyggedans.github.io/SonicMaster/)**,
-with the same full feature set (presets, editing, footswitches, NAM conversion, IR / preset
-import & export). Because the page talks to the hardware directly, no server or driver is
-involved.
-
-**Phones** — on Android, Chrome and Samsung Internet run the full editor in a compact,
-landscape-only layout; a phone held upright shows a "rotate" prompt. Turning the phone sideways
-switches Chrome to fullscreen; where the browser refuses, tap the fullscreen button in the title
-bar. Installed from the browser menu (*Install app* / *Add to Home screen*), the editor always
-opens fullscreen in landscape. Tablets keep the desktop layout in landscape and use the compact
-one in portrait. iPhone and iPad browsers can show the editor but cannot reach the pedal.
-
-| Browser | USB-MIDI | Bluetooth LE |
-| --- | --- | --- |
-| **Chrome / Edge / Opera** (desktop) | ✅ | ✅ (on **Linux**, enable `chrome://flags/#enable-experimental-web-platform-features`) |
-| **Firefox 108+** (desktop) | ✅ | ❌ (no Web Bluetooth) |
-| **Safari** (macOS) | ❌ | ❌ (ships neither Web MIDI nor Web Bluetooth) |
-| **Chrome / Samsung Internet** (Android) | ✅ over a USB-C / OTG cable (not yet confirmed on a device) | ✅ |
-| **Any browser on iPhone / iPad** | ❌ | ❌ (all iOS browsers run on WebKit, which has neither API; the third-party **Bluefy** browser adds Web Bluetooth, untested with SonicMaster) |
-
-### Building from source
-
-**Desktop** — requires the **Flutter** SDK and a **Rust** toolchain (for the native NAM→`.clo`
-DSP bridge):
+This app is not on the App Store. You build it and install it on your own device. You need a
+Mac with Xcode and the **Flutter** SDK.
 
 ```bash
 cd app
 flutter pub get
-flutter run -d linux   # or: macos | windows
 ```
 
-**Web** — no Rust toolchain needed; the web build uses the pure-Dart DSP port. The helper scripts
-also compile the DSP Web Worker, which a bare `flutter build web` would skip:
+1. Open `app/ios/Runner.xcworkspace` in Xcode.
+2. Under *Signing & Capabilities*, set your own **Team**. The project has the fork author's team
+   ID, which will not work for you.
+3. Change the **Bundle Identifier** (`dev.sonicmasterfork.ios`) to one of your own.
+
+Then build and run:
+
+```bash
+flutter run --release -d <your-device>
+```
+
+On first connect, iOS asks for Bluetooth permission. Turn on the pedal and pick
+**Sonic Master BLE**.
+
+Desktop and web builds work as upstream (see
+[Building from source](https://github.com/Skyggedans/SonicMaster#building-from-source)).
+
+### Tests
 
 ```bash
 cd app
-flutter pub get
-tools/run_web.sh       # dev run in Chrome, with Web Bluetooth enabled
-tools/build_web.sh     # production bundle → build/web
+flutter test
 ```
+
+The live tests in `app/integration_test/cfw_*_live_test.dart` need a real CFW pedal. Each one
+restores what it changes.
 
 ---
 
-## Made with AI
+## Credits and license
 
-SonicMaster is, by design, **≈99.9% AI-written**. The other 0.1% is the hands-on part AI can't
-do for you: capturing BLE/HCI and USB-MIDI traffic and reverse-engineering the Pocket Master /
-Smart Box protocol frame by frame.
+* **SonicMaster**: Andrii Klaptsov, MIT License ([LICENSE](LICENSE)).
+* **Sonicake CFW web app**: the CFW data files in `app/assets/data/` and
+  `docs/cfw-protocol/cfw-app-data/` come from it, under the same MIT License (see
+  [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)).
+* The bundled **Oswald** font is under the SIL Open Font License 1.1.
 
-> Not affiliated with, or endorsed by, Sonicake. All product, amp, and pedal names are
-> trademarks of their respective owners and are used only to describe the modeled gear.
-
-## License
-
-Code is released under the **MIT License** (see [LICENSE](LICENSE)). The bundled **Oswald**
-font is licensed under the **SIL Open Font License 1.1** — see
-[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+All product, amp and pedal names are trademarks of their owners and are used only to describe the
+modeled gear.
