@@ -181,3 +181,4 @@ Most likely 100 was an unsaved knob edit in the pedal's memory (e.g. from testin
 - Scenes: `11 33 00 01 01 00 <23.0>` then `12 33` -> NR sc1 {0: 23}. `11 33 00 00 00 00` (clear) then `12 33` -> no record:
   the assumed "module out of scenes" frame works.
 - `12 32` current scene = 0 (BASE). Nothing saved.
+- 2026-11-25: the user confirmed on the pedal's G-EQ screen that model 2 is Cut 24 (so 3 = Tilt EQ).
