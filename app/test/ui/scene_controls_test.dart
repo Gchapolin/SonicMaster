@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sonicmaster/l10n/lang.dart';
 import 'package:sonicmaster/device/device_service.dart';
 import 'package:sonicmaster/model/cfw_scenes.dart';
 import 'package:sonicmaster/protocol/cfw_scene_codec.dart';
@@ -183,5 +184,29 @@ void main() {
     );
 
     expectNoOverflow(tester);
+  });
+
+  group('in Portuguese', () {
+    setUp(() => appLang = Lang.pt);
+    tearDown(() => appLang = Lang.en);
+
+    testWidgets('820x1180: the scene controls read in Portuguese and fit', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        scene: 1,
+        size: const Size(820, 1180),
+        records: {
+          0: const SceneRecord(module: 0, sc1: {0: 23}),
+        },
+      );
+
+      expectNoOverflow(tester);
+      expect(inEditor(find.text('CENAS')), findsOneWidget);
+      expect(inEditor(find.text('SEGUIR')), findsOneWidget);
+      expect(inEditor(find.text('LIGADO')), findsOneWidget);
+      expect(inEditor(find.text('DESLIGADO')), findsOneWidget);
+    });
   });
 }

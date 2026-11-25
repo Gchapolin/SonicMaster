@@ -4,6 +4,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../l10n/common_text.dart';
+import '../l10n/tuner_text.dart';
 import '../model/tuner_reading.dart';
 import '../protocol/cfw_tuner_codec.dart';
 import '../state/device_providers.dart';
@@ -76,13 +78,14 @@ class TunerDialog extends HookConsumerWidget {
     final hasNote = r != null && r.hasNote;
     final cents = hasNote ? r.cents : 0.0;
     final isInTune = hasNote && cents.abs() <= inTuneCents;
+    final t = TunerText.current;
     final status = r == null
-        ? 'Opening the pedal\'s tuner…'
+        ? t.opening
         : !hasNote
-        ? 'Play a string'
+        ? t.playString
         : isInTune
-        ? 'IN TUNE'
-        : (cents < 0 ? 'FLAT' : 'SHARP');
+        ? t.inTune
+        : (cents < 0 ? t.flat : t.sharp);
     final a4 = r?.a4 ?? 440;
 
     return SonicDialog(
@@ -91,7 +94,7 @@ class TunerDialog extends HookConsumerWidget {
         mainAxisSize: .min,
         crossAxisAlignment: .stretch,
         children: [
-          const Text('Tuner', style: AppText.dialogTitle),
+          Text(t.title, style: AppText.dialogTitle),
           const SizedBox(height: 8),
           Row(
             mainAxisAlignment: .center,
@@ -175,8 +178,8 @@ class TunerDialog extends HookConsumerWidget {
               ),
               SonicSegmented<bool>(
                 value: r?.isMuted ?? false,
-                segments: const [
-                  (value: true, label: 'Mute'),
+                segments: [
+                  (value: true, label: t.mute),
                   (value: false, label: 'Bypass'),
                 ],
                 onChanged: (v) => send(tunerOutputFrame(isMuted: v)),
@@ -187,7 +190,7 @@ class TunerDialog extends HookConsumerWidget {
           Align(
             alignment: Alignment.centerRight,
             child: SonicButton(
-              label: 'Close',
+              label: CommonText.current.close,
               onPressed: () => Navigator.pop(context),
             ),
           ),

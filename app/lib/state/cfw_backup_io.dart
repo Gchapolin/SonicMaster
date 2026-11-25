@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import '../device/device_service.dart';
+import '../l10n/backup_text.dart';
 import '../model/cfw_info.dart';
 import '../model/command_library.dart';
 import '../model/midi_map.dart';
@@ -86,7 +87,7 @@ Future<Uint8List> _readScenes(DeviceService s, int slot) async {
 
   if (hex == null) {
     throw CfwBackupException(
-      '${presetLabel(slot)}: no scene read-back (12 34)',
+      BackupText.current.noSceneReadBack(presetLabel(slot)),
     );
   }
 
@@ -105,7 +106,7 @@ Future<({int flags, Uint8List exp})> _readExp(DeviceService s, int slot) async {
 
   if (hex == null) {
     throw CfwBackupException(
-      '${presetLabel(slot)}: no EXP A–D read-back (12 3D)',
+      BackupText.current.noExpReadBack(presetLabel(slot)),
     );
   }
 
@@ -116,9 +117,8 @@ Future<({int flags, Uint8List exp})> _readExp(DeviceService s, int slot) async {
 
 /// The custom MIDI map: summary, then pages of eight rows.
 Future<({int options, Uint8List entries})> _readMidiMap(DeviceService s) async {
-  const fail = CfwBackupException(
-    'Custom MIDI map: no answer from the pedal (12 39)',
-  );
+  final t = BackupText.current;
+  final fail = CfwBackupException(t.noAnswerFromPedal(t.midiMap, '12 39'));
   final infoHex = await _read(
     s,
     [0x12, 0x39, 0],
@@ -172,7 +172,7 @@ Future<Uint8List?> _readSlotData(
       );
 
       if (hex == null) {
-        throw CfwBackupException('$label: no read-back (12 38 chunk $chunk)');
+        throw CfwBackupException(BackupText.current.noReadBack(label, chunk));
       }
 
       reply = _payload(hex);
@@ -187,7 +187,9 @@ Future<Uint8List?> _readSlotData(
     if (status == 1) return null;
 
     if (status != 0) {
-      throw CfwBackupException('$label: read-back status $status');
+      throw CfwBackupException(
+        BackupText.current.readBackStatus(label, status),
+      );
     }
 
     out.add(reply.sublist(8, 8 + (reply[6] | reply[7] << 8)));
@@ -196,7 +198,9 @@ Future<Uint8List?> _readSlotData(
   final data = out.takeBytes();
 
   if (data.length != length) {
-    throw CfwBackupException('$label: ${data.length} bytes read back');
+    throw CfwBackupException(
+      BackupText.current.bytesReadBack(label, data.length),
+    );
   }
 
   return data;
@@ -215,10 +219,10 @@ Future<CfwBackup> readPedalBackup(
   BackupProgress? onProgress,
   DateTime? now,
 }) async {
+  final t = BackupText.current;
+
   if (isNamPedal(info)) {
-    throw const CfwBackupException(
-      'backups of the NAM CFW are not supported by SonicMaster yet',
-    );
+    throw CfwBackupException(t.namBackupUnsupported);
   }
 
   final caps = info.capabilities;
@@ -242,13 +246,11 @@ Future<CfwBackup> readPedalBackup(
     final r = await _readRecord(s, slot);
 
     if (r == null) {
-      throw CfwBackupException(
-        '${presetLabel(slot)}: no answer from the pedal (12 4F)',
-      );
+      throw CfwBackupException(t.noAnswerFromPedal(presetLabel(slot), '12 4F'));
     }
 
     records.add(r);
-    step('Reading preset ${presetLabel(slot)}');
+    step(t.readingPreset(presetLabel(slot)));
   }
 
   final presets = <BackupPreset>[];
@@ -262,7 +264,7 @@ Future<CfwBackup> readPedalBackup(
       final block = await _readScenes(s, slot);
 
       scenes = decodeSceneBlock(block).isEmpty ? null : block;
-      step('Reading the scenes of ${presetLabel(slot)}');
+      step(t.readingScenes(presetLabel(slot)));
     }
 
     if (isExpSupported) {
@@ -274,7 +276,7 @@ Future<CfwBackup> readPedalBackup(
         midiPedals = expBlockToMidiPedals(r.exp);
       }
 
-      step('Reading EXP A–D of ${presetLabel(slot)}');
+      step(t.readingExp(presetLabel(slot)));
     }
 
     presets.add(
@@ -289,7 +291,7 @@ Future<CfwBackup> readPedalBackup(
 
   final midiMap = hasExp ? await _readMidiMap(s) : null;
 
-  if (hasExp) step('Reading the Custom MIDI map');
+  if (hasExp) step(t.readingMidiMap);
 
   final settingsHex = await _read(s, [0x12, 0x2A], [0x12, 0x2A]);
   final fresh = settingsHex == null
@@ -300,7 +302,7 @@ Future<CfwBackup> readPedalBackup(
       if (!_volatileSettings.contains(e.key)) e.key: e.value,
   };
 
-  step('Reading the CFW settings');
+  step(t.readingCfwSettings);
 
   List<int>? globalEq;
 
@@ -313,13 +315,13 @@ Future<CfwBackup> readPedalBackup(
     );
 
     if (hex == null) {
-      throw const CfwBackupException('Global EQ: no answer (12 3A)');
+      throw CfwBackupException(t.globalEqNoAnswer);
     }
 
     globalEq = _payload(hex).sublist(2, 12);
   }
 
-  step('Reading the Global EQ');
+  step(t.readingGlobalEq);
 
   List<int>? order;
 
@@ -329,7 +331,7 @@ Future<CfwBackup> readPedalBackup(
     order = hex == null ? null : decodePresetOrderFrame(hex)?.entries;
   }
 
-  step('Reading the preset order');
+  step(t.readingOrder);
 
   final slotData = <int, List<BackupSlot>>{0: [], 1: []};
 
@@ -363,7 +365,7 @@ Future<CfwBackup> readPedalBackup(
           );
         }
 
-        step('Reading ${kind == 1 ? 'User IR' : 'User Profile'} data');
+        step(t.readingSlotData(kind == 1 ? t.userIr : t.userProfile));
       }
     }
   }
@@ -373,7 +375,7 @@ Future<CfwBackup> readPedalBackup(
       ? null
       : const GlobalSettingsDecoder().decode(globalsHex);
 
-  step('Reading the global settings');
+  step(t.readingGlobals);
 
   String state(bool isAvailable, bool hasAny) =>
       !isAvailable ? 'unavailable' : (hasAny ? 'complete' : 'none');
@@ -497,18 +499,24 @@ class RestorePlan {
       globals.isEmpty;
 
   /// What will be overwritten, as the CFW app lists it (`q9`).
-  List<String> get overwrites => [
-    if (midiMap case final m?)
-      'Custom MIDI map: ${m.entries.length ~/ 8} entries written',
-    if (cfwSettings.isNotEmpty) 'CFW settings: ${cfwSettings.length} to change',
-    if (globalEq != null) 'Global EQ: changes',
-    if (presets.isNotEmpty)
-      'Presets: ${presets.length} written (${_labels(presets.map((p) => p.index))})',
-    if (scenesFor.isNotEmpty) 'Scenes: restored on ${_labels(scenesFor)}',
-    if (expFor.isNotEmpty) 'EXP A–D: restored on ${_labels(expFor)}',
-    if (globals.isNotEmpty) 'Global settings: ${globals.length} to change',
-    if (isEmpty) 'Nothing differs from the pedal: nothing to write',
-  ];
+  List<String> get overwrites {
+    final t = BackupText.current;
+
+    return [
+      if (midiMap case final m?)
+        '${t.midiMap}: ${t.entriesWritten(m.entries.length ~/ 8)}',
+      if (cfwSettings.isNotEmpty)
+        '${t.cfwSettings}: ${t.toChange(cfwSettings.length)}',
+      if (globalEq != null) '${t.globalEq}: ${t.changes}',
+      if (presets.isNotEmpty)
+        t.presetsWritten(presets.length, _labels(presets.map((p) => p.index))),
+      if (scenesFor.isNotEmpty) t.scenesRestoredOn(_labels(scenesFor)),
+      if (expFor.isNotEmpty) t.expRestoredOn(_labels(expFor)),
+      if (globals.isNotEmpty)
+        '${t.globalSettings}: ${t.toChange(globals.length)}',
+      if (isEmpty) t.nothingDiffers,
+    ];
+  }
 }
 
 String _labels(Iterable<int> indices) {
@@ -518,7 +526,9 @@ String _labels(Iterable<int> indices) {
 
   final shown = sorted.take(12).map(presetLabel).join(', ');
 
-  return sorted.length > 12 ? '$shown, + ${sorted.length - 12} more' : shown;
+  return sorted.length > 12
+      ? BackupText.current.andMore(shown, sorted.length - 12)
+      : shown;
 }
 
 bool _same(List<int>? a, List<int>? b) {
@@ -532,27 +542,6 @@ bool _same(List<int>? a, List<int>? b) {
   return true;
 }
 
-String _article(String word) =>
-    'AEIOU'.contains(word.isEmpty ? 'x' : word[0]) ? 'an' : 'a';
-
-/// The CFW app's message for a backup of the other CFW edition (`b0O`).
-String _editionMessage({required bool isFileNam}) {
-  const settingsOnly =
-      'Here only the pedal settings (global settings, CFW settings, Custom '
-      'MIDI map) move, no presets. ';
-  const switching =
-      'Switching CFW: back up BEFORE flashing (on the CFW you are leaving), '
-      'then restore the backup you made earlier on the other CFW.';
-
-  return isFileNam
-      ? 'This backup was made on the NAM CFW: restore it after installing '
-            'the NAM CFW. $settingsOnly$switching'
-      : 'This backup was made on the normal CFW: restore it after installing '
-            'the normal CFW (its presets would play almost nothing on the NAM '
-            'CFW). $settingsOnly$switching No NAM backup yet? Clear the User '
-            'presets.';
-}
-
 /// Compares [file] with [pedal] (a backup just read from the connected
 /// pedal) and lists what a restore writes. The second value is why the
 /// whole restore is refused, else null.
@@ -561,19 +550,12 @@ String _editionMessage({required bool isFileNam}) {
   CfwBackup pedal,
   CfwInfo info,
 ) {
+  final t = BackupText.current;
   final model = file.pedal.model;
 
-  if (model != _model) {
-    return (
-      null,
-      'This backup comes from ${_article(model)} $model: restore it on that '
-          'pedal.',
-    );
-  }
+  if (model != _model) return (null, t.wrongModel(model));
 
-  if (isNamPedal(info)) {
-    return (null, 'restoring on the NAM CFW is not supported by SonicMaster');
-  }
+  if (isNamPedal(info)) return (null, t.namRestoreUnsupported);
 
   final caps = info.capabilities;
   final notes = <String>[];
@@ -581,7 +563,7 @@ String _editionMessage({required bool isFileNam}) {
 
   if (isFileNam) {
     notes.add(
-      '${[if (file.namModels != null) 'NAM models (slots 02–20)', if (file.presets.isNotEmpty) 'User presets (P01–P50)'].join(', ')}: not restored. ${_editionMessage(isFileNam: true)}',
+      t.namNotRestored(file.namModels != null, file.presets.isNotEmpty),
     );
   }
 
@@ -592,7 +574,7 @@ String _editionMessage({required bool isFileNam}) {
     final current = pedal.midiMap;
 
     if (caps & _capExp == 0) {
-      notes.add('Custom MIDI map: needs CFW 1.0');
+      notes.add('${t.midiMap}: ${t.needsCfw1}');
     } else if (current == null ||
         current.options != m.options & 3 ||
         !_same(current.entries, m.entries)) {
@@ -608,10 +590,7 @@ String _editionMessage({required bool isFileNam}) {
     if (k == 5 && isFileNam) continue;
 
     if (k == 1 && isFileNam) {
-      notes.add(
-        'CFW setting Theme (NAM CFW): means another thing on the normal CFW, '
-        'kept as it is',
-      );
+      notes.add(t.themeNamNote);
       continue;
     }
 
@@ -622,7 +601,7 @@ String _editionMessage({required bool isFileNam}) {
     final current = pedal.cfwSettings[k] ?? info.settings[k];
 
     if (current == null) {
-      notes.add('CFW setting $k: not on this firmware');
+      notes.add('${t.cfwSetting(k)}: ${t.notOnFirmware}');
     } else if (current != v) {
       cfwSettings[k] = v;
     }
@@ -633,7 +612,7 @@ String _editionMessage({required bool isFileNam}) {
 
   if (file.globalEq case final eq? when !isFileNam) {
     if (caps & _capGlobalEq == 0) {
-      notes.add('Global EQ: needs CFW 1.0');
+      notes.add('${t.globalEq}: ${t.needsCfw1}');
     } else if (!_same(pedal.globalEq, eq)) {
       globalEq = eq;
     }
@@ -642,8 +621,8 @@ String _editionMessage({required bool isFileNam}) {
   // User IR / Clone data: compared, not uploaded.
   if (!isFileNam) {
     for (final (slots, current, kind, count) in [
-      (file.irs, pedal.irs, 'User IR', pedal.pedal.irSlots),
-      (file.clones, pedal.clones, 'User Profile', pedal.pedal.cloneSlots),
+      (file.irs, pedal.irs, t.userIr, pedal.pedal.irSlots),
+      (file.clones, pedal.clones, t.userProfile, pedal.pedal.cloneSlots),
     ]) {
       for (final s in slots) {
         final same = current.where(
@@ -651,12 +630,9 @@ String _editionMessage({required bool isFileNam}) {
         );
 
         if (s.slot > count) {
-          notes.add('$kind ${s.slot}: this pedal has $count slots');
+          notes.add('$kind ${s.slot}: ${t.slotsOnPedal(count)}');
         } else if (same.isEmpty) {
-          notes.add(
-            '$kind ${s.slot}: not restored (SonicMaster does not upload '
-            'backup data yet)',
-          );
+          notes.add('$kind ${s.slot}: ${t.noUploadYet}');
         }
       }
     }
@@ -690,9 +666,7 @@ String _editionMessage({required bool isFileNam}) {
     final doesExp = p.midiPedals != null && canExp && !isExpCrowded;
 
     if (p.midiPedals != null && canExp && isExpCrowded) {
-      notes.add(
-        '$label EXP A–D: not restored (no room: its scenes use the space)',
-      );
+      notes.add('$label EXP A–D: ${t.expNoRoom}');
     }
 
     final isExpChanged =
@@ -700,11 +674,11 @@ String _editionMessage({required bool isFileNam}) {
         (current == null || !_same(current.midiPedals, p.midiPedals));
 
     if (hasScenesInFile && !canScenes) {
-      notes.add('$label scenes: need CFW 1.0');
+      notes.add('${t.scenesOf(label)}: ${t.needCfw1}');
     }
 
     if (p.midiPedals != null && !canExp) {
-      notes.add('$label EXP A–D: need CFW 1.0');
+      notes.add('$label EXP A–D: ${t.needCfw1}');
     }
 
     if (!isRecordChanged && !areScenesChanged && !isExpChanged) continue;
@@ -724,15 +698,12 @@ String _editionMessage({required bool isFileNam}) {
     final stomp = presetRecordStomp(p.record);
 
     if (!keepsStomp && (stomp.fs1 | stomp.fs2) != 0) {
-      notes.add('$label: STOMP groups not kept (needs CFW 1.0)');
+      notes.add('$label: ${t.stompNotKept}');
     }
   }
 
   if (file.order != null) {
-    notes.add(
-      'Preset order: kept as it is (the presets are written in the order of '
-      'the backup)',
-    );
+    notes.add(t.orderKept);
   }
 
   // Global settings, written last.
@@ -746,10 +717,7 @@ String _editionMessage({required bool isFileNam}) {
     if (_writableGlobals.contains(k)) {
       globals[k] = v;
     } else {
-      notes.add(
-        'Global setting $k: not restored (SonicMaster cannot check it on '
-        'this pedal)',
-      );
+      notes.add('${t.globalSetting(k)}: ${t.globalCannotCheck}');
     }
   }
 
@@ -861,6 +829,7 @@ Future<RestoreResult> runRestore(
   required String? Function(String name, int value, int expFsType) globalFrame,
   BackupProgress? onProgress,
 }) async {
+  final t = BackupText.current;
   final notes = <String>[];
   final total =
       (plan.midiMap == null ? 0 : 1) +
@@ -872,14 +841,13 @@ Future<RestoreResult> runRestore(
   void step(String what) => onProgress?.call(what, ++done, total);
   var written = 0;
 
-  String summary() => [
-    'Restored $written preset(s)',
-    if (plan.midiMap != null) 'the Custom MIDI map',
-    if (plan.cfwSettings.isNotEmpty)
-      '${plan.cfwSettings.length} CFW setting(s)',
-    if (plan.globalEq != null) 'the Global EQ',
-    if (plan.globals.isNotEmpty) '${plan.globals.length} global setting(s)',
-  ].join(', ');
+  String summary() => t.summary(
+    presets: written,
+    midiMap: plan.midiMap != null,
+    cfwSettings: plan.cfwSettings.length,
+    globalEq: plan.globalEq != null,
+    globals: plan.globals.length,
+  );
 
   // What was written before the stop stays written: the same file loaded
   // again resumes, as in the CFW app.
@@ -906,21 +874,17 @@ Future<RestoreResult> runRestore(
         back == null ||
         back.options != m.options & 3 ||
         !_same(back.entries, m.entries)) {
-      notes.add(
-        'Custom MIDI map: not restored (${isAcked ? 'read back differently' : 'no ack'})',
-      );
+      notes.add('${t.midiMap}: ${t.midiMapNotRestored(isAcked: isAcked)}');
     }
 
-    step('Custom MIDI map');
+    step(t.midiMap);
   }
 
   for (final MapEntry(key: k, value: v) in plan.cfwSettings.entries) {
     final status = await s.writeCfwBlock([0x11, 0x2A, k, v]);
 
     if (status != 0) {
-      notes.add(
-        'CFW setting $k: refused (${status == null ? 'no answer' : 'status $status'})',
-      );
+      notes.add('${t.cfwSetting(k)}: ${t.refused(status)}');
     } else {
       Future<int?> readBack() async {
         final hex = await _read(s, [0x12, 0x2A], [0x12, 0x2A]);
@@ -936,23 +900,21 @@ Future<RestoreResult> runRestore(
       }
 
       if (got != v) {
-        notes.add('CFW setting $k: pedal reports $got, expected $v');
+        notes.add('${t.cfwSetting(k)}: ${t.reportsExpected(got, v)}');
       }
     }
 
-    step('CFW settings');
+    step(t.cfwSettings);
   }
 
   if (plan.globalEq case final eq?) {
     final status = await s.writeCfwBlock([0x11, 0x3A, ...eq]);
 
     if (status != 0) {
-      notes.add(
-        'Global EQ: refused (${status == null ? 'no answer' : 'status $status'})',
-      );
+      notes.add('${t.globalEq}: ${t.refused(status)}');
     }
 
-    step('Global EQ');
+    step(t.globalEq);
   }
 
   Future<int?> write(List<int> payload) async {
@@ -988,16 +950,12 @@ Future<RestoreResult> runRestore(
       );
 
       if (status == 5) {
-        notes.add('$label: the pedal refused 11 34, written with 11 4F');
+        notes.add('$label: ${t.refused1134}');
         isOneWrite = false;
       } else if (status == 3) {
-        return stop(
-          '$label: not written (its scenes leave no room for EXP A–D)',
-        );
+        return stop('$label: ${t.noRoomForExp}');
       } else if (status != 0) {
-        return stop(
-          '$label: not written (11 34 ${status == null ? 'no answer' : 'status $status'})',
-        );
+        return stop('$label: ${t.notWritten('11 34', status)}');
       }
     }
 
@@ -1005,9 +963,7 @@ Future<RestoreResult> runRestore(
       final status = await write(presetWritePayload(slot, p.record));
 
       if (status != 0) {
-        return stop(
-          '$label: not written (11 4F ${status == null ? 'no answer' : 'status $status'})',
-        );
+        return stop('$label: ${t.notWritten('11 4F', status)}');
       }
     }
 
@@ -1019,14 +975,11 @@ Future<RestoreResult> runRestore(
     }
 
     if (check == .different) {
-      return stop(
-        '$label: the pedal reads back a different preset; the restore '
-        'stopped here',
-      );
+      return stop('$label: ${t.differentPreset}');
     }
 
     if (check == .knobsOnly) {
-      notes.add('$label: the pedal changed some knob values on the write');
+      notes.add('$label: ${t.knobsChanged}');
     }
 
     if (isOneWrite) {
@@ -1036,7 +989,7 @@ Future<RestoreResult> runRestore(
               normalizedSceneBlock(await _readScenes(s, slot), p.record),
               normalizedSceneBlock(p.scenes, p.record),
             )) {
-          notes.add('$label scenes: read back differently');
+          notes.add('${t.scenesOf(label)}: ${t.readBackDifferentScenes}');
         }
 
         if (withExp) {
@@ -1045,7 +998,7 @@ Future<RestoreResult> runRestore(
 
           if (want == null ||
               !_same(expBlockToMidiPedals(back.exp).sublist(2), want)) {
-            notes.add('$label EXP A–D: read back differently');
+            notes.add('$label EXP A–D: ${t.readBackDifferent}');
           }
         }
       } on CfwBackupException catch (e) {
@@ -1053,26 +1006,24 @@ Future<RestoreResult> runRestore(
       }
     } else if (withScenes || withExp) {
       notes.add(
-        '$label ${[if (withScenes) 'scenes', if (withExp) 'EXP A–D'].join(' + ')}: '
-        'not restored (this firmware needs the preset selected and saved; '
-        'SonicMaster does not do that yet)',
+        '$label ${t.needsSelectAndSave(scenes: withScenes, exp: withExp)}',
       );
     }
 
     written++;
-    step('Writing $label ${presetRecordName(p.record)}');
+    step(t.writing(label, presetRecordName(p.record)));
   }
 
   for (final MapEntry(key: k, value: v) in plan.globals.entries) {
     final frame = globalFrame(k, v, plan.expFsType);
 
     if (frame == null) {
-      notes.add('Global setting $k: not restored (no write for it)');
+      notes.add('${t.globalSetting(k)}: ${t.noWrite}');
     } else if (!await s.sendAndAwaitAck(frame)) {
-      notes.add('Global setting $k: sent, the pedal did not confirm it');
+      notes.add('${t.globalSetting(k)}: ${t.notConfirmed}');
     }
 
-    step('Global settings');
+    step(t.globalSettings);
   }
 
   return RestoreResult(isOk: true, message: summary(), notes: notes);

@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sonicmaster/l10n/lang.dart';
 import 'package:sonicmaster/device/device_service.dart';
 import 'package:sonicmaster/model/cfw_eq_models.dart';
 import 'package:sonicmaster/model/cfw_global_eq.dart';
@@ -631,6 +632,59 @@ void main() {
       for (var i = 0; i < 4; i++) {
         await tester.pump(const Duration(seconds: 1));
       }
+    });
+  });
+
+  group('in Portuguese', () {
+    final cfw = decodeCfwSettingsFrame(
+      cfwSettingsOriginal,
+    )!.copyWithSetting(0x15, 1);
+    final on = <Override>[
+      connectionStateProvider.overrideWith((_) => true),
+      cfwInfoProvider.overrideWith((_) => cfw),
+    ];
+
+    setUp(() => appLang = Lang.pt);
+    tearDown(() => appLang = Lang.en);
+
+    testWidgets('820x1180: the CFW settings read in Portuguese and fit', (
+      tester,
+    ) async {
+      await openSettings(tester, size: const Size(820, 1180), extra: on);
+
+      expect(tester.takeException(), isNull);
+      for (final text in [
+        'Ajustes',
+        'NÍVEIS',
+        'Canal MIDI',
+        'Todos os canais',
+        'Mesmo preset de novo',
+        'Editar mapa',
+        'ORDEM DOS PRESETS',
+        'Mover preset',
+        'PEDALEIRA INTEIRA',
+        'Fazer backup agora',
+        'Modelo do aparelho',
+        'Fechar',
+      ]) {
+        expect(inDialog(find.text(text)), findsOneWidget, reason: text);
+      }
+    });
+
+    testWidgets('the factory reset asks in Portuguese', (tester) async {
+      await openSettings(tester, size: const Size(820, 1180));
+
+      final reset = find.text('Redefinir para o padrão de fábrica');
+
+      await tester.ensureVisible(reset);
+      await tester.pumpAndSettle();
+      await tester.tap(reset);
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Redefinir para o padrão de fábrica?'), findsOneWidget);
+      expect(find.text('Cancelar'), findsOneWidget);
+      expect(find.text('Redefinir'), findsWidgets);
     });
   });
 }

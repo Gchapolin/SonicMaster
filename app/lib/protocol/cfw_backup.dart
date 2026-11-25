@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import '../l10n/backup_text.dart';
 import 'crc16_modbus.dart';
 import 'sha256.dart';
 
@@ -245,39 +246,37 @@ String cfwBackupFileName(CfwBackup b, {String suffix = ''}) {
 /// Parses and checks a backup file like the CFW app (`bca`): any problem
 /// refuses the whole file, with the CFW app's messages.
 (CfwBackup?, List<String>) parseCfwBackup(String text) {
+  final t = BackupText.current;
   final errors = <String>[];
   Object? decoded;
 
   try {
     decoded = jsonDecode(text);
   } on FormatException {
-    return (null, const ['not a JSON file']);
+    return (null, [t.notJson]);
   }
 
   if (decoded is! Map<String, dynamic> || decoded['type'] != cfwBackupType) {
-    return (null, const ['not a Sonicake CFW backup file']);
+    return (null, [t.notBackup]);
   }
 
   final doc = decoded;
   final format = doc['format'];
 
   if (format is! int || format > 2) {
-    return (
-      null,
-      ['backup format $format: made by a newer app version, update the app'],
-    );
+    return (null, [t.newerFormat(format)]);
   }
 
   final sum = doc['sha256'];
 
   if (sum is! String ||
       sum != sha256Hex(utf8.encode(canonicalJson({...doc, 'sha256': ''})))) {
-    errors.add('the file was changed or damaged (document checksum)');
+    errors.add(t.documentChecksum);
   }
 
   Uint8List? blob(Object? data, Object? sha, String label) {
     if (data is! String) {
-      errors.add('$label: missing data');
+      errors.add('$label: ${t.missingData}');
 
       return null;
     }
@@ -285,11 +284,11 @@ String cfwBackupFileName(CfwBackup b, {String suffix = ''}) {
     try {
       final bytes = base64Decode(data);
 
-      if (sha != sha256Hex(bytes)) errors.add('$label: checksum mismatch');
+      if (sha != sha256Hex(bytes)) errors.add('$label: ${t.checksumMismatch}');
 
       return bytes;
     } on FormatException {
-      errors.add('$label: not base64');
+      errors.add('$label: ${t.notBase64}');
 
       return null;
     }
@@ -300,14 +299,14 @@ String cfwBackupFileName(CfwBackup b, {String suffix = ''}) {
 
   for (final e in (doc['presets'] as List?) ?? const []) {
     if (e is! Map) {
-      errors.add('presets: bad entry');
+      errors.add('presets: ${t.badEntry}');
       continue;
     }
 
     final index = e['index'];
 
     if (index is! int || index < 0 || index >= 50 || !seen.add(index)) {
-      errors.add('presets: bad index $index');
+      errors.add('presets: ${t.badIndex(index)}');
       continue;
     }
 
@@ -315,7 +314,7 @@ String cfwBackupFileName(CfwBackup b, {String suffix = ''}) {
     final record = blob(e['record'], e['sha256'], label);
     final scenes = e['scenes'] == null
         ? null
-        : blob(e['scenes'], e['scenesSha256'], '$label scenes');
+        : blob(e['scenes'], e['scenesSha256'], t.scenesOf(label));
     final pedals = e['midiPedals'] == null
         ? null
         : blob(e['midiPedals'], e['midiPedalsSha256'], '$label EXP A–D');
@@ -348,18 +347,18 @@ String cfwBackupFileName(CfwBackup b, {String suffix = ''}) {
       final slot = e is Map ? e['slot'] : null;
 
       if (e is! Map || slot is! int || slot < 1 || slot > 10) {
-        errors.add('$section: bad slot $slot');
+        errors.add('$section: ${t.badSlot(slot)}');
         continue;
       }
 
-      final label = '${isIr ? 'User IR' : 'User Profile'} $slot';
+      final label = '${isIr ? t.userIr : t.userProfile} $slot';
       final data = blob(e[isIr ? 'taps' : 'clo'], e['sha256'], label);
       final expected = isIr ? irDataLength : cloneDataLength;
 
       if (data == null) continue;
 
       if (data.length != expected) {
-        errors.add('$label: ${data.length} bytes (expected $expected)');
+        errors.add('$label: ${t.bytesExpected(data.length, expected)}');
         continue;
       }
 
@@ -386,24 +385,20 @@ String cfwBackupFileName(CfwBackup b, {String suffix = ''}) {
   ({int options, Uint8List entries})? midiMap;
 
   if (mapJson is Map) {
-    final entries = blob(
-      mapJson['entries'],
-      mapJson['sha256'],
-      'Custom MIDI map',
-    );
+    final entries = blob(mapJson['entries'], mapJson['sha256'], t.midiMap);
     final options = mapJson['options'];
 
     if (options is! int || options < 0 || options > 3) {
-      errors.add('Custom MIDI map: bad options $options');
+      errors.add('${t.midiMap}: ${t.badOptions(options)}');
     } else if (entries != null) {
       if (entries.length % 8 != 0 || entries.length ~/ 8 > 64) {
-        errors.add('Custom MIDI map: ${entries.length} bytes');
+        errors.add('${t.midiMap}: ${entries.length} bytes');
       } else {
         midiMap = (options: options, entries: entries);
       }
     }
   } else if (mapJson != null) {
-    errors.add('Custom MIDI map: not an object');
+    errors.add('${t.midiMap}: ${t.notObject}');
   }
 
   final cfwSettings = <int, int>{};
@@ -412,7 +407,7 @@ String cfwBackupFileName(CfwBackup b, {String suffix = ''}) {
     if (e is Map && e['id'] is int && e['value'] is int) {
       cfwSettings[e['id'] as int] = e['value'] as int;
     } else {
-      errors.add('cfwSettings: bad entry');
+      errors.add('cfwSettings: ${t.badEntry}');
     }
   }
 
@@ -420,27 +415,27 @@ String cfwBackupFileName(CfwBackup b, {String suffix = ''}) {
       (orderJson is! List ||
           orderJson.length != 50 ||
           orderJson.any((v) => v is! int))) {
-    errors.add('order: not 50 indices');
+    errors.add('order: ${t.notFiftyIndices}');
   }
 
   if (geqJson != null &&
       (geqJson is! List || geqJson.any((v) => v is! int || v < 0 || v > 255))) {
-    errors.add('globalEq: bad payload');
+    errors.add('globalEq: ${t.badPayload}');
   }
 
   if (globalsJson != null &&
       (globalsJson is! Map || globalsJson.values.any((v) => v is! int))) {
-    errors.add('globals: bad values');
+    errors.add('globals: ${t.badValues}');
   }
 
   final nam = doc['namModels'];
 
-  if (nam != null && nam is! Map) errors.add('NAM models: not an object');
+  if (nam != null && nam is! Map) errors.add('${t.namModels}: ${t.notObject}');
 
   final edition = pedal['edition'];
 
   if (edition != null && edition != 'nam' && edition != 'cfw') {
-    errors.add('pedal: edition $edition');
+    errors.add('pedal: ${t.edition(edition)}');
   }
 
   if (errors.isNotEmpty) return (null, errors);
@@ -496,13 +491,20 @@ String cfwBackupFileName(CfwBackup b, {String suffix = ''}) {
 /// not (the checks of the CFW app's record parser `cD` that the restore
 /// relies on).
 String? presetRecordError(Uint8List r) {
+  final t = BackupText.current;
+  final why = _recordProblem(r, t);
+
+  return why == null ? null : t.presetRecord(why);
+}
+
+String? _recordProblem(Uint8List r, BackupText t) {
   if (r.length != presetRecordLength && r.length != _smartBoxRecordLength) {
-    return 'preset record: ${r.length} bytes (expected 494, Smart Box 506)';
+    return t.recordBytes(r.length);
   }
 
   final tags = _tags(r);
 
-  if (tags == null) return 'preset record: bad layout';
+  if (tags == null) return t.badLayout;
 
   int? u32(int tag) {
     final d = tags[tag];
@@ -510,31 +512,31 @@ String? presetRecordError(Uint8List r) {
     return d == null || d.length != 4 ? null : _u32(d, 0);
   }
 
-  if (u32(0x0002) != 0x514D450A) return 'preset record: not a preset';
+  if (u32(0x0002) != 0x514D450A) return t.notPreset;
   if (u32(0x1001) != 10 || u32(0x1002) != 8) {
-    return 'preset record: unknown layout';
+    return t.unknownLayout;
   }
-  if (_group3(r) == null) return 'preset record: no STOMP groups';
-  if (tags[0x3003]?.length != 40) return 'preset record: no effect ids';
-  if (tags[0x3002]?.length != 10) return 'preset record: no chain order';
+  if (_group3(r) == null) return t.noStompGroups;
+  if (tags[0x3003]?.length != 40) return t.noEffectIds;
+  if (tags[0x3002]?.length != 10) return t.noChainOrder;
 
   final params = tags[0x3004];
 
   if (params == null || params.length != 320) {
-    return 'preset record: no parameters';
+    return t.noParameters;
   }
 
   final bd = ByteData.sublistView(params);
 
   for (var i = 0; i < 80; i++) {
     if (!bd.getFloat32(4 * i, Endian.little).isFinite) {
-      return 'preset record: a parameter is not a number';
+      return t.notANumber;
     }
   }
 
   final mask = u32(0x3001);
 
-  if (mask == null || mask >> 10 != 0) return 'preset record: enable mask';
+  if (mask == null || mask >> 10 != 0) return t.enableMask;
 
   return null;
 }

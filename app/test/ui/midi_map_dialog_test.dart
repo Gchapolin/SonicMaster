@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart' show Icons;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sonicmaster/l10n/lang.dart';
 import 'package:sonicmaster/device/device_service.dart';
 import 'package:sonicmaster/model/midi_map.dart';
 import 'package:sonicmaster/protocol/cfw_midi_map_codec.dart';
@@ -270,5 +271,25 @@ void main() {
         entries: const [MidiMapEntry(from: 80, to: 80)],
       ),
     );
+  });
+
+  group('in Portuguese', () {
+    setUp(() => appLang = Lang.pt);
+    tearDown(() => appLang = Lang.en);
+
+    testWidgets('820x1180: the rows and the form read in Portuguese', (
+      tester,
+    ) async {
+      await open(tester, const [_bank, _freeze], size: const Size(820, 1180));
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Mapa MIDI personalizado'), findsOneWidget);
+      expect(find.text('2 / 64 linhas'), findsOneWidget);
+      expect(find.text('PC 101–102 → Banco −, Banco +'), findsOneWidget);
+      expect(find.text('CC 80 → Freeze · alterna'), findsOneWidget);
+      expect(find.text('Adicionar linha'), findsOneWidget);
+      expect(find.text('Salvar na pedaleira'), findsOneWidget);
+      expect(find.text('Fechar'), findsOneWidget);
+    });
   });
 }

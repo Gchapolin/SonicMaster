@@ -1,3 +1,5 @@
+import '../l10n/midi_map_text.dart';
+
 /// One row of the CFW's custom MIDI map (register 0x39): a MIDI message (CC or
 /// PC, a number range, a channel, a value condition) and the pedal function it
 /// fires. Layout and names from docs/cfw-protocol/capture-notes.md.
@@ -30,42 +32,14 @@ class MidiMapEntry {
   /// The most rows a map holds.
   static const maxEntries = 64;
 
-  /// Function code -> name.
-  static const functions = <int, String>{
-    1: 'Select preset',
-    2: 'Bank − / +',
-    3: 'Preset − / +',
-    4: 'Tuner on / off',
-    5: 'Tap tempo',
-    6: 'Tap + division',
-    7: 'Looper window',
-    8: 'Looper rec / play / clear',
-    9: 'Looper volume',
-    10: 'Looper Pre / Post',
-    11: 'Drum',
-    12: 'Block on / off',
-    13: 'STOMP FS1 / FS2',
-    14: 'Scene',
-    15: 'Volume',
-    16: 'Knob role',
-    17: 'Freeze',
-    18: 'EXP A–D',
-    19: 'Global EQ on / off',
-    20: 'Footswitch mode cycle',
-    21: 'Ignored',
-    22: 'Expression',
-    23: 'Tempo set (range / value)',
-    24: 'Sync on / off',
-    25: 'Delay note − / +',
-  };
+  /// Function code -> name, in the app's language.
+  static Map<int, String> get functions => MidiMapText.current.functions;
 
+  /// The options that are the pedal's own names, in every language; the
+  /// others come from [MidiMapText.options].
   static const _options = <int, List<String>>{
-    2: ['Bank −', 'Bank +'],
     3: ['Preset −', 'Preset +'],
     6: ['1/4', '1/8·', '1/8', '1/2', '1/16', '1/8T', '1/4·', '1/4T', '1/16T'],
-    8: ['Rec / overdub', 'Play / stop', 'Clear', 'Rec / Play', 'Stop'],
-    9: ['Rec volume', 'Play volume'],
-    11: ['Window', 'Play / stop', 'Rhythm', 'Volume'],
     12: ['NR', 'FX1', 'DRV', 'AMP', 'IR', 'EQ', 'FX2', 'DLY', 'RVB'],
     13: ['FS1', 'FS2'],
     14: ['SC1', 'SC2', 'BASE'],
@@ -81,9 +55,7 @@ class MidiMapEntry {
       'RVB Mix',
     ],
     18: ['EXP A', 'EXP B', 'EXP C', 'EXP D'],
-    23: ['BPM range', 'BPM value'],
     24: ['DLY', 'FX1', 'FX2'],
-    25: ['Shorter', 'Longer', 'Back to the preset note'],
   };
 
   /// The functions whose switch byte matters (they turn something on / off).
@@ -118,13 +90,13 @@ class MidiMapEntry {
           for (var i = 0; i < 100; i++)
             '${i < 50 ? 'P' : 'F'}${(i % 50 + 1).toString().padLeft(2, '0')}',
         ]
-      : _options[function] ?? const [];
+      : MidiMapText.current.options[function] ?? _options[function] ?? const [];
 
   static String valueLabel(int value) => switch (value) {
     1 => '≥ 64',
     2 => '< 64',
     >= 0x80 => '= ${value & 0x7F}',
-    _ => 'any',
+    _ => MidiMapText.current.anyValue,
   };
 
   bool get hasSwitch => _switched.contains(function);
@@ -144,7 +116,7 @@ class MidiMapEntry {
   String describe() {
     final message =
         '${trigger == pc ? 'PC' : 'CC'} $from${to == from ? '' : '–$to'}';
-    final name = functions[function] ?? 'Function $function';
+    final name = functions[function] ?? MidiMapText.current.function(function);
     final options = optionsOf(function);
     final count = to - from + 1;
 

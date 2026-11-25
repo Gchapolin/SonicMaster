@@ -5,6 +5,7 @@ import 'package:flutter/material.dart' show Icons;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sonicmaster/l10n/lang.dart';
 import 'package:sonicmaster/device/device_service.dart';
 import 'package:sonicmaster/protocol/cfw_settings_decoder.dart';
 import 'package:sonicmaster/protocol/cfw_tuner_codec.dart';
@@ -253,6 +254,25 @@ void main() {
       );
 
       expectNoOverflow(tester);
+    });
+  });
+
+  group('in Portuguese', () {
+    setUp(() => appLang = Lang.pt);
+    tearDown(() => appLang = Lang.en);
+
+    testWidgets('820x1180: the tuner reads in Portuguese', (tester) async {
+      await open(
+        tester,
+        reading: _reading(cents: -4.5, hz: 109.71),
+        size: const Size(820, 1180),
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Afinador'), findsOneWidget);
+      expect(find.text('BAIXO'), findsOneWidget);
+      expect(find.text('MUDO'), findsOneWidget);
+      expect(find.text('Fechar'), findsOneWidget);
     });
   });
 }

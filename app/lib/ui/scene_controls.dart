@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../l10n/module_controls_text.dart';
 import '../state/cfw_providers.dart';
 import '../state/device_providers.dart';
 import '../state/preset_providers.dart';
@@ -27,6 +28,7 @@ class SceneControls extends ConsumerWidget {
 
     if (!isCfw) return const SizedBox.shrink();
 
+    final t = ModuleControlsText.current;
     final record = ref.watch(sceneRecordsProvider)[moduleId];
     final scene = ref.watch(currentSceneProvider);
     final isLoading = ref.watch(presetLoadingProvider);
@@ -45,7 +47,7 @@ class SceneControls extends ConsumerWidget {
             mainAxisSize: .min,
             children: [
               Text(
-                'SCENES',
+                t.scenes,
                 style: AppText.dialogBody.copyWith(
                   color: Palette.onSurfaceVariant,
                 ),
@@ -75,10 +77,10 @@ class SceneControls extends ConsumerWidget {
             SonicSegmented<int>(
               value: isOn == null ? 0 : (isOn ? 1 : 2),
               height: height,
-              segments: const [
-                (value: 0, label: 'Follow'),
-                (value: 1, label: 'On'),
-                (value: 2, label: 'Off'),
+              segments: [
+                (value: 0, label: t.follow),
+                (value: 1, label: t.on),
+                (value: 2, label: t.off),
               ],
               onChanged: isLoading
                   ? null

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../l10n/module_controls_text.dart';
 import '../model/battery_status.dart';
 import '../model/cfw_eq_models.dart';
 import '../model/cfw_exp.dart';
@@ -255,7 +256,7 @@ Future<void> setExpAssign(WidgetRef ref, int index, ExpAssign? assign) async {
 
     if (!ref.read(expKnownProvider)) {
       ref.read(presetLoadStatusProvider.notifier).state =
-          'EXP not changed: the pedal did not answer';
+          ModuleControlsText.current.expNotChanged;
 
       return;
     }
@@ -339,7 +340,9 @@ Future<void> _sendScene(WidgetRef ref, String frame) async {
   try {
     await ref.read(deviceServiceProvider).sendFrame(frame);
   } catch (e) {
-    ref.read(presetLoadStatusProvider.notifier).state = 'edit failed: $e';
+    ref.read(presetLoadStatusProvider.notifier).state = ModuleControlsText
+        .current
+        .editFailed(e);
   }
 }
 

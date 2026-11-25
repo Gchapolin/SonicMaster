@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sonicmaster/l10n/lang.dart';
 import 'package:sonicmaster/device/device_service.dart';
 import 'package:sonicmaster/model/cfw_exp.dart';
 import 'package:sonicmaster/protocol/cfw_exp_codec.dart';
@@ -205,5 +206,28 @@ void main() {
     );
 
     expectNoOverflow(tester);
+  });
+
+  group('in Portuguese', () {
+    setUp(() => appLang = Lang.pt);
+    tearDown(() => appLang = Lang.en);
+
+    testWidgets('820x1180: a free slot says Nenhum, a used one its mode', (
+      tester,
+    ) async {
+      await pump(tester, size: const Size(820, 1180));
+
+      expect(inExp(find.text('Nenhum')), findsOneWidget);
+
+      await pump(
+        tester,
+        size: const Size(820, 1180),
+        slots: const [nrThre, null, null, null],
+      );
+
+      expectNoOverflow(tester);
+      expect(inExp(find.text('CONT.')), findsOneWidget);
+      expect(inExp(find.text('ALTERNA')), findsOneWidget);
+    });
   });
 }

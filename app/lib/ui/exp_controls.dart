@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../l10n/module_controls_text.dart';
 import '../model/cfw_exp.dart';
 import '../model/effect_parameter.dart';
 import '../state/cfw_providers.dart';
@@ -45,6 +46,7 @@ class ExpControls extends HookConsumerWidget {
 
     if (!isCfw || params.isEmpty) return const SizedBox.shrink();
 
+    final t = ModuleControlsText.current;
     final isLoading = ref.watch(presetLoadingProvider);
     final modules = ref.watch(dataAssetsProvider).valueOrNull?.modules;
     final height = SonicMetrics.of(context).editorControlHeight;
@@ -84,14 +86,14 @@ class ExpControls extends HookConsumerWidget {
             height: height,
             isEnabled: !isLoading,
             items: [
-              (value: _none, label: 'None'),
+              (value: _none, label: t.none),
               if (assign != null && !isKnown)
                 (
                   value: _elsewhere,
                   label: isHere
-                      ? 'Knob ${assign.algId}'
+                      ? t.knob(assign.algId)
                       : modules?.nameOf(assign.module) ??
-                            'Module ${assign.module}',
+                            t.module(assign.module),
                 ),
               for (final p in params) (value: p.algId, label: p.name),
             ],
@@ -105,10 +107,10 @@ class ExpControls extends HookConsumerWidget {
             SonicSegmented<int>(
               value: assign!.mode,
               height: height,
-              segments: const [
-                (value: ExpAssign.continuous, label: 'Cont'),
-                (value: ExpAssign.toggle, label: 'Toggle'),
-                (value: ExpAssign.momentary, label: 'Moment'),
+              segments: [
+                (value: ExpAssign.continuous, label: t.continuous),
+                (value: ExpAssign.toggle, label: t.toggle),
+                (value: ExpAssign.momentary, label: t.momentary),
               ],
               onChanged: isLoading
                   ? null

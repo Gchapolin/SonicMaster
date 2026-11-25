@@ -3,6 +3,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../l10n/common_text.dart';
+import '../l10n/midi_map_text.dart';
 import '../model/midi_map.dart';
 import '../state/cfw_providers.dart';
 import '../theme/app_colors.dart';
@@ -21,6 +23,7 @@ class MidiMapDialog extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Always starts unread: rows shown before the read lands could be
     // edited and then silently replaced by it.
+    final t = MidiMapText.current;
     final rows = useState<List<MidiMapEntry>?>(null);
     final draft = useState(const MidiMapEntry());
     final editing = useState<int?>(null);
@@ -57,7 +60,7 @@ class MidiMapDialog extends HookConsumerWidget {
                 if (j == i) d else e,
             ];
       editing.value = null;
-      status.value = 'Not saved yet';
+      status.value = t.notSavedYet;
     }
 
     Future<void> save() async {
@@ -68,9 +71,7 @@ class MidiMapDialog extends HookConsumerWidget {
       if (!context.mounted) return;
 
       isBusy.value = false;
-      status.value = isSaved
-          ? 'Saved to the pedal'
-          : 'The pedal did not take the map';
+      status.value = isSaved ? t.saved : t.refused;
     }
 
     return SonicDialog(
@@ -79,14 +80,12 @@ class MidiMapDialog extends HookConsumerWidget {
         mainAxisSize: .min,
         crossAxisAlignment: .stretch,
         children: [
-          const Text('Custom MIDI map', style: AppText.dialogTitle),
+          Text(t.title, style: AppText.dialogTitle),
           const SizedBox(height: 4),
           Text(
             list == null
-                ? (isBusy.value
-                      ? 'Reading the map from the pedal…'
-                      : 'The pedal did not send its map')
-                : '${list.length} / ${MidiMapEntry.maxEntries} rows'
+                ? (isBusy.value ? t.reading : t.notSent)
+                : '${t.rows(list.length, MidiMapEntry.maxEntries)}'
                       '${status.value == null ? '' : ' · ${status.value}'}',
             style: AppText.dialogBody.copyWith(color: Palette.onSurfaceVariant),
           ),
@@ -106,7 +105,7 @@ class MidiMapDialog extends HookConsumerWidget {
                       if (j != i) x,
                   ];
                   editing.value = null;
-                  status.value = 'Not saved yet';
+                  status.value = t.notSavedYet;
                 },
               ),
           if (list != null) ...[
@@ -131,7 +130,7 @@ class MidiMapDialog extends HookConsumerWidget {
                 ),
                 _Number(
                   value: d.from,
-                  prefix: 'from',
+                  prefix: t.from,
                   onChanged: (v) => draft.value = d.copyWith(
                     from: v,
                     to: v > d.to ? v : d.to,
@@ -139,7 +138,7 @@ class MidiMapDialog extends HookConsumerWidget {
                 ),
                 _Number(
                   value: d.to,
-                  prefix: 'to',
+                  prefix: t.to,
                   min: d.from,
                   onChanged: (v) => draft.value = d.copyWith(to: v),
                 ),
@@ -170,7 +169,7 @@ class MidiMapDialog extends HookConsumerWidget {
                     for (final f in MidiMapEntry.functions.entries)
                       (value: f.key, label: f.value),
                     if (!MidiMapEntry.functions.containsKey(d.function))
-                      (value: d.function, label: 'Function ${d.function}'),
+                      (value: d.function, label: t.function(d.function)),
                   ],
                   onChanged: (v) => draft.value = d.copyWith(
                     function: v,
@@ -188,7 +187,7 @@ class MidiMapDialog extends HookConsumerWidget {
                       for (final (i, o) in options.indexed)
                         (value: i, label: o),
                       if (d.which >= options.length)
-                        (value: d.which, label: 'Option ${d.which}'),
+                        (value: d.which, label: t.option(d.which)),
                     ],
                     onChanged: (v) => draft.value = d.copyWith(which: v),
                   ),
@@ -196,15 +195,15 @@ class MidiMapDialog extends HookConsumerWidget {
                   SonicDropdown<int>(
                     value: d.switchMode & 3,
                     width: 130,
-                    items: const [
-                      (value: 0, label: '≥ 64 on'),
-                      (value: 1, label: 'Toggle'),
-                      (value: 2, label: 'Momentary'),
+                    items: [
+                      (value: 0, label: t.onAt64),
+                      (value: 1, label: t.toggle),
+                      (value: 2, label: t.momentary),
                     ],
                     onChanged: (v) => draft.value = d.copyWith(switchMode: v),
                   ),
                 SonicButton(
-                  label: editing.value == null ? 'Add row' : 'Update row',
+                  label: editing.value == null ? t.addRow : t.updateRow,
                   onPressed: editing.value == null && isFull
                       ? null
                       : commitDraft,
@@ -217,16 +216,16 @@ class MidiMapDialog extends HookConsumerWidget {
             mainAxisAlignment: .end,
             children: [
               if (list == null && !isBusy.value) ...[
-                SonicButton(label: 'Read again', onPressed: read),
+                SonicButton(label: t.readAgain, onPressed: read),
                 const SizedBox(width: 10),
               ],
               SonicButton(
-                label: 'Close',
+                label: CommonText.current.close,
                 onPressed: () => Navigator.pop(context),
               ),
               const SizedBox(width: 10),
               SonicButton(
-                label: 'Save to pedal',
+                label: t.saveToPedal,
                 isAccent: true,
                 onPressed: list == null || isBusy.value ? null : save,
               ),
@@ -254,12 +253,17 @@ class _RowLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = MidiMapText.current;
     final extras = [
       if (entry.channel != 0) 'ch ${entry.channel}',
       if (entry.value != 0) MidiMapEntry.valueLabel(entry.value),
       if (entry.hasSwitch)
-        const ['≥ 64 on', 'toggle', 'momentary', '≥ 64 on'][entry.switchMode &
-            3],
+        [
+          t.onAt64,
+          t.toggle.toLowerCase(),
+          t.momentary.toLowerCase(),
+          t.onAt64,
+        ][entry.switchMode & 3],
     ];
 
     return Row(

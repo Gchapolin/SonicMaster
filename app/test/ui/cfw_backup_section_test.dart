@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sonicmaster/l10n/lang.dart';
 import 'package:sonicmaster/protocol/cfw_backup.dart';
 import 'package:sonicmaster/state/cfw_backup_io.dart';
 import 'package:sonicmaster/state/cfw_providers.dart';
@@ -159,5 +160,51 @@ void main() {
       find.text('Restore refused: not a Sonicake CFW backup file'),
       findsOneWidget,
     );
+  });
+
+  group('in Portuguese', () {
+    setUp(() => appLang = Lang.pt);
+    tearDown(() => appLang = Lang.en);
+
+    testWidgets('Back up now and Restore read in Portuguese', (tester) async {
+      final pedal = FakeCfwPedal();
+      final file = await tester.runAsync(() => changedBackup(pedal));
+
+      await pump(tester, pedal, picked: file);
+      await tester.tap(find.text('Restaurar…'));
+      await settle(tester);
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Restaurar este backup?'), findsOneWidget);
+      expect(find.text('Vai sobrescrever na pedaleira:'), findsOneWidget);
+      expect(find.text('• Presets: 1 gravados (P02)'), findsOneWidget);
+
+      await tester.tap(find.text('Restaurar'));
+      await settle(tester);
+
+      expect(find.textContaining('Restaurado(s): 1 preset(s)'), findsOneWidget);
+      expect(
+        find.textContaining('Backup de antes da restauração:'),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.text('Fazer backup agora'));
+      await settle(tester);
+
+      expect(find.textContaining('Backup salvo: /saved/'), findsOneWidget);
+    });
+
+    testWidgets('a file that is not JSON is refused in Portuguese', (
+      tester,
+    ) async {
+      await pump(tester, FakeCfwPedal(), picked: 'not json');
+      await tester.tap(find.text('Restaurar…'));
+      await settle(tester);
+
+      expect(
+        find.text('Restauração recusada: não é um arquivo JSON'),
+        findsOneWidget,
+      );
+    });
   });
 }

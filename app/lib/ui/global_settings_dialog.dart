@@ -4,6 +4,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../device/device_model.dart';
+import '../l10n/common_text.dart';
+import '../l10n/settings_text.dart';
 import '../model/cfw_eq_models.dart';
 import '../model/cfw_info.dart';
 import '../state/cfw_providers.dart';
@@ -34,7 +36,9 @@ const _expTargetLabels = <String>[
   'RVB',
 ];
 
-const _fsTargetLabels = <String>[
+List<String> get _fsTargetLabels => [
+  // Only Tuner reads differently in Portuguese; the rest are the
+  // pedal's own names.
   'Preset-',
   'Preset+',
   'Tap Tempo',
@@ -52,7 +56,7 @@ const _fsTargetLabels = <String>[
   'Drum',
   'REC/Play',
   'Loop Stop',
-  'Tuner',
+  SettingsText.current.tuner,
 ];
 
 /// Device-global settings, mirroring the Android app's Settings screen: the four
@@ -63,6 +67,7 @@ class GlobalSettingsDialog extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = SettingsText.current;
     final g = ref.watch(globalSettingsProvider);
     final isLoading = ref.watch(presetLoadingProvider);
     // Community custom firmware: its settings replace Backlight and the USB
@@ -79,19 +84,15 @@ class GlobalSettingsDialog extends ConsumerWidget {
         children: [
           Row(
             children: [
-              const Expanded(
-                child: Text('Settings', style: AppText.dialogTitle),
-              ),
+              Expanded(child: Text(t.title, style: AppText.dialogTitle)),
               if (cfw != null) _CfwBadge(cfw.version),
             ],
           ),
           const SizedBox(height: 8),
           if (g == null)
-            const SizedBox(
+            SizedBox(
               height: 120,
-              child: Center(
-                child: Text('Reading settings…', style: AppText.dialogBody),
-              ),
+              child: Center(child: Text(t.reading, style: AppText.dialogBody)),
             )
           else
             // Regular: the list scrolls under a 62% cap and Close stays
@@ -110,12 +111,12 @@ class GlobalSettingsDialog extends ConsumerWidget {
                   mainAxisSize: .min,
                   crossAxisAlignment: .stretch,
                   children: [
-                    const _SectionHeader('Levels'),
+                    _SectionHeader(t.levels),
                     Row(
                       mainAxisAlignment: .spaceBetween,
                       children: [
                         _LevelKnob(
-                          label: 'Input',
+                          label: t.input,
                           name: 'inputLevel',
                           value: g.inputLevel,
                           isLoading: isLoading,
@@ -143,7 +144,7 @@ class GlobalSettingsDialog extends ConsumerWidget {
                     const _SectionHeader('USB'),
                     if (cfw == null)
                       _SettingRow(
-                        label: 'Mode',
+                        label: t.mode,
                         child: SonicSegmented<int>(
                           value: g.mode,
                           segments: const [
@@ -155,7 +156,7 @@ class GlobalSettingsDialog extends ConsumerWidget {
                       )
                     else ...[
                       _SwitchRow(
-                        label: 'Direct Monitor',
+                        label: t.directMonitor,
                         name: 'directMonitor',
                         value: cfw.directMonitor ? 1 : 0,
                         isLoading: isLoading,
@@ -189,7 +190,7 @@ class GlobalSettingsDialog extends ConsumerWidget {
                         crossAxisAlignment: .stretch,
                         mainAxisSize: .min,
                         children: [
-                          const Text('Type', style: AppText.dialogBody),
+                          Text(t.type, style: AppText.dialogBody),
                           const SizedBox(height: 6),
                           SonicSegmented<int>(
                             value: g.expFsType,
@@ -207,27 +208,27 @@ class GlobalSettingsDialog extends ConsumerWidget {
                     ),
                     if (g.expFsType == 0)
                       _TargetRow(
-                        label: 'Target',
+                        label: t.target,
                         labels: _expTargetLabels,
                         value: g.expFsTarget,
                         isLoading: isLoading,
                       )
                     else if (g.expFsType == 1)
                       _TargetRow(
-                        label: 'Target',
+                        label: t.target,
                         labels: _fsTargetLabels,
                         value: g.expFsTarget,
                         isLoading: isLoading,
                       )
                     else ...[
                       _TargetRow(
-                        label: 'Func 1',
+                        label: t.func1,
                         labels: _fsTargetLabels,
                         value: g.expFsTarget,
                         isLoading: isLoading,
                       ),
                       _TargetRow(
-                        label: 'Func 2',
+                        label: t.func2,
                         labels: _fsTargetLabels,
                         value: g.expFsTarget2,
                         isLoading: isLoading,
@@ -235,13 +236,13 @@ class GlobalSettingsDialog extends ConsumerWidget {
                       ),
                     ],
                     if (cfw != null) const _GlobalEqSection(),
-                    const _SectionHeader('Display'),
+                    _SectionHeader(t.display),
                     if (cfw != null)
                       _SettingRow(
-                        label: 'Theme',
+                        label: t.theme,
                         child: SonicDropdown<int>(
                           value: cfw.theme,
-                          items: _cfwThemes,
+                          items: _cfwThemes(t),
                           isEnabled: !isLoading,
                           onChanged: (v) =>
                               setCfwSetting(ref, CfwInfo.themeKey, v),
@@ -257,7 +258,7 @@ class GlobalSettingsDialog extends ConsumerWidget {
                                 min: 0,
                                 max: 10,
                                 step: 1,
-                                label: 'Backlight',
+                                label: t.backlight,
                                 isEnabled: !isLoading,
                                 isHoldToTurnOnTouch: true,
                                 size: 60,
@@ -273,7 +274,7 @@ class GlobalSettingsDialog extends ConsumerWidget {
                                 max: 100,
                                 step: 1,
                                 unit: '%',
-                                label: 'Brightness',
+                                label: t.brightness,
                                 isEnabled: !isLoading,
                                 isHoldToTurnOnTouch: true,
                                 size: 60,
@@ -294,15 +295,15 @@ class GlobalSettingsDialog extends ConsumerWidget {
                     if (cfw != null)
                       _MidiSection(cfw: cfw, isLoading: isLoading),
                     if (cfw != null) ...[
-                      const _SectionHeader('Footswitches'),
+                      _SectionHeader(t.footswitches),
                       _SettingRow(
-                        label: 'Pedal mode',
+                        label: t.pedalMode,
                         child: SonicSegmented<int>(
                           value: cfw.pedalMode,
-                          segments: const [
+                          segments: [
                             (value: 0, label: 'Preset'),
                             (value: 1, label: 'Stomp'),
-                            (value: 2, label: 'Scene'),
+                            (value: 2, label: t.scene),
                           ],
                           onChanged: (v) =>
                               setCfwSetting(ref, CfwInfo.pedalModeKey, v),
@@ -310,25 +311,25 @@ class GlobalSettingsDialog extends ConsumerWidget {
                       ),
                     ],
                     if (cfw != null) ...[
-                      const _SectionHeader('Preset order'),
+                      _SectionHeader(t.presetOrder),
                       const PresetOrderSection(),
-                      const _SectionHeader('Whole pedal'),
+                      _SectionHeader(t.wholePedal),
                       const CfwBackupSection(),
                     ],
-                    const _SectionHeader('Power'),
+                    _SectionHeader(t.power),
                     _SwitchRow(
-                      label: 'Confirm',
+                      label: t.confirm,
                       name: 'powerConfirm',
                       value: g.powerConfirm,
                       isLoading: isLoading,
                     ),
                     _SwitchRow(
-                      label: 'Batt Only',
+                      label: t.battOnly,
                       name: 'battOnly',
                       value: g.battOnly,
                       isLoading: isLoading,
                     ),
-                    const _SectionHeader('Reset'),
+                    _SectionHeader(t.reset),
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 6),
                       child: _ResetButton(),
@@ -343,7 +344,7 @@ class GlobalSettingsDialog extends ConsumerWidget {
           Align(
             alignment: Alignment.centerRight,
             child: SonicButton(
-              label: 'Close',
+              label: CommonText.current.close,
               onPressed: () => Navigator.pop(context),
             ),
           ),
@@ -362,6 +363,7 @@ class _GlobalEqSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = SettingsText.current;
     final eq = ref.watch(globalEqProvider);
     final models = ref.watch(cfwEqModelsProvider).valueOrNull ?? const [];
     final isLoading = ref.watch(presetLoadingProvider);
@@ -377,9 +379,9 @@ class _GlobalEqSection extends ConsumerWidget {
       mainAxisSize: .min,
       crossAxisAlignment: .stretch,
       children: [
-        const _SectionHeader('Global EQ'),
+        _SectionHeader(t.globalEq),
         _SwitchRow(
-          label: 'Global EQ',
+          label: t.globalEq,
           name: 'globalEq',
           value: eq.isOn ? 1 : 0,
           isLoading: isLoading,
@@ -387,7 +389,7 @@ class _GlobalEqSection extends ConsumerWidget {
         ),
         if (model != null) ...[
           _SettingRow(
-            label: 'Model',
+            label: t.model,
             child: SonicDropdown<int>(
               value: model.wireIndex,
               items: [
@@ -444,6 +446,7 @@ class _MidiSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = SettingsText.current;
     void set(int key, int value) => setCfwSetting(ref, key, value);
     final options = cfw.customMapOptions;
 
@@ -453,14 +456,14 @@ class _MidiSection extends ConsumerWidget {
       children: [
         const _SectionHeader('MIDI'),
         _SettingRow(
-          label: 'MIDI map',
+          label: t.midiMap,
           child: SonicDropdown<int>(
             value: cfw.midiMap,
-            items: const [
-              (value: 0, label: 'Stock'),
+            items: [
+              (value: 0, label: t.mapStock),
               (value: 3, label: 'Chocolate'),
-              (value: 2, label: 'Generic MIDI'),
-              (value: 1, label: 'Custom'),
+              (value: 2, label: t.mapGeneric),
+              (value: 1, label: t.mapCustom),
             ],
             isEnabled: !isLoading,
             onChanged: (v) => set(CfwInfo.midiMapKey, v),
@@ -468,7 +471,7 @@ class _MidiSection extends ConsumerWidget {
         ),
         if (cfw.midiMap == CfwInfo.customMap) ...[
           _SettingRow(
-            label: 'First PC',
+            label: t.firstPc,
             child: SonicSegmented<int>(
               value: options & 1,
               segments: const [
@@ -480,7 +483,7 @@ class _MidiSection extends ConsumerWidget {
             ),
           ),
           _SettingRow(
-            label: 'Level CC range',
+            label: t.levelCcRange,
             child: SonicSegmented<int>(
               value: options & 2,
               segments: const [
@@ -494,9 +497,9 @@ class _MidiSection extends ConsumerWidget {
         ],
         if (cfw.midiMap == CfwInfo.customMap)
           _SettingRow(
-            label: 'Custom map rows',
+            label: t.customMapRows,
             child: SonicButton(
-              label: 'Edit map',
+              label: t.editMap,
               onPressed: isLoading
                   ? null
                   : () => showSonicDialog<void>(
@@ -506,32 +509,32 @@ class _MidiSection extends ConsumerWidget {
             ),
           ),
         _SettingRow(
-          label: 'MIDI channel',
+          label: t.midiChannel,
           child: SonicDropdown<int>(
             value: cfw.midiChannel,
             items: [
-              (value: 0, label: 'All channels'),
+              (value: 0, label: t.allChannels),
               for (var ch = 1; ch <= 16; ch++)
-                (value: ch, label: 'Channel $ch'),
+                (value: ch, label: t.channel(ch)),
             ],
             isEnabled: !isLoading,
             onChanged: (v) => set(CfwInfo.midiChannelKey, v),
           ),
         ),
         _SettingRow(
-          label: 'Same preset again',
+          label: t.sameAgain,
           child: SonicSegmented<int>(
             value: cfw.sameAgain,
-            segments: const [
-              (value: 0, label: 'Off'),
-              (value: 1, label: 'Cycle'),
-              (value: 2, label: 'Back'),
+            segments: [
+              (value: 0, label: t.off),
+              (value: 1, label: t.cycle),
+              (value: 2, label: t.back),
             ],
             onChanged: (v) => set(CfwInfo.sameAgainKey, v),
           ),
         ),
         _SettingRow(
-          label: 'Tempo scope',
+          label: t.tempoScope,
           child: SonicSegmented<int>(
             value: cfw.tempoScope,
             segments: const [
@@ -542,7 +545,7 @@ class _MidiSection extends ConsumerWidget {
           ),
         ),
         _SwitchRow(
-          label: 'Drum Sync',
+          label: t.drumSync,
           name: 'drumSync',
           value: cfw.drumSync ? 1 : 0,
           isLoading: isLoading,
@@ -554,8 +557,8 @@ class _MidiSection extends ConsumerWidget {
 }
 
 /// The CFW screen themes, in the pedal's order.
-const List<SonicItem<int>> _cfwThemes = [
-  (value: 0, label: 'Default'),
+List<SonicItem<int>> _cfwThemes(SettingsText t) => [
+  (value: 0, label: t.themeDefault),
   (value: 1, label: 'Amber CRT'),
   (value: 2, label: 'Tube Amp'),
   (value: 3, label: 'Synthwave'),
@@ -716,13 +719,14 @@ class _ResetButton extends ConsumerWidget {
     return Align(
       alignment: .centerLeft,
       child: SonicButton(
-        label: 'Reset to factory settings',
+        label: SettingsText.current.resetButton,
         onPressed: () => _confirm(context, ref),
       ),
     );
   }
 
   Future<void> _confirm(BuildContext context, WidgetRef ref) async {
+    final t = SettingsText.current;
     final isConfirmed = await showSonicDialog<bool>(
       context: context,
       builder: (dialogContext) => SonicDialog(
@@ -731,27 +735,20 @@ class _ResetButton extends ConsumerWidget {
           mainAxisSize: .min,
           crossAxisAlignment: .stretch,
           children: [
-            const Text(
-              'Reset to factory settings?',
-              style: AppText.dialogTitle,
-            ),
+            Text(t.resetTitle, style: AppText.dialogTitle),
             const SizedBox(height: 12),
-            const Text(
-              'This restores all presets and settings to factory defaults. '
-              'The pedal will reboot and disconnect.',
-              style: AppText.dialogBody,
-            ),
+            Text(t.resetBody, style: AppText.dialogBody),
             const SizedBox(height: 22),
             Row(
               mainAxisAlignment: .end,
               children: [
                 SonicButton(
-                  label: 'Cancel',
+                  label: CommonText.current.cancel,
                   onPressed: () => Navigator.pop(dialogContext, false),
                 ),
                 const SizedBox(width: 10),
                 SonicButton(
-                  label: 'Reset',
+                  label: t.resetConfirm,
                   isAccent: true,
                   onPressed: () => Navigator.pop(dialogContext, true),
                 ),
@@ -805,12 +802,13 @@ class _DeviceModelSelector extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = SettingsText.current;
     final override = ref.watch(deviceModelOverrideProvider);
     final detected = ref.watch(detectedDeviceModelProvider);
     final caps = ref.watch(dataAssetsProvider).valueOrNull?.capabilities;
     final hint = override == null
-        ? 'Auto — ${caps?.displayName(detected) ?? 'detecting…'}'
-        : 'Manual';
+        ? 'Auto — ${caps?.displayName(detected) ?? t.detecting}'
+        : t.manual;
 
     return Column(
       crossAxisAlignment: .stretch,
@@ -818,7 +816,7 @@ class _DeviceModelSelector extends ConsumerWidget {
       children: [
         Row(
           children: [
-            const Text('Device model', style: AppText.dialogBody),
+            Text(t.deviceModel, style: AppText.dialogBody),
             const Spacer(),
             Text(
               hint,

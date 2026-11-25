@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../l10n/settings_text.dart';
 import '../model/command_library.dart';
 import '../model/preset_ref.dart';
 import '../state/cfw_providers.dart';
@@ -20,6 +21,7 @@ class PresetOrderSection extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = SettingsText.current;
     final names = ref.watch(presetNamesProvider);
     final isLoading = ref.watch(presetLoadingProvider);
     final loaded = ref.read(currentPresetProvider);
@@ -42,8 +44,8 @@ class PresetOrderSection extends HookConsumerWidget {
 
       isBusy.value = false;
       status.value = isMoved
-          ? 'Moved to ${PresetRef(.user, to.value).label}'
-          : 'The pedal did not take the new order';
+          ? t.movedTo(PresetRef(.user, to.value).label)
+          : t.orderRefused;
       if (isMoved) from.value = to.value;
     }
 
@@ -54,7 +56,7 @@ class PresetOrderSection extends HookConsumerWidget {
       crossAxisAlignment: .stretch,
       children: [
         _Row(
-          label: 'Move',
+          label: t.move,
           child: SonicDropdown<int>(
             value: from.value,
             width: 190,
@@ -67,7 +69,7 @@ class PresetOrderSection extends HookConsumerWidget {
           ),
         ),
         _Row(
-          label: 'To position',
+          label: t.toPosition,
           child: SonicDropdown<int>(
             value: to.value,
             width: 190,
@@ -85,9 +87,7 @@ class PresetOrderSection extends HookConsumerWidget {
             children: [
               Expanded(
                 child: Text(
-                  status.value ??
-                      'Presets in between shift by one; MIDI and footswitch '
-                          'numbers follow the new order.',
+                  status.value ?? t.orderHint,
                   style: AppText.dialogBody.copyWith(
                     color: Palette.onSurfaceVariant,
                   ),
@@ -95,7 +95,7 @@ class PresetOrderSection extends HookConsumerWidget {
               ),
               const SizedBox(width: 8),
               SonicButton(
-                label: 'Move preset',
+                label: t.movePreset,
                 onPressed: isEnabled && from.value != to.value ? move : null,
               ),
             ],

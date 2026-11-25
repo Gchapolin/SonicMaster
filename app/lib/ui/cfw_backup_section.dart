@@ -5,6 +5,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../l10n/backup_text.dart';
+import '../l10n/common_text.dart';
 import '../protocol/cfw_backup.dart';
 import '../state/cfw_backup_io.dart';
 import '../state/cfw_providers.dart';
@@ -34,7 +36,7 @@ final backupFileSaverProvider =
 final backupFilePickerProvider = Provider<Future<String?> Function()>(
   (_) => () async {
     final res = await FilePicker.platform.pickFiles(
-      dialogTitle: 'Restore the pedal',
+      dialogTitle: BackupText.current.pickTitle,
       type: .custom,
       allowedExtensions: const ['json'],
       withData: true,
@@ -54,6 +56,7 @@ class CfwBackupSection extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = BackupText.current;
     final isLoading = ref.watch(presetLoadingProvider);
     final isBusy = useState(false);
     final progress = useState<String?>(null);
@@ -91,9 +94,9 @@ class CfwBackupSection extends HookConsumerWidget {
           onProgress: onProgress,
         );
       } on CfwBackupException catch (e) {
-        finish('$failure: ${e.message}. Nothing was saved.');
+        finish(t.readFailed(failure, e.message));
       } catch (e) {
-        finish('$failure: $e. Nothing was saved.');
+        finish(t.readFailed(failure, '$e'));
       } finally {
         if (loading.mounted) loading.state = false;
       }
@@ -108,7 +111,7 @@ class CfwBackupSection extends HookConsumerWidget {
       status.value = null;
       notes.value = const [];
 
-      final b = await readPedal('Backup failed');
+      final b = await readPedal(t.backupFailed);
 
       if (b == null) return;
 
@@ -116,16 +119,12 @@ class CfwBackupSection extends HookConsumerWidget {
         final path = await save(
           cfwBackupFileName(b),
           utf8.encode(encodeCfwBackup(b)),
-          'Save the pedal backup',
+          t.saveTitle,
         );
 
-        finish(
-          path == null
-              ? 'Backup read, not saved (cancelled)'
-              : 'Backup saved: $path',
-        );
+        finish(path == null ? t.backupCancelled : t.backupSaved(path));
       } catch (e) {
-        finish('Backup read, not saved: $e');
+        finish(t.backupNotSaved(e));
       }
     }
 
@@ -146,14 +145,14 @@ class CfwBackupSection extends HookConsumerWidget {
       final (file, errors) = parseCfwBackup(text);
 
       if (file == null) {
-        finish('Restore refused: ${errors.join('; ')}');
+        finish(t.restoreRefused(errors.join('; ')));
 
         return;
       }
 
       isBusy.value = true;
 
-      final current = await readPedal('Restore not started');
+      final current = await readPedal(t.restoreNotStarted);
       final cfw = ref.read(cfwInfoProvider);
 
       if (current == null || cfw == null || !context.mounted) return;
@@ -161,7 +160,7 @@ class CfwBackupSection extends HookConsumerWidget {
       final (plan, refusal) = planRestore(file, current, cfw);
 
       if (plan == null) {
-        finish('Restore refused: $refusal');
+        finish(t.restoreRefused(refusal!));
 
         return;
       }
@@ -175,9 +174,7 @@ class CfwBackupSection extends HookConsumerWidget {
 
       if (isConfirmed != true || plan.isEmpty) {
         finish(
-          plan.isEmpty
-              ? 'Nothing differs from the pedal: nothing to write'
-              : 'Restore cancelled: nothing was written',
+          plan.isEmpty ? t.nothingDiffers : t.restoreCancelled,
           plan.notes,
         );
 
@@ -187,14 +184,11 @@ class CfwBackupSection extends HookConsumerWidget {
       final before = await save(
         cfwBackupFileName(current, suffix: '-before-restore'),
         utf8.encode(encodeCfwBackup(current)),
-        'Save the pedal as it is now (before the restore)',
+        t.saveBeforeTitle,
       );
 
       if (before == null) {
-        finish(
-          'Restore cancelled: the backup of the pedal as it is now was not '
-          'saved; nothing was written',
-        );
+        finish(t.beforeNotSaved);
 
         return;
       }
@@ -219,9 +213,8 @@ class CfwBackupSection extends HookConsumerWidget {
 
       finish(
         result.isOk
-            ? '${result.message}. Before-restore backup: $before'
-            : '${result.message}. Load the same file again to resume. '
-                  'Before-restore backup: $before',
+            ? t.restoreDone(result.message, before)
+            : t.restoreStopped(result.message, before),
         [...plan.notes, ...result.notes],
       );
 
@@ -239,25 +232,18 @@ class CfwBackupSection extends HookConsumerWidget {
       mainAxisSize: .min,
       crossAxisAlignment: .stretch,
       children: [
-        Text(
-          'One file with the 50 User presets exactly as the pedal stores '
-          'them, their scenes and EXP A–D, the pedal and CFW settings, the '
-          'Global EQ and the User IR / Clone data. Same format as the CFW web '
-          'app: its backups restore here and the other way round. USB '
-          'recommended (Bluetooth is slow).',
-          style: muted,
-        ),
+        Text(t.intro, style: muted),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 6),
           child: Row(
             children: [
               SonicButton(
-                label: 'Back up now',
+                label: t.backUpNow,
                 onPressed: isEnabled ? backUp : null,
               ),
               const SizedBox(width: 10),
               SonicButton(
-                label: 'Restore…',
+                label: t.restoreEllipsis,
                 onPressed: isEnabled ? restore : null,
               ),
               if (isBusy.value) ...[
@@ -268,18 +254,14 @@ class CfwBackupSection extends HookConsumerWidget {
           ),
         ),
         if (progress.value case final p?) Text(p, style: muted),
-        if (isBusy.value)
-          Text(
-            "Don't touch the pedal until it ends.",
-            style: AppText.dialogBody,
-          ),
+        if (isBusy.value) Text(t.dontTouch, style: AppText.dialogBody),
         if (status.value case final s?) Text(s, style: AppText.dialogBody),
         if (notes.value.isNotEmpty) ...[
           const SizedBox(height: 4),
-          Text('Not restored / plays differently here:', style: muted),
+          Text(t.notRestoredHeader, style: muted),
           for (final n in notes.value.take(30)) Text('• $n', style: muted),
           if (notes.value.length > 30)
-            Text('… ${notes.value.length - 30} more', style: muted),
+            Text(t.more(notes.value.length - 30), style: muted),
         ],
       ],
     );
@@ -295,6 +277,7 @@ class _RestoreConfirm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = BackupText.current;
     final muted = AppText.dialogBody.copyWith(color: Palette.onSurfaceVariant);
     final made = file.created.toLocal().toString().substring(0, 16);
 
@@ -305,48 +288,44 @@ class _RestoreConfirm extends StatelessWidget {
         crossAxisAlignment: .stretch,
         children: [
           Text(
-            plan.isEmpty ? 'Nothing to restore' : 'Restore this backup?',
+            plan.isEmpty ? t.nothingToRestore : t.confirmTitle,
             style: AppText.dialogTitle,
           ),
           const SizedBox(height: 8),
           Text(
-            'Made $made on the ${file.pedal.model} '
-            '${file.pedal.cfwTag ?? ''} by ${file.app}.',
+            t.made(made, file.pedal.model, file.pedal.cfwTag ?? '', file.app),
             style: muted,
           ),
           const SizedBox(height: 10),
           if (!plan.isEmpty)
-            const Text('Overwrites on the pedal:', style: AppText.dialogBody),
+            Text(t.overwritesHeader, style: AppText.dialogBody),
           for (final line in plan.overwrites)
             Text('• $line', style: AppText.dialogBody),
           if (plan.notes.isNotEmpty) ...[
             const SizedBox(height: 10),
-            Text('Not restored / plays differently here:', style: muted),
+            Text(t.notRestoredHeader, style: muted),
             for (final n in plan.notes.take(30)) Text('• $n', style: muted),
             if (plan.notes.length > 30)
-              Text('… ${plan.notes.length - 30} more', style: muted),
+              Text(t.more(plan.notes.length - 30), style: muted),
           ],
           if (!plan.isEmpty) ...[
             const SizedBox(height: 10),
-            Text(
-              'This rewrites the pedal’s memory. A backup of the pedal as it '
-              'is now is saved first; each preset written is read back. If '
-              'the restore stops, load the same file again to resume.',
-              style: muted,
-            ),
+            Text(t.confirmWarning, style: muted),
           ],
           const SizedBox(height: 18),
           Row(
             mainAxisAlignment: .end,
             children: [
               SonicButton(
-                label: plan.isEmpty ? 'Close' : 'Cancel',
+                label: plan.isEmpty
+                    ? CommonText.current.close
+                    : CommonText.current.cancel,
                 onPressed: () => Navigator.pop(context, false),
               ),
               if (!plan.isEmpty) ...[
                 const SizedBox(width: 10),
                 SonicButton(
-                  label: 'Restore',
+                  label: t.restore,
                   isAccent: true,
                   onPressed: () => Navigator.pop(context, true),
                 ),
