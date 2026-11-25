@@ -77,6 +77,9 @@ Future<bool> connectAndSync(
 /// a persistence error must not report the live connection as failed. Used by
 /// the Connect button after the device picker returns a target.
 Future<void> connectAndPersist(WidgetRef ref, {String? target}) async {
+  // A real connection ends the demo.
+  ref.read(demoModeProvider.notifier).state = false;
+
   final kind = ref.read(transportKindProvider);
 
   try {
@@ -192,7 +195,8 @@ Future<void> checkUsbLiveness(
   WidgetRef ref, {
   Future<bool?> Function(String match) probe = usbInputPortPresent,
 }) async {
-  if (ref.read(transportKindProvider) != .usb ||
+  if (ref.read(demoModeProvider) ||
+      ref.read(transportKindProvider) != .usb ||
       !ref.read(connectionStateProvider)) {
     return;
   }
@@ -275,4 +279,17 @@ Future<void> disconnectDevice(WidgetRef ref) async {
   }
 
   await ref.read(deviceServiceProvider).disconnect();
+  ref.read(demoModeProvider.notifier).state = false;
+}
+
+/// The name the virtual pedal connects under (it classifies as a Pocket
+/// Master).
+const demoDeviceName = 'Pocket Master (demo)';
+
+/// Starts the demo: connects to a virtual CFW Pocket Master. Nothing is sent
+/// to a device and nothing is persisted, so the demo never auto-reconnects.
+Future<void> startDemo(WidgetRef ref) async {
+  ref.read(transportKindProvider.notifier).state = .usb;
+  ref.read(demoModeProvider.notifier).state = true;
+  await connectAndSync(ref, target: demoDeviceName, statusOnSuccess: 'demo');
 }

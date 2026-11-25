@@ -282,7 +282,8 @@ class PresetBrowserPage extends HookConsumerWidget {
                                                   mainAxisAlignment: .center,
                                                   crossAxisAlignment: .stretch,
                                                   children: [
-                                                    if (emptyMessage != null)
+                                                    if (emptyMessage !=
+                                                        null) ...[
                                                       Text(
                                                         emptyMessage,
                                                         textAlign: .center,
@@ -292,8 +293,22 @@ class PresetBrowserPage extends HookConsumerWidget {
                                                               color: Palette
                                                                   .textDim,
                                                             ),
-                                                      )
-                                                    else if (state != null) ...[
+                                                      ),
+                                                      // No pedal at hand: a virtual one, nothing is sent anywhere.
+                                                      if (!isConnected) ...[
+                                                        const SizedBox(
+                                                          height: 16,
+                                                        ),
+                                                        Center(
+                                                          child: SonicButton(
+                                                            label: 'Try demo',
+                                                            onPressed: () =>
+                                                                startDemo(ref),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ] else if (state !=
+                                                        null) ...[
                                                       const ChainView(),
                                                       SizedBox(
                                                         height: metrics

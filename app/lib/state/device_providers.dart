@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../device/demo_transport.dart';
 import '../device/device_model.dart';
 import '../device/device_service.dart';
 import '../device/transport.dart';
@@ -9,11 +10,17 @@ import '../protocol/inbound_message.dart';
 /// Which transport the app talks to the pedal over.
 final transportKindProvider = StateProvider<TransportKind>((ref) => .usb);
 
+/// Demo mode: the app talks to a virtual pedal ([DemoTransport]) and nothing
+/// is sent to a device. Set by startDemo, cleared on disconnect.
+final demoModeProvider = StateProvider<bool>((_) => false);
+
 /// The app's single [DeviceService], rebuilt when the transport changes. Native
 /// libs are loaded once at startup (`initTransports`), so listening is sync.
 final deviceServiceProvider = Provider<DeviceService>((ref) {
   final kind = ref.watch(transportKindProvider);
-  final transport = createTransport(kind);
+  final transport = ref.watch(demoModeProvider)
+      ? DemoTransport()
+      : createTransport(kind);
 
   final service = DeviceService(transport)..startListening();
 

@@ -462,4 +462,18 @@ void main() {
       expect(radii, {24.0});
     });
   }
+
+  testWidgets('the empty page offers the demo only while disconnected', (
+    tester,
+  ) async {
+    await pumpPage(tester, size: const Size(1280, 800), isConnected: false);
+    expect(find.text('Try demo'), findsOneWidget);
+
+    await pumpPage(tester, size: const Size(956, 440), isConnected: false);
+    expect(find.text('Try demo'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    await pumpPage(tester, size: const Size(1280, 800));
+    expect(find.text('Try demo'), findsNothing);
+  });
 }
