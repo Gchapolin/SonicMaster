@@ -20,6 +20,7 @@ import 'sonic_metrics.dart';
 import 'tap_tempo_control.dart';
 import 'user_ir_actions.dart';
 import 'user_profile_actions.dart';
+import 'user_slots_dialog.dart';
 
 /// Tempo-sync note divisions, indexed by the value the pedal stores in a
 /// sync-capable Rate slot (0 = 1/1 … 10 = 1/16). Captured off the device.
@@ -182,6 +183,23 @@ class ModuleEditor extends ConsumerWidget {
                     value: state.isCloneMode,
                     height: metrics.editorControlHeight,
                     onChanged: isLoading ? null : (v) => setAmpMode(ref, v),
+                  ),
+                ),
+              // Every User IR / Clone slot in one list, whatever the preset
+              // uses here: a file goes into a slot without switching to it.
+              if ((moduleId == 4 || moduleId == 9) && isConnected)
+                PanelCell(
+                  label: 'User slots',
+                  control: SonicButton(
+                    label: 'Slots…',
+                    height: metrics.editorControlHeight,
+                    minWidth: 72,
+                    onPressed: isLoading
+                        ? null
+                        : () => showSonicDialog<void>(
+                            context: context,
+                            builder: (_) => const UserSlotsDialog(),
+                          ),
                   ),
                 ),
               // User-IR slots (module 4): load a WAV into the slot, rename it

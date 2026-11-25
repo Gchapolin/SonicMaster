@@ -23,44 +23,47 @@ class UserIrActions extends ConsumerWidget {
     required this.slot,
     required this.isEnabled,
     required this.currentName,
+    this.inPanel = true,
   });
 
   final int slot;
   final bool isEnabled;
   final String currentName;
 
+  /// False: the bare button row, for a list row (the slots dialog).
+  final bool inPanel;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final buttonHeight = SonicMetrics.of(context).editorControlHeight;
 
-    return PanelCell(
-      label: 'IR File',
-      control: Row(
-        mainAxisSize: .min,
-        children: [
-          SonicButton(
-            label: 'Load…',
-            height: buttonHeight,
-            minWidth: 72,
-            onPressed: isEnabled ? () => _load(context, ref) : null,
-          ),
-          const SizedBox(width: 4),
-          SonicButton(
-            label: 'Name…',
-            height: buttonHeight,
-            minWidth: 72,
-            onPressed: isEnabled ? () => _rename(context, ref) : null,
-          ),
-          const SizedBox(width: 4),
-          SonicButton(
-            label: 'Clear',
-            height: buttonHeight,
-            minWidth: 72,
-            onPressed: isEnabled ? () => _clear(context, ref) : null,
-          ),
-        ],
-      ),
+    final buttons = Row(
+      mainAxisSize: .min,
+      children: [
+        SonicButton(
+          label: 'Load…',
+          height: buttonHeight,
+          minWidth: 72,
+          onPressed: isEnabled ? () => _load(context, ref) : null,
+        ),
+        const SizedBox(width: 4),
+        SonicButton(
+          label: 'Name…',
+          height: buttonHeight,
+          minWidth: 72,
+          onPressed: isEnabled ? () => _rename(context, ref) : null,
+        ),
+        const SizedBox(width: 4),
+        SonicButton(
+          label: 'Clear',
+          height: buttonHeight,
+          minWidth: 72,
+          onPressed: isEnabled ? () => _clear(context, ref) : null,
+        ),
+      ],
     );
+
+    return inPanel ? PanelCell(label: 'IR File', control: buttons) : buttons;
   }
 
   /// Picks a WAV, then uploads it into the slot behind a non-dismissible progress
