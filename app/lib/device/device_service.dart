@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import '../model/battery_status.dart';
 import '../protocol/cfw_exp_codec.dart';
@@ -11,6 +12,8 @@ import '../protocol/cfw_settings_decoder.dart';
 import '../protocol/cfw_slot_names_codec.dart';
 import '../protocol/cfw_tuner_codec.dart';
 import '../protocol/inbound_message.dart';
+import '../protocol/sysex_chunk_upload.dart';
+import '../protocol/sysex_write_frame.dart';
 import 'ack_waiter.dart';
 import 'inbound_pipeline.dart';
 import 'transport.dart';
@@ -460,6 +463,100 @@ class DeviceService {
       timeout: timeout,
     ),
   );
+
+  /// Sends the CFW read [request] (payload bytes, e.g. `12 4F <slot u32>`)
+  /// and returns the first reply frame whose payload starts with
+  /// [replyPrefix], or null on timeout. Multi-packet replies arrive already
+  /// reassembled.
+  Future<String?> requestCfwBlock(
+    List<int> request,
+    List<int> replyPrefix, {
+    Duration timeout = const Duration(seconds: 3),
+  }) => _serialized(
+    () => awaitFirst<String>(
+      inbound,
+      () => sendFrame(buildSysexWriteFrame(request)),
+      (m) {
+        if (m is! DataFrame) return null;
+
+        final b = collapseFrame(m.hex);
+
+        if (b == null || b.length < 4 + replyPrefix.length) return null;
+
+        for (var i = 0; i < replyPrefix.length; i++) {
+          if (b[4 + i] != replyPrefix[i]) return null;
+        }
+
+        return m.hex;
+      },
+      timeout: timeout,
+    ),
+  );
+
+  /// Writes [payload] (a `11 …` register write) the way the CFW app does:
+  /// 19-byte packets, each sent after the pedal's `14 08 <status>` for the
+  /// one before, a lost ack re-sent up to [ackRetries] times in all. Returns
+  /// 0 when every packet was accepted, the status of a refused packet, or
+  /// null when an ack never came. With [commitDomain] it then waits up to
+  /// [commitTimeout] for the pedal's `12 1B <domain>` flash notification
+  /// (2 = preset); a missing one is not an error, as in the CFW app.
+  Future<int?> writeCfwBlock(
+    List<int> payload, {
+    int? commitDomain,
+    Duration ackTimeout = const Duration(milliseconds: 1200),
+    int ackRetries = 4,
+    Duration commitTimeout = const Duration(seconds: 3),
+  }) => _serialized(() async {
+    final committed = Completer<void>();
+    final sub = inbound.listen((m) {
+      final b = m is DataFrame ? collapseFrame(m.hex) : null;
+
+      if (commitDomain != null &&
+          b != null &&
+          b.length >= 7 &&
+          b[4] == 0x12 &&
+          b[5] == 0x1B &&
+          b[6] == commitDomain &&
+          !committed.isCompleted) {
+        committed.complete();
+      }
+    }, onError: (_) {});
+
+    try {
+      for (final frame in SysexChunkUpload.buildChunks(
+        Uint8List.fromList(payload),
+      )) {
+        int? status;
+
+        for (var i = 0; i < ackRetries && status == null; i++) {
+          status = await awaitFirst<int>(
+            inbound,
+            () => sendFrame(frame.toLowerCase()),
+            (m) {
+              if (m is AckMessage) return 0;
+
+              final b = m is DataFrame ? collapseFrame(m.hex) : null;
+
+              return b != null && b.length >= 7 && b[4] == 0x14 && b[5] == 0x08
+                  ? b[6]
+                  : null;
+            },
+            timeout: ackTimeout,
+          );
+        }
+
+        if (status != 0) return status;
+      }
+
+      if (commitDomain != null) {
+        await committed.future.timeout(commitTimeout, onTimeout: () {});
+      }
+
+      return 0;
+    } finally {
+      await sub.cancel();
+    }
+  });
 
   Future<void> disconnect() => _transport.disconnect();
 }
