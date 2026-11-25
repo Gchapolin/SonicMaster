@@ -263,3 +263,28 @@ Slots 6-10 take the stock commands with slot index 5..9; only the index differs.
   (`11 22`, slot 9) committed and read "Renamed"; clear committed and the name is "User IR 10" again.
   So rename works on slots 6-10 too, and three writes in a row committed without a power cycle.
 - Clone slots 6-10 from the app are not live-checked (only the web app's upload to slot 6 was captured).
+
+## Capture session 5 (2026-11-25): custom MIDI map (register 0x39), decoded
+Saved a copy of the Generic MIDI map (34 rows) as Custom, then an empty map; map set back to Stock, options 0.
+- Row = 8 bytes: `<trigger 01 CC | 02 PC> <channel 0 = the pedal's MIDI CH, 1..16> <number from> <number to>
+  <value> <function> <which> <switch>`.
+  - value: 00 any, 01 ">= 64", 02 "< 64", 80|n "= n" (from the web app's code; only 00 and 01 seen on the wire).
+  - function 1..25: 1 Select preset, 2 Bank -/+, 3 Preset -/+, 4 Tuner on/off, 5 Tap tempo, 6 Tap + division,
+    7 Looper window, 8 Looper rec/play/clear, 9 Looper volume, 10 Looper Pre/Post, 11 Drum, 12 Block on/off,
+    13 STOMP FS1/FS2, 14 Scene, 15 Volume, 16 Knob role, 17 Freeze, 18 EXP A-D, 19 Global EQ on/off,
+    20 Footswitch mode cycle, 21 Ignored, 22 Expression, 23 Tempo set, 24 Sync on/off, 25 Delay note -/+.
+  - which: index of the first option of that function; a number range walks the options (PC 101-102 -> Bank -, Bank +).
+    Option lists (web app): 2 Bank -/+; 3 Preset -/+; 6 1/4, 1/8., 1/8, 1/2, 1/16, 1/8T, 1/4., 1/4T, 1/16T;
+    8 Rec/overdub, Play/stop, Clear, Rec/Play, Stop; 9 Rec volume, Play volume; 11 Window, Play/stop, Rhythm, Volume;
+    12 NR..RVB; 13 FS1, FS2; 14 SC1, SC2, BASE; 15 Master, Preset; 16 IR Vol, EQ Vol, DRV Gain, DRV Vol, AMP Gain,
+    AMP Vol, DLY Mix, RVB Mix; 18 EXP A..D; 23 BPM range, BPM value; 24 DLY, FX1, FX2; 25 Shorter, Longer, Back to the
+    preset note. Function 1: 0..99 = P01..P50, F01..F50.
+  - switch (& 3): 0 ">= 64 on", 1 toggle, 2 momentary (for the on/off functions 4, 7, 8, 10, 11, 12, 17, 19).
+- "Preset selection PC 1-100" is two rows: `02 00 01 64 00 01 00 00` (PC 1..100 select preset) and `02 00 00 00 00 15 00 00`
+  (PC 0 ignored).
+- Write: header `11 39 00 "PMMM" 01 <options> <count u16 LE> 00 00 00 00 <crc16 LE> 00 00`, then batches
+  `11 39 01 <first index> <n <= 8> <n x 8 bytes>` (multi-packet, 19 payload bytes per packet, each acked), then commit
+  `11 39 02 <crc16 LE>`. options: bit0 first PC is PC 1, bit1 level CCs 0..127 (the same bits as setting 0x17).
+- crc16 = CRC-16/MODBUS over `"PMMM" 01 <options> <count u16 LE>` + all rows (matches the four captured maps).
+- Read: `12 39 00` -> `12 39 00 01 01 <flags> <count> <max 40> <options> ..  .. .. .. <crc16 LE> ...`;
+  `12 39 01 <first index>` -> `12 39 01 <first index> <n> <n x 8 bytes>` (pages of 8).
