@@ -8,7 +8,16 @@ import 'command_library.dart';
 /// effect ids it supports per module. Smart Box and any unknown device carry no
 /// effect restriction — they pass through the full library (fail-open).
 class DeviceCapabilities {
-  const DeviceCapabilities._(this._effects, this._matchers, this._displayNames);
+  const DeviceCapabilities._(
+    this._effects,
+    this._matchers,
+    this._displayNames,
+    this._cfwEffects,
+  );
+
+  /// model -> (moduleId -> effect ids the community custom firmware (CFW)
+  /// adds to that model).
+  final Map<DeviceModel, Map<int, Set<int>>> _cfwEffects;
 
   /// model -> (moduleId -> allowed effect ids). A model absent here (Smart Box /
   /// unknown) is unrestricted; a module absent for a present model is
@@ -22,6 +31,7 @@ class DeviceCapabilities {
     final effects = <DeviceModel, Map<int, Set<int>>>{};
     final matchers = <DeviceModel, ({List<String> usb, List<String> ble})>{};
     final displayNames = <DeviceModel, String>{};
+    final cfwEffects = <DeviceModel, Map<int, Set<int>>>{};
 
     for (final entry in models.entries) {
       final model = _modelFromKey(entry.key);
@@ -35,6 +45,15 @@ class DeviceCapabilities {
       displayNames[model] = m['displayName'] as String;
       matchers[model] = (usb: _lower(match['usb']), ble: _lower(match['ble']));
 
+      final cfw = m['cfwModels'];
+
+      if (cfw is Map<String, dynamic>) {
+        cfwEffects[model] = {
+          for (final e in cfw.entries)
+            int.parse(e.key): {for (final id in e.value as List) id as int},
+        };
+      }
+
       if (eff is Map<String, dynamic>) {
         effects[model] = {
           for (final e in eff.entries)
@@ -43,7 +62,7 @@ class DeviceCapabilities {
       }
     }
 
-    return DeviceCapabilities._(effects, matchers, displayNames);
+    return DeviceCapabilities._(effects, matchers, displayNames, cfwEffects);
   }
 
   /// Classifies a connected device (by its transport name) into a [DeviceModel].
@@ -81,14 +100,21 @@ class DeviceCapabilities {
   List<int> availableEffectIds(
     CommandLibrary commands,
     DeviceModel model,
-    int moduleId,
-  ) {
+    int moduleId, {
+    bool isCfw = false,
+  }) {
     final all = commands.effectIdsFor(moduleId);
     final allowed = _effects[model]?[moduleId];
 
     if (allowed == null) return all;
 
-    return all.where(allowed.contains).toList();
+    // On the community custom firmware the model also runs the ids listed
+    // under `cfwModels` (the Smart Box effects the CFW ports to it).
+    final extra = isCfw ? (_cfwEffects[model] ?? const {})[moduleId] : null;
+
+    return all
+        .where((id) => allowed.contains(id) || (extra?.contains(id) ?? false))
+        .toList();
   }
 
   static DeviceModel? _modelFromKey(String key) => switch (key) {

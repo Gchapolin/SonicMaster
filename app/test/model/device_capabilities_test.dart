@@ -105,4 +105,44 @@ void main() {
       }
     });
   });
+
+  group('CFW', () {
+    test('a CFW Pocket Master also gets the Smart Box amps', () {
+      final stock = caps.availableEffectIds(commands, .pocketMaster, 3);
+      final cfw = caps.availableEffectIds(
+        commands,
+        .pocketMaster,
+        3,
+        isCfw: true,
+      );
+
+      expect(stock, isNot(contains(323)));
+      expect(cfw, containsAll(stock));
+      expect(cfw, containsAll([323, 329, 338]));
+      expect(cfw.length, stock.length + 16);
+    });
+
+    test('delays and modulations are added, unknown ids are not', () {
+      final dly = caps.availableEffectIds(
+        commands,
+        .pocketMaster,
+        7,
+        isCfw: true,
+      );
+
+      expect(dly, containsAll([710, 716]));
+      expect(dly, isNot(contains(717))); // no command data for it yet
+      expect(
+        caps.availableEffectIds(commands, .pocketMaster, 1, isCfw: true),
+        contains(601),
+      );
+    });
+
+    test('the flag changes nothing for a Smart Box', () {
+      expect(
+        caps.availableEffectIds(commands, .smartBox, 3, isCfw: true),
+        caps.availableEffectIds(commands, .smartBox, 3),
+      );
+    });
+  });
 }

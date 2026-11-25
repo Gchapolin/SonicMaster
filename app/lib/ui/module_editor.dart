@@ -85,6 +85,7 @@ class ModuleEditor extends ConsumerWidget {
       data.commands,
       model,
       moduleId,
+      isCfw: ref.watch(cfwInfoProvider) != null,
     );
     // Keep the current effect in the dropdown even if it isn't in the pickable
     // set — some presets hold legacy/hidden effects (e.g. Fullchor / Flash /
