@@ -19,8 +19,9 @@ class MidiMapDialog extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final stored = ref.watch(midiMapProvider);
-    final rows = useState<List<MidiMapEntry>?>(stored);
+    // Always starts unread: rows shown before the read lands could be
+    // edited and then silently replaced by it.
+    final rows = useState<List<MidiMapEntry>?>(null);
     final draft = useState(const MidiMapEntry());
     final editing = useState<int?>(null);
     final isBusy = useState(true);
@@ -122,7 +123,11 @@ class MidiMapDialog extends HookConsumerWidget {
                     (value: MidiMapEntry.cc, label: 'CC'),
                     (value: MidiMapEntry.pc, label: 'PC'),
                   ],
-                  onChanged: (v) => draft.value = d.copyWith(trigger: v),
+                  // A PC carries no value: the condition goes with the CC.
+                  onChanged: (v) => draft.value = d.copyWith(
+                    trigger: v,
+                    value: v == MidiMapEntry.pc ? 0 : d.value,
+                  ),
                 ),
                 _Number(
                   value: d.from,
@@ -167,8 +172,13 @@ class MidiMapDialog extends HookConsumerWidget {
                     if (!MidiMapEntry.functions.containsKey(d.function))
                       (value: d.function, label: 'Function ${d.function}'),
                   ],
-                  onChanged: (v) =>
-                      draft.value = d.copyWith(function: v, which: 0),
+                  onChanged: (v) => draft.value = d.copyWith(
+                    function: v,
+                    which: 0,
+                    switchMode: MidiMapEntry(function: v).hasSwitch
+                        ? d.switchMode
+                        : 0,
+                  ),
                 ),
                 if (options.isNotEmpty)
                   SonicDropdown<int>(

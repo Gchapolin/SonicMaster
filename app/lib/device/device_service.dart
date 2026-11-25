@@ -86,6 +86,30 @@ class DeviceService {
     Duration timeout = const Duration(milliseconds: 800),
   }) => awaitAck(inbound, () => sendFrame(frameHex), timeout: timeout);
 
+  /// Sends [frames] one by one, each after the pedal acked the one before,
+  /// holding the IO gate for the whole write so no read (the heartbeat's, for
+  /// one) lands between the packets of a multi-packet message. A frame whose
+  /// ack does not come is sent again, up to [ackRetries] times in all (the
+  /// pedal now and then drops an ack and accepts the duplicate, as in
+  /// `_writeChunks`). Returns whether every frame was acked.
+  Future<bool> sendFramesAcked(
+    List<String> frames, {
+    Duration ackTimeout = const Duration(milliseconds: 1200),
+    int ackRetries = 4,
+  }) => _serialized(() async {
+    for (final frame in frames) {
+      var isAcked = false;
+
+      for (var attempt = 0; attempt < ackRetries && !isAcked; attempt++) {
+        isAcked = await sendAndAwaitAck(frame, timeout: ackTimeout);
+      }
+
+      if (!isAcked) return false;
+    }
+
+    return true;
+  });
+
   /// Serializes `DataFrame`-reading round-trips. The inbound stream carries no
   /// correlation id, so two overlapping `awaitFirst(DataFrame)` requests (e.g. a
   /// preset-state dump and a global-settings dump) would each complete on

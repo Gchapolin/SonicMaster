@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../model/command_library.dart';
 import '../model/preset_ref.dart';
 import '../state/cfw_providers.dart';
 import '../state/names_providers.dart';
@@ -21,7 +22,12 @@ class PresetOrderSection extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final names = ref.watch(presetNamesProvider);
     final isLoading = ref.watch(presetLoadingProvider);
-    final from = useState(ref.read(currentPresetProvider)?.number ?? 1);
+    final loaded = ref.read(currentPresetProvider);
+    // Opens on the loaded preset when it is a User one (a Factory preset has
+    // no place in the order).
+    final from = useState(
+      loaded != null && loaded.bank == PresetBank.user ? loaded.number : 1,
+    );
     final to = useState(1);
     final isBusy = useState(false);
     final status = useState<String?>(null);

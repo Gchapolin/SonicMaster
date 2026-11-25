@@ -288,3 +288,12 @@ Saved a copy of the Generic MIDI map (34 rows) as Custom, then an empty map; map
 - crc16 = CRC-16/MODBUS over `"PMMM" 01 <options> <count u16 LE>` + all rows (matches the four captured maps).
 - Read: `12 39 00` -> `12 39 00 01 01 <flags> <count> <max 40> <options> ..  .. .. .. <crc16 LE> ...`;
   `12 39 01 <first index>` -> `12 39 01 <first index> <n> <n x 8 bytes>` (pages of 8).
+
+## Live gate 2026-11-25 (integration_test/cfw_midi_map_live_test.dart, iPad over BLE, CFW 1.0.2)
+- Custom MIDI map: wrote 10 rows with the app's own frames (all acked); `12 39 00` read count 10 and the CRC the app
+  computed (0xD883 with options 0); the pages read back the same rows. Wrote the empty map again: count 0, CRC 0x1CFA,
+  as before the captures.
+- The map header's options and setting 0x17 are separate values: after the web app saved an empty map with options 1
+  and then wrote `11 2A 17 00`, the header still read 1 while 0x17 read 0. Both are 0 again now. Which one the pedal
+  obeys when they differ is not known.
+- The MIDI map setting itself stayed on Stock throughout; the gate ran without the app's heartbeat.

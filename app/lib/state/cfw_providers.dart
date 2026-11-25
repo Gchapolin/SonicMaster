@@ -408,22 +408,36 @@ Future<bool> moveUserPreset(WidgetRef ref, int from, int to) async {
   final names = ref.read(presetNamesProvider.notifier);
   final current = ref.read(currentPresetProvider.notifier);
 
+  final loading = ref.read(presetLoadingProvider.notifier);
+  final wasLoading = loading.state;
+
+  // Hold off the heartbeat and other edits: a foreign frame between the
+  // table's packets could break the write.
+  loading.state = true;
   try {
     final hex = await service.requestPresetOrder();
     final order = hex == null ? null : decodePresetOrderFrame(hex);
 
     if (order == null) return false;
 
-    final frames = buildPresetOrderFrames(
-      token: order.token,
-      entries: movePreset(order.entries, from: from - 1, to: to - 1),
+    final moved = movePreset(order.entries, from: from - 1, to: to - 1);
+    final isAcked = await service.sendFramesAcked(
+      buildPresetOrderFrames(token: order.token, entries: moved),
     );
 
-    for (final frame in frames) {
-      if (!await service.sendAndAwaitAck(frame)) return false;
+    if (!isAcked) {
+      // The pedal may have taken the table and only its last ack got lost:
+      // the table itself says which. Reporting a failure for a move that
+      // happened would make the next Move undo it.
+      final backHex = await service.requestPresetOrder();
+      final back = backHex == null ? null : decodePresetOrderFrame(backHex);
+
+      if (back == null || '${back.entries}' != '$moved') return false;
     }
   } catch (_) {
     return false;
+  } finally {
+    if (loading.mounted) loading.state = wasLoading;
   }
 
   if (!names.mounted) return true;
@@ -458,7 +472,8 @@ Future<bool> moveUserPreset(WidgetRef ref, int from, int to) async {
 final midiMapProvider = StateProvider<List<MidiMapEntry>?>((_) => null);
 
 /// Reads the pedal's custom MIDI map into [midiMapProvider]: the summary,
-/// then pages of eight rows. Any missed or short read leaves it null. A no-op
+/// then pages of eight rows. A missed or short read leaves it as it was
+/// (null if never read). A no-op
 /// on stock firmware.
 Future<void> refreshMidiMap(WidgetRef ref) async {
   if (ref.read(cfwInfoProvider) == null) return;
@@ -479,14 +494,15 @@ Future<void> refreshMidiMap(WidgetRef ref) async {
 
         rows = page == null || page.entries.isEmpty || page.first != rows.length
             ? null
-            : [...rows, ...page.entries];
+            : [...rows, ...page.entries.take(info.count - rows.length)];
       }
     }
   } catch (_) {
     rows = null;
   }
 
-  if (map.mounted) map.state = rows;
+  // A failed re-read keeps the map already known for this connection.
+  if (map.mounted && rows != null) map.state = rows;
 }
 
 /// Replaces the pedal's custom MIDI map with [entries], keeping the pedal's
@@ -500,16 +516,32 @@ Future<bool> saveMidiMap(WidgetRef ref, List<MidiMapEntry> entries) async {
 
   final service = ref.read(deviceServiceProvider);
   final map = ref.read(midiMapProvider.notifier);
+  final info = ref.read(cfwInfoProvider.notifier);
+  final loading = ref.read(presetLoadingProvider.notifier);
+  final wasLoading = loading.state;
 
+  // Hold off the heartbeat and other edits for the whole write.
+  loading.state = true;
   try {
-    for (final frame in buildMidiMapFrames(
-      options: cfw.customMapOptions,
-      entries: entries,
-    )) {
-      if (!await service.sendAndAwaitAck(frame)) return false;
-    }
+    // The header carries the custom-map options: take them as the pedal holds
+    // them now (they may have changed on the pedal since this app connected).
+    final hex = await service.requestCfwSettings();
+    final fresh = hex == null ? null : decodeCfwSettingsFrame(hex);
+
+    if (fresh != null && info.mounted) info.state = fresh;
+
+    final isAcked = await service.sendFramesAcked(
+      buildMidiMapFrames(
+        options: (fresh ?? cfw).customMapOptions,
+        entries: entries,
+      ),
+    );
+
+    if (!isAcked) return false;
   } catch (_) {
     return false;
+  } finally {
+    if (loading.mounted) loading.state = wasLoading;
   }
 
   if (map.mounted) map.state = [...entries];

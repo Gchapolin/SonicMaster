@@ -31,7 +31,14 @@ class _MapPedal extends DeviceService {
   _MapPedal(this.stored) : super(SilentTransport());
 
   final List<MidiMapEntry>? stored;
+  final acks = 999;
   final sent = <String>[];
+  void Function()? onWrite;
+
+  @override
+  Future<String?> requestCfwSettings({
+    Duration timeout = const Duration(seconds: 1),
+  }) async => null;
 
   @override
   Future<String?> requestMidiMapInfo({
@@ -61,11 +68,16 @@ class _MapPedal extends DeviceService {
   }
 
   @override
-  Future<bool> sendAndAwaitAck(
-    String frameHex, {
-    Duration timeout = const Duration(milliseconds: 800),
+  Future<bool> sendFramesAcked(
+    List<String> frames, {
+    Duration ackTimeout = const Duration(milliseconds: 1200),
+    int ackRetries = 4,
   }) async {
-    sent.add(frameHex);
+    onWrite?.call();
+    for (final f in frames) {
+      sent.add(f);
+      if (sent.length > acks) return false;
+    }
 
     return true;
   }
@@ -216,5 +228,47 @@ void main() {
     await open(tester, const [_bank, _freeze], size: const Size(852, 393));
 
     expectNoOverflow(tester);
+  });
+
+  testWidgets('a PC row carries no value condition', (tester) async {
+    final pedal = await open(tester, const []);
+
+    await tapText(tester, 'any');
+    await tapText(tester, '≥ 64');
+    await tapText(tester, 'CC');
+    await tapText(tester, 'PC');
+    await tapText(tester, 'Add row');
+    await tapText(tester, 'Save to pedal');
+    await tester.pump();
+
+    expect(
+      pedal.sent,
+      buildMidiMapFrames(
+        options: 0,
+        entries: const [MidiMapEntry(trigger: MidiMapEntry.pc)],
+      ),
+    );
+  });
+
+  testWidgets('a function without a switch drops the switch mode', (
+    tester,
+  ) async {
+    final pedal = await open(tester, const [_freeze]);
+
+    await tester.tap(find.byIcon(Icons.edit).last);
+    await tester.pump();
+    await tapText(tester, 'Freeze');
+    await tapText(tester, 'Tap tempo');
+    await tapText(tester, 'Update row');
+    await tapText(tester, 'Save to pedal');
+    await tester.pump();
+
+    expect(
+      pedal.sent,
+      buildMidiMapFrames(
+        options: 0,
+        entries: const [MidiMapEntry(from: 80, to: 80)],
+      ),
+    );
   });
 }

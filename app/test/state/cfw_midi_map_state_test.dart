@@ -9,6 +9,7 @@ import 'package:sonicmaster/protocol/cfw_settings_decoder.dart';
 import 'package:sonicmaster/protocol/sysex_write_frame.dart';
 import 'package:sonicmaster/state/cfw_providers.dart';
 import 'package:sonicmaster/state/device_providers.dart';
+import 'package:sonicmaster/state/preset_providers.dart';
 
 import '../fixtures/cfw_dumps.dart';
 import '../support/silent_transport.dart';
@@ -24,7 +25,19 @@ class _MapPedal extends DeviceService {
 
   final List<MidiMapEntry>? stored;
   final int acks;
+
+  /// The settings block the pedal answers with (null: it stays silent).
+  String? settingsReply;
+
+  /// Rows beyond the announced count a page is padded with.
+  var padding = 0;
+
+  @override
+  Future<String?> requestCfwSettings({
+    Duration timeout = const Duration(seconds: 1),
+  }) async => settingsReply;
   final sent = <String>[];
+  void Function()? onWrite;
   final pages = <int>[];
 
   @override
@@ -44,7 +57,12 @@ class _MapPedal extends DeviceService {
   }) async {
     pages.add(first);
 
-    final part = stored!.skip(first).take(8).toList();
+    final part = [
+      ...stored!.skip(first).take(8),
+      // Only the last page can run past the announced count.
+      if (first + 8 >= stored!.length)
+        for (var i = 0; i < padding; i++) const MidiMapEntry(function: 21),
+    ];
 
     return buildSysexWriteFrame([
       0x12,
@@ -57,13 +75,18 @@ class _MapPedal extends DeviceService {
   }
 
   @override
-  Future<bool> sendAndAwaitAck(
-    String frameHex, {
-    Duration timeout = const Duration(milliseconds: 800),
+  Future<bool> sendFramesAcked(
+    List<String> frames, {
+    Duration ackTimeout = const Duration(milliseconds: 1200),
+    int ackRetries = 4,
   }) async {
-    sent.add(frameHex);
+    onWrite?.call();
+    for (final f in frames) {
+      sent.add(f);
+      if (sent.length > acks) return false;
+    }
 
-    return sent.length <= acks;
+    return true;
   }
 }
 
@@ -181,5 +204,54 @@ void main() {
     clearCfwState(ref);
 
     expect(c.read(midiMapProvider), isNull);
+  });
+
+  testWidgets('saving uses the options the pedal holds now, not at connect', (
+    tester,
+  ) async {
+    // First PC was changed on the pedal after this app connected.
+    final bytes = collapseFrame(cfwSettingsOriginal)!.sublist(4);
+    final at = bytes.lastIndexOf(CfwInfo.customMapOptionsKey);
+
+    expect(bytes[at + 1], 0);
+    bytes[at + 1] = 3;
+
+    final pedal = _MapPedal(stored: const [])
+      ..settingsReply = buildSysexWriteFrame(bytes);
+    final (ref, c) = await _host(tester, pedal);
+
+    expect(await tester.runAsync(() => saveMidiMap(ref, _rows)), isTrue);
+    expect(pedal.sent, buildMidiMapFrames(options: 3, entries: _rows));
+    expect(c.read(cfwInfoProvider)!.customMapOptions, 3);
+  });
+
+  testWidgets('a page longer than the announced count is cut', (tester) async {
+    final pedal = _MapPedal(stored: _rows)..padding = 2;
+    final (ref, c) = await _host(tester, pedal);
+
+    await tester.runAsync(() => refreshMidiMap(ref));
+
+    expect(c.read(midiMapProvider), _rows);
+  });
+
+  testWidgets('a failed re-read keeps the map already known', (tester) async {
+    final (ref, c) = await _host(tester, _MapPedal());
+
+    c.read(midiMapProvider.notifier).state = _rows;
+    await tester.runAsync(() => refreshMidiMap(ref));
+
+    expect(c.read(midiMapProvider), _rows);
+  });
+
+  testWidgets('the save holds off the heartbeat and edits', (tester) async {
+    final pedal = _MapPedal(stored: const []);
+    final (ref, c) = await _host(tester, pedal);
+    bool? duringWrite;
+
+    pedal.onWrite = () => duringWrite = c.read(presetLoadingProvider);
+    await tester.runAsync(() => saveMidiMap(ref, _rows));
+
+    expect(duringWrite, isTrue);
+    expect(c.read(presetLoadingProvider), isFalse);
   });
 }

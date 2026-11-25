@@ -20,9 +20,13 @@ final _identity = [for (var i = 0; i < 50; i++) i];
 class _OrderPedal extends DeviceService {
   _OrderPedal({this.table, this.acks = 99}) : super(SilentTransport());
 
-  final List<int>? table;
+  List<int>? table;
   final int acks;
+
+  /// When set, the pedal applies a write even if its last ack is lost.
+  bool appliesAnyway = false;
   final sent = <String>[];
+  void Function()? onWrite;
   var namesReads = 0;
 
   @override
@@ -33,13 +37,22 @@ class _OrderPedal extends DeviceService {
       : buildSysexWriteFrame([0x12, 0x37, 1, 2, 0x83, ...table!]);
 
   @override
-  Future<bool> sendAndAwaitAck(
-    String frameHex, {
-    Duration timeout = const Duration(milliseconds: 800),
+  Future<bool> sendFramesAcked(
+    List<String> frames, {
+    Duration ackTimeout = const Duration(milliseconds: 1200),
+    int ackRetries = 4,
   }) async {
-    sent.add(frameHex);
+    onWrite?.call();
+    for (final f in frames) {
+      sent.add(f);
+      if (sent.length > acks) {
+        if (appliesAnyway) table = movePreset(table!, from: 17, to: 16);
 
-    return sent.length <= acks;
+        return false;
+      }
+    }
+
+    return true;
   }
 
   @override
@@ -161,7 +174,7 @@ void main() {
     };
 
     expect(await tester.runAsync(() => moveUserPreset(ref, 18, 17)), isFalse);
-    expect(pedal.sent, hasLength(2)); // stopped after the unacked packet
+    expect(pedal.sent, hasLength(2)); // stopped at the unacked packet
     expect(c.read(presetNamesProvider)[const PresetRef(.user, 17)], 'Fuzz Boy');
   });
 
@@ -193,5 +206,53 @@ void main() {
       isFalse,
     );
     expect(same.sent, isEmpty);
+  });
+
+  testWidgets('a lost last ack is settled by reading the table back', (
+    tester,
+  ) async {
+    // The pedal took the table but its last ack never came: reporting failure
+    // would make a second Move swap the presets back.
+    final pedal = _OrderPedal(table: [..._identity], acks: 2)
+      ..appliesAnyway = true;
+    final (ref, c) = await _host(tester, pedal);
+
+    c.read(presetNamesProvider.notifier).state = {
+      const PresetRef(.user, 17): 'Fuzz Boy',
+      const PresetRef(.user, 18): 'HB Drive',
+    };
+
+    expect(await tester.runAsync(() => moveUserPreset(ref, 18, 17)), isTrue);
+    expect(c.read(presetNamesProvider)[const PresetRef(.user, 17)], 'HB Drive');
+  });
+
+  testWidgets('the write holds off the heartbeat and edits', (tester) async {
+    final pedal = _OrderPedal(table: _identity);
+    final (ref, c) = await _host(tester, pedal);
+    bool? duringWrite;
+
+    pedal.onWrite = () => duringWrite = c.read(presetLoadingProvider);
+    await tester.runAsync(() => moveUserPreset(ref, 18, 17));
+
+    expect(duringWrite, isTrue);
+    expect(c.read(presetLoadingProvider), isFalse);
+  });
+
+  testWidgets('a table that was already reordered moves by position', (
+    tester,
+  ) async {
+    final reordered = movePreset(_identity, from: 0, to: 49);
+    final pedal = _OrderPedal(table: reordered);
+    final (ref, _) = await _host(tester, pedal);
+
+    await tester.runAsync(() => moveUserPreset(ref, 18, 17));
+
+    expect(
+      pedal.sent,
+      buildPresetOrderFrames(
+        token: 0x83,
+        entries: movePreset(reordered, from: 17, to: 16),
+      ),
+    );
   });
 }
