@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sonicmaster/device/device_service.dart';
 import 'package:sonicmaster/device/transport.dart';
 import 'package:sonicmaster/model/battery_status.dart';
+import 'package:sonicmaster/model/cfw_firmware_variants.dart';
 import 'package:sonicmaster/protocol/cfw_setting_writer.dart';
 import 'package:sonicmaster/protocol/cfw_settings_decoder.dart';
 import 'package:sonicmaster/protocol/cfw_slot_names_codec.dart';
@@ -296,6 +297,41 @@ void main() {
 
     expect(c.read(cfwInfoProvider)?.version, 'CFW1.0.2');
     expect(c.read(cfwInfoProvider)?.theme, 3);
+  });
+
+  testWidgets('the CFW read fits Swell Delay to the pedal; a new connection '
+      'puts it back', (tester) async {
+    final service = DeviceService(
+      _ReplyingTransport({
+        CfwSettingWriter.readSettings().toLowerCase(): cfwSettingsOriginal,
+      }),
+    )..startListening();
+    final c = ProviderContainer(
+      overrides: [
+        deviceServiceProvider.overrideWithValue(service),
+        dataAssetsProvider.overrideWith((_) => loadTestDataAssets()),
+      ],
+    );
+
+    addTearDown(c.dispose);
+    addTearDown(service.dispose);
+
+    final ref = await _ref(tester, c);
+    final data = c.read(dataAssetsProvider).requireValue;
+    String slot6() => data.effects
+        .byId(swellDelayId)!
+        .params
+        .singleWhere((p) => p.algId == 6)
+        .name;
+
+    expect(slot6(), 'Duck');
+
+    // The captured CFW 1.0.2 carries capability bit 31 (sbModels097).
+    await tester.runAsync(() => refreshCfwInfo(ref));
+    expect(slot6(), 'Sens');
+
+    clearCfwState(ref);
+    expect(slot6(), 'Duck');
   });
 
   testWidgets('a stock pedal (no reply) leaves cfwInfoProvider null', (

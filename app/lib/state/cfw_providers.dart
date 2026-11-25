@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../model/battery_status.dart';
 import '../model/cfw_eq_models.dart';
 import '../model/cfw_exp.dart';
+import '../model/cfw_firmware_variants.dart';
 import '../model/cfw_global_eq.dart';
 
 import '../model/cfw_info.dart';
@@ -21,6 +22,7 @@ import '../protocol/cfw_scene_codec.dart';
 import '../protocol/cfw_setting_writer.dart';
 import '../protocol/cfw_settings_decoder.dart';
 import '../protocol/cfw_slot_names_codec.dart';
+import 'data_providers.dart';
 import 'device_providers.dart';
 import 'names_providers.dart';
 import 'preset_providers.dart';
@@ -51,8 +53,20 @@ Future<void> refreshCfwInfo(
   final hex = await service.requestCfwSettings(timeout: timeout);
 
   if (info.mounted) {
-    info.state = hex == null ? null : decodeCfwSettingsFrame(hex);
+    final decoded = hex == null ? null : decodeCfwSettingsFrame(hex);
+
+    _fitModels(ref, decoded);
+    info.state = decoded;
   }
+}
+
+/// Fits the CFW models to the pedal [info] describes, before it is published
+/// (the editor rebuilds on [cfwInfoProvider]). The data is loaded by then:
+/// the names read before the CFW one waits for it.
+void _fitModels(WidgetRef ref, CfwInfo? info) {
+  final data = ref.read(dataAssetsProvider).valueOrNull;
+
+  if (data != null) fitCfwModels(data.effects, info);
 }
 
 /// Reads the DSP load into [dspLoadProvider]; a missed read clears it, so the
@@ -70,6 +84,7 @@ void clearCfwState(WidgetRef ref) {
   clearSceneState(ref);
   ref.read(globalEqProvider.notifier).state = null;
   ref.read(midiMapProvider.notifier).state = null;
+  _fitModels(ref, null);
   ref.read(cfwInfoProvider.notifier).state = null;
   ref.read(dspLoadProvider.notifier).state = null;
   ref.read(batteryProvider.notifier).state = null;

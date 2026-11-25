@@ -7,6 +7,7 @@ class CfwInfo {
     required this.version,
     required this.capabilities,
     required this.settings,
+    this.extraCapabilities = 0,
   });
 
   static const themeKey = 0x01;
@@ -30,6 +31,10 @@ class CfwInfo {
 
   /// Capability bits (little-endian u32 from the block).
   final int capabilities;
+
+  /// The second capability word (u32 LE after the pairs, tag 4); 0 when the
+  /// pedal sends none.
+  final int extraCapabilities;
 
   /// Every `key -> value` pair the pedal sent.
   final Map<int, int> settings;
@@ -72,5 +77,6 @@ class CfwInfo {
     version: version,
     capabilities: capabilities,
     settings: {...settings, key: value},
+    extraCapabilities: extraCapabilities,
   );
 }

@@ -329,3 +329,8 @@ The CFW app builds both frames itself (main.dart.js, functions a9V / zQ):
 - Not done: the stock delays/reverbs' extra knobs on the CFW (`stockExtraParams`: DLY Tone/Duck/Trail at 5/6/7,
   RVB High Cut/Low Cut/Trail at 3/6/7), and the Swell Delay variant some CFW versions use for slot 6.
 
+- Swell Delay variant (done): the CFW app's `AW.kC` swaps slot 6 for `B.NM` = Sens (-50..50, step 1, default 0,
+  no texts) when its flags' `b` is set. On a Pocket Master that is capability bit 31 (`sbModels097`; demo
+  profiles: 0.9.6 caps 0x4fff8f7f without, 0.9.7 / 0.9.8 0xcfff8f7f with; the captured 1.0.2 has it), off on a
+  NAM build (second capability word, the `04 <u32>` after the pairs, bit 4096, or "-NAM" in the version). Its
+  `a` flag (display index shift `B.a7p`) and the stock extra-param sets (`AX.kC`) are Smart Box only.

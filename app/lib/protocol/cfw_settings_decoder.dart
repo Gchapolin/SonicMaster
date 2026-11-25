@@ -28,7 +28,8 @@ List<int>? collapseFrame(String hex) {
 /// Decodes the pedal's `12 2A` reply (CFW settings block). Layout after the
 /// `<crc> 01 00 <len>` header: `12 2A 01`, a 16-byte ASCII version padded with
 /// zeros, 4 capability bytes (u32 LE), one more byte, a pair count, then
-/// `count` × `<key> <value>`. Returns null for anything else: another reply,
+/// `count` × `<key> <value>`, then optionally `04` and a second capability
+/// word (u32 LE). Returns null for anything else: another reply,
 /// a truncated block, or a version that is not a CFW one (stock firmware).
 CfwInfo? decodeCfwSettingsFrame(String frameHex) {
   final bytes = collapseFrame(frameHex);
@@ -53,18 +54,20 @@ CfwInfo? decodeCfwSettingsFrame(String frameHex) {
 
   final count = p[countAt];
 
-  if (pairsAt + 2 * count > p.length) return null;
+  final end = pairsAt + 2 * count;
+
+  if (end > p.length) return null;
+
+  int u32(int at) =>
+      p[at] | (p[at + 1] << 8) | (p[at + 2] << 16) | (p[at + 3] << 24);
 
   return CfwInfo(
     version: version,
-    capabilities:
-        p[capsAt] |
-        (p[capsAt + 1] << 8) |
-        (p[capsAt + 2] << 16) |
-        (p[capsAt + 3] << 24),
+    capabilities: u32(capsAt),
     settings: {
       for (var i = 0; i < count; i++)
         p[pairsAt + 2 * i]: p[pairsAt + 2 * i + 1],
     },
+    extraCapabilities: p.length >= end + 5 && p[end] == 4 ? u32(end + 1) : 0,
   );
 }
