@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../l10n/shell_text.dart';
 import '../model/preset_ref.dart';
 import '../state/device_providers.dart';
 import '../state/edit_providers.dart';
@@ -120,9 +121,9 @@ class PresetBrowserPage extends HookConsumerWidget {
 
     // Work-area empty state: no device, or a device but no preset selected.
     final emptyMessage = !isConnected
-        ? 'No device connected'
+        ? ShellText.current.noDeviceConnected
         : current == null
-        ? 'No preset selected'
+        ? ShellText.current.noPresetSelected
         : null;
 
     // React to a BLE disconnect (drop -> auto-reconnect, unless user-initiated).
@@ -242,7 +243,9 @@ class PresetBrowserPage extends HookConsumerWidget {
                                                         ),
                                                         Center(
                                                           child: SonicButton(
-                                                            label: 'Try demo',
+                                                            label: ShellText
+                                                                .current
+                                                                .tryDemo,
                                                             onPressed: () =>
                                                                 startDemo(ref),
                                                           ),

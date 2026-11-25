@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart'; // Icons glyph font only
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../l10n/shell_text.dart';
 import '../state/mobile_screen.dart';
 import 'sonic_controls.dart';
 import 'sonic_metrics.dart';
@@ -30,7 +31,9 @@ class FullscreenButton extends ConsumerWidget {
 
     return Semantics(
       button: true,
-      label: isFullscreen ? 'Exit fullscreen' : 'Fullscreen',
+      label: isFullscreen
+          ? ShellText.current.exitFullscreen
+          : ShellText.current.fullscreen,
       child: SonicIconButton(
         icon: isFullscreen ? Icons.fullscreen_exit : Icons.fullscreen,
         padding: SonicMetrics.of(context).topBarIconPadding,

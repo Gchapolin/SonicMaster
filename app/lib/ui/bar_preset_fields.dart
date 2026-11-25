@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../l10n/common_text.dart';
 import '../model/slider_nudge.dart';
 import '../state/preset_providers.dart';
 import '../theme/app_colors.dart';
@@ -182,7 +183,7 @@ class _PresetFieldsDialog extends ConsumerWidget {
           Align(
             alignment: Alignment.centerRight,
             child: SonicButton(
-              label: 'Close',
+              label: CommonText.current.close,
               onPressed: () => Navigator.pop(context),
             ),
           ),

@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show clampDouble;
 import 'package:flutter/material.dart'; // Icons glyph font only
 import 'package:flutter_hooks/flutter_hooks.dart';
 
+import '../l10n/common_text.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text.dart';
 import 'sonic_metrics.dart';
@@ -389,7 +390,7 @@ Future<T?> showSonicDialog<T>({
   return showGeneralDialog<T>(
     context: context,
     barrierDismissible: barrierDismissible,
-    barrierLabel: 'dismiss',
+    barrierLabel: CommonText.current.close,
     barrierColor: Palette.scrim,
     transitionDuration: const Duration(milliseconds: 160),
     pageBuilder: (context, _, _) => builder(context),

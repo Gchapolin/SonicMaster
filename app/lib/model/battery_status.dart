@@ -1,3 +1,5 @@
+import '../l10n/shell_text.dart';
+
 /// Where the CFW pedal's power comes from (byte 6 of `12 2D`).
 enum BatteryCharge { onBattery, charging, charged }
 
@@ -28,19 +30,16 @@ class BatteryStatus {
 
   /// The CFW app's tooltip text for this status.
   String get label {
+    final text = ShellText.current;
     String volts(int mv) => '${(mv / 1000).toStringAsFixed(2)} V';
-    final battOnly = flags & 0x08 != 0
-        ? ' · Batt Only: not charging from USB'
-        : '';
+    final battOnly = flags & 0x08 != 0 ? text.battOnly : '';
 
     return switch (charge) {
-      BatteryCharge.charging => 'Charging (USB power)',
-      BatteryCharge.charged => 'Charged (on USB power)',
-      _ when isEmpty =>
-        'Battery empty (below ${volts(emptyMillivolts)}): charge the pedal'
-            '$battOnly',
-      _ when bars == 1 => 'Battery low: 1 of 4 · ${volts(millivolts)}$battOnly',
-      _ => 'Battery: $bars of 4 · ${volts(millivolts)}$battOnly',
+      BatteryCharge.charging => text.batteryCharging,
+      BatteryCharge.charged => text.batteryCharged,
+      _ when isEmpty => text.batteryEmpty(volts(emptyMillivolts)) + battOnly,
+      _ when bars == 1 => text.batteryLow(volts(millivolts)) + battOnly,
+      _ => text.battery(bars, volts(millivolts)) + battOnly,
     };
   }
 }

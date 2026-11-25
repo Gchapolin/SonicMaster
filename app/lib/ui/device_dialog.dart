@@ -8,6 +8,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../device/transport.dart';
 import '../device/transport_factory.dart';
 import '../device/web_capabilities.dart';
+import '../l10n/common_text.dart';
+import '../l10n/connection_text.dart';
 import '../state/device_providers.dart';
 import '../state/reconnect.dart';
 import '../theme/app_colors.dart';
@@ -29,13 +31,9 @@ const _webBleTarget = 'Smart Box BLE';
 /// by the browser's OS: on web, [defaultTargetPlatform] follows the user agent
 /// (iPadOS counts as iOS; Android in desktop-site mode counts as Linux).
 String webMidiUnsupportedMessage(TargetPlatform platform) => switch (platform) {
-  .android =>
-    'Web MIDI is not available in this browser.\n'
-        'Use Chrome or Samsung Internet.',
-  .iOS => _iosCannotConnect,
-  _ =>
-    'Web MIDI is not available in this browser.\n'
-        'Use Chrome, Edge, Opera, or Firefox.',
+  .android => ConnectionText.current.webMidiAndroid,
+  .iOS => ConnectionText.current.iosCannotConnect,
+  _ => ConnectionText.current.webMidiOther,
 };
 
 /// What the device picker says when the browser has no Web Bluetooth, by the
@@ -43,25 +41,11 @@ String webMidiUnsupportedMessage(TargetPlatform platform) => switch (platform) {
 /// switched off there.
 String webBluetoothUnsupportedMessage(TargetPlatform platform) =>
     switch (platform) {
-      .android =>
-        'Web Bluetooth is not available in this browser.\n'
-            'Use Chrome or Samsung Internet.',
-      .iOS => _iosCannotConnect,
-      .linux =>
-        'Web Bluetooth is not available.\n'
-            'Use Chrome, Edge, or Opera. On Linux, enable\n'
-            'chrome://flags/#enable-experimental-web-platform-features',
-      _ =>
-        'Web Bluetooth is not available.\n'
-            'Use Chrome, Edge, or Opera.',
+      .android => ConnectionText.current.webBluetoothAndroid,
+      .iOS => ConnectionText.current.iosCannotConnect,
+      .linux => ConnectionText.current.webBluetoothLinux,
+      _ => ConnectionText.current.webBluetoothOther,
     };
-
-/// Every iPhone and iPad browser runs on WebKit, which has neither Web MIDI
-/// nor Web Bluetooth.
-const _iosCannotConnect =
-    'No iPhone or iPad browser can connect to the pedal:\n'
-    'none of them supports Web MIDI or Web Bluetooth.\n'
-    'Use Chrome on Android, or a desktop browser.';
 
 /// Opens the device picker; if the user picks a device, connects over the
 /// chosen transport and persists the intent. No-op on cancel.
@@ -123,10 +107,10 @@ class DeviceDialog extends HookConsumerWidget {
                   _DevRow(
                     name: d.name,
                     subtitle: d.connectable
-                        ? 'USB MIDI · in + out'
+                        ? ConnectionText.current.usbInOut
                         : d.hasInput
-                        ? 'input only'
-                        : 'output only',
+                        ? ConnectionText.current.inputOnly
+                        : ConnectionText.current.outputOnly,
                     isEnabled: d.connectable,
                     isUsb: true,
                   ),
@@ -146,7 +130,7 @@ class DeviceDialog extends HookConsumerWidget {
         // e.g. the Bluetooth adapter is off, or MIDI enumeration failed.
         if (context.mounted) {
           rows.value = const [];
-          error.value = 'Scan failed: $e';
+          error.value = ConnectionText.current.scanFailed(e);
         }
       }
     }
@@ -180,7 +164,9 @@ class DeviceDialog extends HookConsumerWidget {
         ? DeviceStateMessage(errorText)
         : currentRows.isEmpty
         ? DeviceStateMessage(
-            kind == .usb ? 'No USB MIDI devices found' : 'No BLE devices found',
+            kind == .usb
+                ? ConnectionText.current.noUsbDevices
+                : ConnectionText.current.noBleDevices,
           )
         : ListView(
             padding: EdgeInsets.zero,
@@ -238,7 +224,10 @@ class DeviceDialogShell extends StatelessWidget {
               mainAxisSize: .min,
               crossAxisAlignment: .stretch,
               children: [
-                const Text('Select a device', style: AppText.dialogTitle),
+                Text(
+                  ConnectionText.current.selectDevice,
+                  style: AppText.dialogTitle,
+                ),
                 const SizedBox(height: 14),
                 SonicSegmented<TransportKind>(
                   value: transport,
@@ -257,10 +246,13 @@ class DeviceDialogShell extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: .end,
                     children: [
-                      SonicButton(label: 'Rescan', onPressed: onRescan),
+                      SonicButton(
+                        label: ConnectionText.current.rescan,
+                        onPressed: onRescan,
+                      ),
                       const SizedBox(width: 10),
                       SonicButton(
-                        label: 'Cancel',
+                        label: CommonText.current.cancel,
                         onPressed: () => Navigator.pop(context),
                       ),
                     ],
@@ -308,20 +300,19 @@ class WebBleChooser extends StatelessWidget {
       child: Column(
         mainAxisSize: .min,
         children: [
-          const Flexible(
+          Flexible(
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: .min,
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.bluetooth_searching,
                     color: Palette.onSurfaceVariant,
                     size: 40,
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   Text(
-                    'Your browser picks the Bluetooth device.\n'
-                    'Choose your pedal in the chooser that opens.',
+                    ConnectionText.current.browserPicksBluetooth,
                     textAlign: .center,
                     style: AppText.dialogBody,
                   ),
@@ -330,7 +321,10 @@ class WebBleChooser extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
-          SonicButton(label: 'Select Bluetooth device', onPressed: onSelect),
+          SonicButton(
+            label: ConnectionText.current.selectBluetoothDevice,
+            onPressed: onSelect,
+          ),
         ],
       ),
     );
@@ -380,7 +374,9 @@ class _DeviceRow extends StatelessWidget {
                     crossAxisAlignment: .start,
                     children: [
                       Text(
-                        row.name.isEmpty ? '(unnamed)' : row.name,
+                        row.name.isEmpty
+                            ? ConnectionText.current.unnamed
+                            : row.name,
                         maxLines: 1,
                         overflow: .ellipsis,
                         style: AppText.deviceRowTitle,

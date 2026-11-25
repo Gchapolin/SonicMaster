@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../l10n/shell_text.dart';
 import '../model/effect_parameter.dart';
 import '../model/footswitch_assignment.dart';
 import '../model/footswitch_state.dart';
@@ -66,7 +67,7 @@ class ModuleEditor extends ConsumerWidget {
     if (def == null) {
       return Padding(
         padding: const EdgeInsets.all(16),
-        child: Text('$moduleName — no decoded effect'),
+        child: Text(ShellText.current.noDecodedEffect(moduleName)),
       );
     }
 
@@ -182,7 +183,7 @@ class ModuleEditor extends ConsumerWidget {
               // models (module 3) and the User-Profile clone (module 9).
               if (physId == 3 && state != null)
                 PanelCell(
-                  label: 'Clone Mode',
+                  label: ShellText.current.cloneMode,
                   control: SonicToggle(
                     value: state.isCloneMode,
                     height: metrics.editorControlHeight,
@@ -193,7 +194,7 @@ class ModuleEditor extends ConsumerWidget {
               // uses here: a file goes into a slot without switching to it.
               if ((moduleId == 4 || moduleId == 9) && isConnected)
                 PanelCell(
-                  label: 'User slots',
+                  label: ShellText.current.userSlots,
                   control: SonicButton(
                     label: 'Slots…',
                     height: metrics.editorControlHeight,
@@ -427,12 +428,12 @@ class _FootswitchCell extends StatelessWidget {
     final disabled = footswitchDisabledOptions(fs1Mask, fs2Mask, moduleId);
 
     return PanelCell(
-      label: 'Foot Switch',
+      label: ShellText.current.footSwitch,
       control: SonicSegmented<FootswitchAssignment>(
         value: current,
         segmentPadding: SonicMetrics.of(context).footswitchSegmentPadding,
-        segments: const [
-          (value: FootswitchAssignment.none, label: 'None'),
+        segments: [
+          (value: FootswitchAssignment.none, label: ShellText.current.none),
           (value: FootswitchAssignment.fs1, label: 'FS1'),
           (value: FootswitchAssignment.fs2, label: 'FS2'),
         ],

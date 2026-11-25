@@ -5,6 +5,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import '../l10n/shell_text.dart';
 import '../model/command_library.dart';
 import '../model/preset_ref.dart';
 import '../state/device_providers.dart';
@@ -373,7 +374,7 @@ class _MasterVolume extends ConsumerWidget {
         min: 0,
         max: 100,
         step: 1,
-        label: 'Master Vol',
+        label: ShellText.current.masterVol,
         size: SonicMetrics.of(context).panelKnobSize,
         isEnabled: !isLoading,
         isHoldToTurnOnTouch: isHoldToTurnOnTouch,
@@ -397,9 +398,9 @@ class _BankTabs extends ConsumerWidget {
         value: tab,
         isExpanded: true,
         height: 40,
-        segments: const [
-          (value: .factory, label: 'Factory'),
-          (value: .user, label: 'User'),
+        segments: [
+          (value: .factory, label: ShellText.current.factory),
+          (value: .user, label: ShellText.current.user),
         ],
         onChanged: (b) => ref.read(presetTabProvider.notifier).state = b,
       ),
@@ -473,7 +474,7 @@ class RailFooter extends HookWidget {
           ),
           const SizedBox(height: 2),
           Text(
-            'by Skyggedans',
+            ShellText.current.byAuthor,
             textAlign: .center,
             style: _railStyle(10, color: Palette.railMuted, ls: 0.5),
           ),
@@ -511,7 +512,7 @@ class _PresetSearchField extends HookConsumerWidget {
           Expanded(
             child: SonicField(
               controller: controller,
-              hintText: 'Search presets',
+              hintText: ShellText.current.searchPresets,
               style: AppText.input.copyWith(
                 color: Palette.railText,
                 fontSize: 14,

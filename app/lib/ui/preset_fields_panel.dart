@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../l10n/shell_text.dart';
 import '../state/preset_providers.dart';
 import 'knob_control.dart';
 import 'sonic_controls.dart';
@@ -45,7 +46,7 @@ class PresetFieldsPanel extends StatelessWidget {
               min: 0,
               max: 100,
               step: 1,
-              label: 'Preset Vol',
+              label: ShellText.current.presetVol,
               size: metrics.panelKnobSize,
               isEnabled: !isLoading,
               onChanged: (v) => onVolume(v.round()),

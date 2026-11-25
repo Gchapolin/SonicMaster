@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../device/device_model.dart';
 import '../device/transport.dart';
+import '../l10n/connection_text.dart';
 import 'cfw_providers.dart';
 import 'connection_prefs.dart';
 import 'data_providers.dart';
@@ -88,12 +89,13 @@ Future<void> connectAndPersist(WidgetRef ref, {String? target}) async {
     if (!await connectAndSync(
       ref,
       target: target,
-      statusOnSuccess: 'connected',
+      statusOnSuccess: ConnectionText.current.statusConnected,
     )) {
       return;
     }
   } catch (e) {
-    ref.read(presetLoadStatusProvider.notifier).state = 'connect failed: $e';
+    ref.read(presetLoadStatusProvider.notifier).state = ConnectionText.current
+        .connectFailed(e);
 
     return;
   }
@@ -115,7 +117,8 @@ Future<void> handleConnectionDrop(WidgetRef ref) async {
   final target = ref.read(lastBleTargetProvider);
 
   if (ref.read(transportKindProvider) != .ble || target == null) {
-    ref.read(presetLoadStatusProvider.notifier).state = 'disconnected';
+    ref.read(presetLoadStatusProvider.notifier).state =
+        ConnectionText.current.statusDisconnected;
 
     return;
   }
@@ -133,8 +136,8 @@ Future<void> handleConnectionDrop(WidgetRef ref) async {
 
       if (ref.read(connectionStateProvider)) return;
 
-      ref.read(presetLoadStatusProvider.notifier).state =
-          'connection lost — reconnecting ($attempt/3)…';
+      ref.read(presetLoadStatusProvider.notifier).state = ConnectionText.current
+          .reconnecting(attempt);
       await Future<void>.delayed(Duration(milliseconds: 400 * attempt));
 
       if (ref.read(transportKindProvider) != .ble) return;
@@ -146,7 +149,7 @@ Future<void> handleConnectionDrop(WidgetRef ref) async {
         await connectAndSync(
           ref,
           target: target,
-          statusOnSuccess: 'reconnected',
+          statusOnSuccess: ConnectionText.current.statusReconnected,
         );
 
         return;
@@ -155,8 +158,8 @@ Future<void> handleConnectionDrop(WidgetRef ref) async {
       }
     }
 
-    ref.read(presetLoadStatusProvider.notifier).state =
-        'reconnect failed ($lastError) — tap Connect';
+    ref.read(presetLoadStatusProvider.notifier).state = ConnectionText.current
+        .reconnectFailed(lastError);
   } finally {
     ref.read(reconnectingProvider.notifier).state = false;
   }
@@ -170,7 +173,8 @@ void applyUserDisconnect(WidgetRef ref) {
   ref.read(lastBleTargetProvider.notifier).state = null;
   ref.read(connectionStateProvider.notifier).state = false;
   ref.read(detectedDeviceModelProvider.notifier).state = .unknown;
-  ref.read(presetLoadStatusProvider.notifier).state = 'disconnected';
+  ref.read(presetLoadStatusProvider.notifier).state =
+      ConnectionText.current.statusDisconnected;
 }
 
 /// State effects of a DETECTED USB connection loss (cable pull, power-off, port
@@ -182,7 +186,7 @@ void handleUsbConnectionLost(WidgetRef ref) {
   ref.read(detectedDeviceModelProvider.notifier).state = .unknown;
   ref.read(connectedDeviceNameProvider.notifier).state = null;
   ref.read(presetLoadStatusProvider.notifier).state =
-      'connection lost — tap Connect';
+      ConnectionText.current.connectionLost;
 }
 
 /// Liveness check for the heartbeat: if the transport is USB and marked
@@ -245,7 +249,8 @@ Future<void> autoConnectOnStartup(WidgetRef ref) async {
   // startup reconnect isn't possible on web — the last transport is pre-selected
   // above and the user taps Connect. Native reconnects silently.
   if (kIsWeb) {
-    ref.read(presetLoadStatusProvider.notifier).state = 'tap Connect to resume';
+    ref.read(presetLoadStatusProvider.notifier).state =
+        ConnectionText.current.tapConnectToResume;
 
     return;
   }
@@ -254,14 +259,14 @@ Future<void> autoConnectOnStartup(WidgetRef ref) async {
     await connectAndSync(
       ref,
       target: profile.bleName,
-      statusOnSuccess: 'connected',
+      statusOnSuccess: ConnectionText.current.statusConnected,
     );
   } catch (_) {
     if (profile.transport == .ble) {
       await handleConnectionDrop(ref); // reuse the 3-attempt BLE backoff
     } else {
       ref.read(presetLoadStatusProvider.notifier).state =
-          'auto-connect failed — tap Connect';
+          ConnectionText.current.autoConnectFailed;
     }
   }
 }

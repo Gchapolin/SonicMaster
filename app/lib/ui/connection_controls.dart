@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart'; // Icons glyph font only
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../l10n/connection_text.dart';
 import '../state/device_providers.dart';
 import '../state/reconnect.dart';
 import '../theme/app_colors.dart';
@@ -40,8 +41,8 @@ class ConnectionControls extends ConsumerWidget {
     final transport = ref.watch(transportKindProvider);
 
     final statusLabel = isConnected
-        ? (deviceName ?? 'Connected')
-        : 'Disconnected';
+        ? (deviceName ?? ConnectionText.current.connected)
+        : ConnectionText.current.disconnected;
 
     return Row(
       mainAxisSize: .min,
@@ -78,7 +79,9 @@ class ConnectionControls extends ConsumerWidget {
         const SizedBox(width: 10),
         // Compact Connect / Disconnect, right of the dot.
         SonicButton(
-          label: isConnected ? 'Disconnect' : 'Connect',
+          label: isConnected
+              ? ConnectionText.current.disconnect
+              : ConnectionText.current.connect,
           height: 26,
           minWidth: 0,
           isAccent: !isConnected,

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart'; // Icons glyph font only
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../l10n/shell_text.dart';
 import '../state/mobile_screen.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text.dart';
@@ -99,29 +100,27 @@ class _RotatePrompt extends StatelessWidget {
                       color: Palette.accent,
                     ),
                     const SizedBox(height: 16),
-                    const Text(
-                      'Rotate your device to landscape',
+                    Text(
+                      ShellText.current.rotatePrompt,
                       textAlign: .center,
                       style: AppText.dialogTitle,
                     ),
                     const SizedBox(height: 8),
-                    const Text(
-                      'The SonicMaster editor is laid out for a landscape '
-                      'screen.',
+                    Text(
+                      ShellText.current.rotateBody,
                       textAlign: .center,
                       style: AppText.dialogBody,
                     ),
                     if (isFullscreenOffered) ...[
                       const SizedBox(height: 20),
                       SonicButton(
-                        label: 'Fullscreen',
+                        label: ShellText.current.fullscreen,
                         isAccent: true,
                         onPressed: onFullscreen,
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Fullscreen also turns the screen when auto-rotate '
-                        'is off.',
+                        ShellText.current.rotateFullscreenHint,
                         textAlign: .center,
                         style: AppText.dialogBody.copyWith(
                           color: Palette.textDim,
@@ -134,8 +133,7 @@ class _RotatePrompt extends StatelessWidget {
                       // the button: the tree never switches shape.
                       const SizedBox(height: 8),
                       Text(
-                        'If the screen does not turn, switch off the rotation '
-                        'lock.',
+                        ShellText.current.rotateLockHint,
                         textAlign: .center,
                         style: AppText.dialogBody.copyWith(
                           color: Palette.textDim,
