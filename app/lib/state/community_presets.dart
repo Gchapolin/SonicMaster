@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -25,6 +26,56 @@ final communityCatalogProvider = FutureProvider<List<CommunityPreset>>((
   );
 });
 
+/// At most this many preset files download at once (a catalogue has dozens).
+const _maxParallelFiles = 3;
+
+/// Waiting slots for [communityFileProvider] downloads.
+class _FileGate {
+  var _running = 0;
+  final _waiting = <Completer<void>>[];
+
+  Future<T> run<T>(Future<T> Function() job) async {
+    if (_running >= _maxParallelFiles) {
+      final c = Completer<void>();
+      _waiting.add(c);
+      await c.future;
+    } else {
+      _running++;
+    }
+
+    try {
+      return await job();
+    } finally {
+      if (_waiting.isEmpty) {
+        _running--;
+      } else {
+        _waiting.removeAt(0).complete();
+      }
+    }
+  }
+}
+
+final _fileGate = Provider<_FileGate>((_) => _FileGate());
+
+/// The text of one community file by absolute URL, downloaded once per
+/// session (the card thumbnail and Try share it). A failure is not kept: the
+/// provider disposes when nobody watches it, and [tryCommunityPreset]
+/// invalidates an errored one before reading.
+final communityFileProvider = FutureProvider.autoDispose.family<String, String>(
+  (ref, url) async {
+    final fetch = ref.watch(communityFetchProvider);
+    final text = await ref.read(_fileGate).run(() => fetch(Uri.parse(url)));
+
+    ref.keepAlive();
+
+    return text;
+  },
+);
+
+/// The absolute URL of [preset]'s file.
+String communityFileUrl(CommunityPreset preset) =>
+    Uri.parse(communityBaseUrl).resolve(preset.file).toString();
+
 /// Downloads [preset] and pushes it to the pedal's live state, like Import
 /// preset (Save keeps it). Returns null on success, else why it failed.
 Future<String?> tryCommunityPreset(
@@ -38,9 +89,12 @@ Future<String?> tryCommunityPreset(
   final ImportedPreset imported;
 
   try {
-    final text = await ref.read(communityFetchProvider)(
-      Uri.parse(communityBaseUrl).resolve(preset.file),
-    );
+    final file = communityFileProvider(communityFileUrl(preset));
+
+    // A failed download stays in the provider while a card watches it.
+    if (ref.read(file).hasError) ref.invalidate(file);
+
+    final text = await ref.read(file.future);
 
     imported = importedPresetFromJson(
       jsonDecode(text) as Map<String, dynamic>,
