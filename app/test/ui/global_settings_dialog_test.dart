@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -22,8 +23,10 @@ import 'package:sonicmaster/state/device_providers.dart';
 import 'package:sonicmaster/state/preset_providers.dart';
 import 'package:sonicmaster/ui/eq_curve_view.dart';
 import 'package:sonicmaster/ui/global_settings_dialog.dart';
+import 'package:sonicmaster/ui/knob_control.dart';
 import 'package:sonicmaster/ui/midi_map_dialog.dart';
 import 'package:sonicmaster/ui/sonic_controls.dart';
+import 'package:sonicmaster/ui/sonic_metrics.dart';
 
 import '../fixtures/cfw_dumps.dart';
 import '../support/silent_transport.dart';
@@ -40,6 +43,7 @@ void main() {
     WidgetTester tester, {
     required Size size,
     List<Override> extra = const [],
+    int expFsType = 0,
   }) async {
     final transport = SilentTransport();
     final context = await pumpSonicHost(
@@ -55,12 +59,13 @@ void main() {
           return service;
         }),
         globalSettingsProvider.overrideWith(
-          (_) => const GlobalSettings(
+          (_) => GlobalSettings(
             globalVolume: 50,
             inputLevel: 0,
             fxRecLevel: 0,
             monitorLevel: 0,
             btRecLevel: 0,
+            expFsType: expFsType,
           ),
         ),
         ...extra,
@@ -81,8 +86,8 @@ void main() {
   Finder inDialog(Finder finder) =>
       find.descendant(of: find.byType(GlobalSettingsDialog), matching: finder);
 
-  // The dialog's scroll views, outermost first: SonicDialog's, then the
-  // settings list's.
+  // The dialog's scroll views, outermost first: SonicDialog's carries the
+  // whole dialog.
   List<ScrollPosition> scrolls(WidgetTester tester) => tester
       .stateList<ScrollableState>(inDialog(find.byType(Scrollable)))
       .map((state) => state.position)
@@ -102,11 +107,10 @@ void main() {
     ) async {
       await openSettings(tester, size: size);
 
-      final [dialog, list, ...] = scrolls(tester);
+      final [dialog, ...] = scrolls(tester);
 
       expect(tester.takeException(), isNull);
       expect(dialog.maxScrollExtent, greaterThan(0));
-      expect(list.maxScrollExtent, 0); // uncapped: a passthrough
 
       await tester.ensureVisible(find.text('Close'));
       await tester.pumpAndSettle();
@@ -175,28 +179,160 @@ void main() {
     expect(container.read(globalSettingsProvider)!.inputLevel, 0);
   });
 
-  for (final (size, list, close) in const [
-    (Size(1280, 800), 496.0, Rect.fromLTRB(731, 651, 835, 695)),
-    (Size(960, 640), 396.8, Rect.fromLTRB(571, 521.4, 675, 565.4)),
-  ]) {
+  for (final size in const [Size(1280, 800), Size(1024, 768), Size(960, 640)]) {
     final where = '${size.width.toInt()}x${size.height.toInt()}';
 
-    testWidgets('regular $where: the list keeps its 62% cap, Close pinned', (
+    testWidgets('regular $where: a CFW pedal lays out without overflow', (
       tester,
     ) async {
-      await openSettings(tester, size: size);
-
-      final [dialog, settings, ...] = scrolls(tester);
-
-      expect(settings.viewportDimension, closeTo(list, 0.01));
-      expect(settings.maxScrollExtent, greaterThan(0));
-      expect(dialog.maxScrollExtent, 0); // SonicDialog's scroll stays inert
-      expect(
-        tester.getRect(find.widgetWithText(SonicButton, 'Close')),
-        rectMoreOrLessEquals(close),
+      await openSettings(
+        tester,
+        size: size,
+        extra: [
+          connectionStateProvider.overrideWith((_) => true),
+          cfwInfoProvider.overrideWith(
+            (_) => decodeCfwSettingsFrame(cfwSettingsOriginal)!,
+          ),
+        ],
       );
+
+      expectNoOverflow(tester);
     });
   }
+
+  group('new layout (1180x820, Portuguese)', () {
+    final cfw = decodeCfwSettingsFrame(cfwSettingsOriginal)!;
+    final models = parseCfwEqModels(
+      jsonDecode(File('assets/data/cfw_eq_models.json').readAsStringSync())
+          as Map<String, dynamic>,
+    );
+    final full = <Override>[
+      connectionStateProvider.overrideWith((_) => true),
+      cfwInfoProvider.overrideWith((_) => cfw),
+      cfwEqModelsProvider.overrideWith((_) => models),
+      globalEqProvider.overrideWith(
+        (_) => const CfwGlobalEq(
+          isOn: true,
+          model: 0,
+          slots: [4, 0, 0, 0, 0, 50, 7, 100],
+        ),
+      ),
+    ];
+    const screen = Size(1180, 820);
+
+    // The prototype's faces, so the fit is measured with the real metrics
+    // instead of the wide test font.
+    setUpAll(() async {
+      for (final (family, file) in const [
+        ('Inter', 'Inter'),
+        ('Space Grotesk', 'SpaceGrotesk'),
+        ('JetBrains Mono', 'JetBrainsMono'),
+      ]) {
+        await (FontLoader(
+          family,
+        )..addFont(rootBundle.load('assets/fonts/$file.ttf'))).load();
+      }
+    });
+    setUp(() => appLang = Lang.pt);
+    tearDown(() => appLang = Lang.en);
+
+    // Typical, and the tallest state: the Custom MIDI map (three more rows)
+    // with DualFS (two targets), as the prototype draws it.
+    for (final (state, info, expFsType) in [
+      ('', cfw, 0),
+      (
+        ' (Custom map, DualFS)',
+        cfw.copyWithSetting(CfwInfo.midiMapKey, CfwInfo.customMap),
+        2,
+      ),
+    ]) {
+      testWidgets(
+        'all nine sections fit in three columns at 1180x820 without scrolling'
+        '$state',
+        (tester) async {
+          await openSettings(
+            tester,
+            size: screen,
+            expFsType: expFsType,
+            extra: [
+              ...full.skip(2),
+              connectionStateProvider.overrideWith((_) => true),
+              cfwInfoProvider.overrideWith((_) => info),
+            ],
+          );
+
+          expectNoOverflow(tester);
+          for (final s in scrolls(tester)) {
+            expect(s.maxScrollExtent, 0);
+          }
+
+          const titles = [
+            'NÍVEIS',
+            'EQ GLOBAL',
+            'TELA',
+            'FOOTSWITCHES',
+            'MIDI',
+            'ENERGIA',
+            'ORDEM DOS PRESETS',
+            'PEDALEIRA INTEIRA',
+            'REDEFINIR',
+          ];
+          final lefts = <double>{};
+
+          for (final title in titles) {
+            final rect = tester.getRect(inDialog(find.text(title)));
+
+            expectWithin(rect, Offset.zero & screen, title);
+            lefts.add(rect.left.roundToDouble());
+          }
+          expect(lefts, hasLength(3));
+          expectWithin(
+            tester.getRect(inDialog(find.text('Fechar'))),
+            Offset.zero & screen,
+            'Fechar',
+          );
+          // Dense knobs keep the regular layout's input behaviour.
+          expect(
+            SonicMetrics.of(
+              tester.element(inDialog(find.byType(KnobControl)).first),
+            ).isCompact,
+            isFalse,
+          );
+        },
+      );
+    }
+
+    testWidgets('selects open their options', (tester) async {
+      await openSettings(tester, size: screen, extra: full);
+
+      await tester.tap(inDialog(find.text('Todos os canais')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Canal 2'), findsOneWidget);
+
+      await tester.tap(find.text('Canal 2'));
+      await tester.pumpAndSettle();
+      await tester.tap(inDialog(find.textContaining('Auto —')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Smart Box'), findsOneWidget);
+      await tester.pump(const Duration(seconds: 1));
+    });
+
+    testWidgets('Fazer backup agora is the primary button', (tester) async {
+      await openSettings(tester, size: screen, extra: full);
+
+      final backup = tester.widget<SonicButton>(
+        inDialog(find.widgetWithText(SonicButton, 'Fazer backup agora')),
+      );
+      final restore = tester.widget<SonicButton>(
+        inDialog(find.widgetWithText(SonicButton, 'Restaurar…')),
+      );
+
+      expect(backup.isAccent, isTrue);
+      expect(restore.isAccent, isFalse);
+    });
+  });
 
   for (final (size, eco) in const [
     (Size(852, 393), 1), // compact: the whole row is the switch
@@ -664,7 +800,7 @@ void main() {
         'Mover preset',
         'PEDALEIRA INTEIRA',
         'Fazer backup agora',
-        'Modelo do aparelho',
+        'Restaurar de um arquivo',
         'Fechar',
       ]) {
         expect(inDialog(find.text(text)), findsOneWidget, reason: text);

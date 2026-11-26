@@ -24,7 +24,6 @@ abstract class SettingsText {
   String get input;
   String get mode;
   String get directMonitor;
-  String get type;
   String get target;
   String get func1;
   String get func2;
@@ -67,7 +66,6 @@ abstract class SettingsText {
   // Device model.
   String get deviceModel;
   String get detecting;
-  String get manual;
 
   // Preset order.
   String get move;
@@ -76,6 +74,11 @@ abstract class SettingsText {
   String get orderRefused;
   String get orderHint;
   String get movePreset;
+
+  // Whole-pedal backup rows.
+  String get backupRow;
+  String get restoreRow;
+  String get usbRecommended;
 }
 
 class _En extends SettingsText {
@@ -107,8 +110,6 @@ class _En extends SettingsText {
   String get mode => 'Mode';
   @override
   String get directMonitor => 'Direct Monitor';
-  @override
-  String get type => 'Type';
   @override
   String get target => 'Target';
   @override
@@ -184,8 +185,6 @@ class _En extends SettingsText {
   @override
   String get detecting => 'detecting…';
   @override
-  String get manual => 'Manual';
-  @override
   String get move => 'Move';
   @override
   String get toPosition => 'To position';
@@ -194,11 +193,15 @@ class _En extends SettingsText {
   @override
   String get orderRefused => 'The pedal did not take the new order';
   @override
-  String get orderHint =>
-      'Presets in between shift by one; MIDI and footswitch '
-      'numbers follow the new order.';
+  String get orderHint => 'MIDI and footswitches follow the new order.';
   @override
   String get movePreset => 'Move preset';
+  @override
+  String get backupRow => 'Backup';
+  @override
+  String get restoreRow => 'Restore from a file';
+  @override
+  String get usbRecommended => 'USB recommended (Bluetooth is slow).';
 }
 
 class _Pt extends SettingsText {
@@ -230,8 +233,6 @@ class _Pt extends SettingsText {
   String get mode => 'Modo';
   @override
   String get directMonitor => 'Monitor direto';
-  @override
-  String get type => 'Tipo';
   @override
   String get target => 'Destino';
   @override
@@ -307,8 +308,6 @@ class _Pt extends SettingsText {
   @override
   String get detecting => 'detectando…';
   @override
-  String get manual => 'Manual';
-  @override
   String get move => 'Mover';
   @override
   String get toPosition => 'Para a posição';
@@ -317,9 +316,13 @@ class _Pt extends SettingsText {
   @override
   String get orderRefused => 'A pedaleira não aceitou a nova ordem';
   @override
-  String get orderHint =>
-      'Os presets no meio andam uma posição; os números de MIDI e '
-      'footswitch seguem a nova ordem.';
+  String get orderHint => 'MIDI e footswitches seguem a nova ordem.';
   @override
   String get movePreset => 'Mover preset';
+  @override
+  String get backupRow => 'Backup';
+  @override
+  String get restoreRow => 'Restaurar de um arquivo';
+  @override
+  String get usbRecommended => 'USB recomendado (o Bluetooth é lento).';
 }
