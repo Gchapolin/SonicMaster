@@ -717,6 +717,12 @@ const double _menuMaxHeight = 300;
 /// border, top and bottom.
 const double _menuChrome = 14;
 
+/// The menu's gap to its trigger and its plate chrome, for the placement tests.
+@visibleForTesting
+const double dropdownMenuGap = _menuGap;
+@visibleForTesting
+const double dropdownMenuChrome = _menuChrome;
+
 /// Where a [SonicDropdown] menu opens: above or below its trigger, how tall its
 /// list may grow, and how far it shifts sideways to stay on screen.
 typedef DropdownPlacement = ({bool isAbove, double maxHeight, double dx});

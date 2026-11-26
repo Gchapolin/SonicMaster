@@ -1,9 +1,12 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sonicmaster/state/edit_providers.dart';
 import 'package:sonicmaster/state/layout_providers.dart';
+import 'package:sonicmaster/theme/app_text.dart';
 import 'package:sonicmaster/ui/sonic_controls.dart';
 
 import '../support/page_harness.dart';
@@ -143,7 +146,7 @@ void main() {
       tester,
     ) async {
       const size = Size(852, 393);
-      final context = await pumpSonicHost(tester, size: size, keyboard: 180);
+      final context = await pumpSonicHost(tester, size: size);
 
       unawaited(
         showSonicDialog<void>(
@@ -160,6 +163,9 @@ void main() {
           ),
         ),
       );
+      await tester.pumpAndSettle();
+
+      await setKeyboard(tester, 180);
       await tester.pumpAndSettle();
 
       final dropdown = find.byType(SonicDropdown<int>);
@@ -182,23 +188,45 @@ void main() {
       expect(trigger, isNot(before)); // the dialog re-centred
       expect(menuRow, findsOneWidget); // still open
 
+      // The list's natural height, as _listHeight works it out: one row of a
+      // menu-text line plus 20 px per item.
+      final painter = TextPainter(
+        text: const TextSpan(text: 'Ag', style: AppText.menuItem),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      final contentHeight = 12 * (painter.height + 20);
+
+      painter.dispose();
+
       final expected = placeDropdownMenu(
         trigger: trigger,
         screen: size,
         bottomInset: 0,
         menuWidth: 120,
-        contentHeight: 12 * 40,
+        contentHeight: contentHeight,
       );
+      final height =
+          math.min(expected.maxHeight, contentHeight) + dropdownMenuChrome;
+      final left = trigger.left + expected.dx;
       final rect = menu();
 
       expect(
+        rect,
         expected.isAbove
-            ? (trigger.top - rect.bottom - 6).abs()
-            : (rect.top - trigger.bottom - 6).abs(),
-        lessThan(0.01),
-        reason: 'menu $rect is on the wrong side of trigger $trigger',
+            ? Rect.fromLTWH(
+                left,
+                trigger.top - dropdownMenuGap - height,
+                120,
+                height,
+              )
+            : Rect.fromLTWH(
+                left,
+                trigger.bottom + dropdownMenuGap,
+                120,
+                height,
+              ),
       );
-      expect(rect.height, lessThanOrEqualTo(expected.maxHeight + 14 + 0.01));
+      expectWithin(rect, Offset.zero & size, 'the menu');
     });
 
     // A phone turned to portrait and back while the menu is open: the menu
