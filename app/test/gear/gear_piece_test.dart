@@ -127,10 +127,13 @@ void main() {
             .byWidgetPredicate(
               (w) => w is CustomPaint && w.painter is GearKnobPainter,
             )
-            .first,
+            .at(1),
         const Offset(0, -60),
       );
+      // The 2nd knob (start value 40) went up; no other index is reported.
       expect(got, isNotEmpty);
+      expect(got.every((e) => e.$1 == 1), true);
+      expect(got.last.$2, greaterThan(40));
       await tester.tap(find.byKey(Key(sw)));
       expect(taps, 1);
       final inner = tester.widget<Widget>(
@@ -167,7 +170,11 @@ void main() {
       <double?>[10],
       <double?>[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
     ]) {
-      for (final (m, k) in _models) {
+      for (final (m, k) in [
+        ..._models,
+        ('No Such Pedal', GearKind.pedal),
+        ('No Such Amp', GearKind.amp),
+      ]) {
         await tester.pumpWidget(
           _host(
             GearPiece(
