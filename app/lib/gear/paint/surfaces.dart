@@ -38,11 +38,11 @@ void paintHatch(
   double lineW,
   double period,
 ) {
+  if (period <= 0 || !period.isFinite) return;
   canvas.save();
   canvas.clipRect(r);
   canvas.translate(r.center.dx, r.center.dy);
   canvas.rotate(cssDeg * math.pi / 180);
-  if (period <= 0 || !period.isFinite) return;
   final half = r.longestSide;
   final p = Paint()
     ..color = color

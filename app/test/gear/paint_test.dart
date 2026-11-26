@@ -39,8 +39,14 @@ void main() {
   test('degenerate input paints without hanging or throwing', () {
     final c = Canvas(ui.PictureRecorder());
     const r = Rect.fromLTWH(0, 0, 40, 40);
+    final saves = c.getSaveCount();
     paintHatch(c, r, 0, const Color(0xFF000000), 1, 0);
     paintHatch(c, r, 0, const Color(0xFF000000), 1, -3);
+    expect(
+      c.getSaveCount(),
+      saves,
+      reason: 'early return must not leak a save',
+    );
     paintWear(c, r, double.nan);
     GearKnobPainter(
       style: KnobStyle.chickenCream,
@@ -152,6 +158,12 @@ void main() {
                         40,
                         (c, s) =>
                             paintJewel(c, s.center(Offset.zero), 26, true),
+                      ),
+                      _box(
+                        40,
+                        40,
+                        (c, s) =>
+                            paintJewel(c, s.center(Offset.zero), 26, false),
                       ),
                       _box(
                         40,
