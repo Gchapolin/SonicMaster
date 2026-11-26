@@ -38,6 +38,7 @@ void paintHatch(
   double lineW,
   double period,
 ) {
+  if (period <= 0 || !period.isFinite) return;
   canvas.save();
   canvas.clipRect(r);
   canvas.translate(r.center.dx, r.center.dy);
@@ -97,6 +98,7 @@ void paintEnamel(Canvas canvas, Rect r, Color color, {double radius = 6}) {
   );
   // Edges: inset light top / left, inset shade bottom / right.
   _insetEdge(canvas, rr, const Offset(0, 2), 1, const Color(0x61FFFFFF));
+  _insetEdge(canvas, rr, const Offset(0, 4), 6, const Color(0x1AFFFFFF));
   _insetEdge(canvas, rr, const Offset(0, -4), 6, const Color(0x61000000));
   _insetEdge(canvas, rr, const Offset(4, 0), 6, const Color(0x14FFFFFF));
   _insetEdge(canvas, rr, const Offset(-4, 0), 6, const Color(0x33000000));
@@ -141,6 +143,7 @@ void _ellipseGlow(Canvas canvas, Offset c, double rx, double ry, Color color) {
 /// Port of `wearLayers`: grey veil, rubbed corners, fine scratches. [amount]
 /// 0..1 (0 = mint). Clipped to [r]; clip to a rounded body before calling.
 void paintWear(Canvas canvas, Rect r, double amount) {
+  if (amount.isNaN) return;
   final w = amount.clamp(0.0, 1.0);
   if (w == 0) return;
   Color g(double a) => Color.fromRGBO(205, 205, 200, a * w);
@@ -211,12 +214,14 @@ void _dots(
 /// Port of `cloth()` + `clothEdge`: grille cloth in [color] with a woven
 /// texture, a vignette (cloth stretched over the baffle) and a recessed edge.
 /// [lightGrille] for pale cloths (cream, silver, tan): darker threads and a
-/// softer vignette so the weave still reads.
+/// softer vignette so the weave still reads. [piping]: the cream cord around
+/// the cloth (`clothEdge(true)`).
 void paintGrille(
   Canvas canvas,
   Rect r,
   Color color, {
   bool lightGrille = false,
+  bool piping = false,
 }) {
   canvas.save();
   canvas.clipRect(r);
@@ -257,13 +262,32 @@ void paintGrille(
   );
   canvas.restore();
   final rr = RRect.fromRectAndRadius(r, Radius.zero);
-  canvas.drawRect(
-    r.deflate(1),
-    Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2
-      ..color = const Color(0x99000000),
-  );
-  _insetEdge(canvas, rr, const Offset(0, 7), 10, const Color(0x61000000));
+  if (piping) {
+    // clothEdge(true), painted bottom layer first.
+    _insetEdge(canvas, rr, const Offset(0, 7), 10, const Color(0x59000000));
+    _ring(canvas, r, 4, const Color(0x80000000));
+    _ring(canvas, r, 3, const Color(0x99FFFFFF), dy: 1);
+    _ring(canvas, r, 3, const Color(0xFFECE5CF));
+    _ring(canvas, r, 1, const Color(0x99000000));
+  } else {
+    canvas.drawRect(
+      r.deflate(1),
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2
+        ..color = const Color(0x99000000),
+    );
+    _insetEdge(canvas, rr, const Offset(0, 7), 10, const Color(0x61000000));
+  }
   canvas.restore();
 }
+
+/// CSS `inset 0 dy 0 <inset>px color`: a frame [inset] wide inside [r].
+void _ring(Canvas canvas, Rect r, double inset, Color color, {double dy = 0}) =>
+    canvas.drawPath(
+      Path()
+        ..fillType = PathFillType.evenOdd
+        ..addRect(r)
+        ..addRect(r.deflate(inset).shift(Offset(0, dy))),
+      Paint()..color = color,
+    );

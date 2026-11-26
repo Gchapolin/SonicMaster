@@ -3,6 +3,7 @@
 // pointer line (or a chicken-head pointer) rotated by value.
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/rendering.dart';
 
 import '../gear_specs.dart';
@@ -131,6 +132,13 @@ const _looks = <KnobStyle, _Look>{
   ),
 };
 
+/// CSS blur radii of the cap shadows (`0 4px 8px`, `0 2px 2px`) and the width
+/// of the base ring (`0 0 0 1px`); `_disc` turns blur into sigma.
+@visibleForTesting
+const knobShadowBlur = (long: 8.0, short: 2.0);
+@visibleForTesting
+const knobBaseRing = 1.0;
+
 bool _isChicken(KnobStyle s) =>
     s == KnobStyle.chickenBlack ||
     s == KnobStyle.chickenCream ||
@@ -141,7 +149,7 @@ bool _isChicken(KnobStyle s) =>
 /// the cap like the real thing (and like the prototype).
 class GearKnobPainter extends CustomPainter {
   GearKnobPainter({required this.style, required double value})
-    : value = value.clamp(0.0, 100.0).toDouble();
+    : value = value.isNaN ? 0.0 : value.clamp(0.0, 100.0).toDouble();
 
   final KnobStyle style;
   final double value;
@@ -150,14 +158,31 @@ class GearKnobPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final look = _looks[style]!;
     final d = size.shortestSide;
+    if (d <= 0) return;
     final c = size.center(Offset.zero);
     final r = d / 2;
     final cap = Rect.fromCircle(center: c, radius: r);
 
     // Soft long shadow, short firm one, dark base ring.
-    _disc(canvas, c.translate(0, 4), r, 4, const Color(0x40000000));
-    _disc(canvas, c.translate(0, 2), r, 1, const Color(0x73000000));
-    canvas.drawCircle(c, r + 0.5, Paint()..color = const Color(0x73000000));
+    _disc(
+      canvas,
+      c.translate(0, 4),
+      r,
+      knobShadowBlur.long,
+      const Color(0x40000000),
+    );
+    _disc(
+      canvas,
+      c.translate(0, 2),
+      r,
+      knobShadowBlur.short,
+      const Color(0x73000000),
+    );
+    canvas.drawCircle(
+      c,
+      r + knobBaseRing,
+      Paint()..color = const Color(0x73000000),
+    );
 
     canvas.drawCircle(c, r, cssRadial(cap, look.at, look.colors, look.stops));
 

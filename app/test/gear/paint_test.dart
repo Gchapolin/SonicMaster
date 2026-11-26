@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sonicmaster/gear/gear_specs.dart';
@@ -21,6 +23,37 @@ Widget _box(double w, double h, void Function(Canvas, Size) fn) => SizedBox(
 );
 
 void main() {
+  // BUG-2/3/6: values from the prototype's box-shadows.
+  test('knob shadows and LED glow use the prototype blur', () {
+    expect(knobShadowBlur.long, 8);
+    expect(knobShadowBlur.short, 2);
+    expect(knobBaseRing, 1);
+    expect(ledGlowSigma, 2);
+  });
+
+  // BUG-8: degenerate input must not crash or hang.
+  test('NaN value is treated as 0', () {
+    expect(GearKnobPainter(style: KnobStyle.boss, value: double.nan).value, 0);
+  });
+
+  test('degenerate input paints without hanging or throwing', () {
+    final c = Canvas(ui.PictureRecorder());
+    const r = Rect.fromLTWH(0, 0, 40, 40);
+    final saves = c.getSaveCount();
+    paintHatch(c, r, 0, const Color(0xFF000000), 1, 0);
+    paintHatch(c, r, 0, const Color(0xFF000000), 1, -3);
+    expect(
+      c.getSaveCount(),
+      saves,
+      reason: 'early return must not leak a save',
+    );
+    paintWear(c, r, double.nan);
+    GearKnobPainter(
+      style: KnobStyle.chickenCream,
+      value: 50,
+    ).paint(c, Size.zero);
+  });
+
   test('value is clamped to 0..100', () {
     expect(GearKnobPainter(style: KnobStyle.boss, value: 150).value, 100);
     expect(GearKnobPainter(style: KnobStyle.boss, value: -20).value, 0);
@@ -129,6 +162,12 @@ void main() {
                       _box(
                         40,
                         40,
+                        (c, s) =>
+                            paintJewel(c, s.center(Offset.zero), 26, false),
+                      ),
+                      _box(
+                        40,
+                        40,
                         (c, s) => paintScrew(c, s.center(Offset.zero), 14),
                       ),
                       _box(
@@ -186,7 +225,7 @@ void main() {
                       ),
                       const SizedBox(width: 12),
                       _box(
-                        160,
+                        100,
                         100,
                         (c, s) => paintGrille(
                           c,
@@ -196,13 +235,24 @@ void main() {
                       ),
                       const SizedBox(width: 12),
                       _box(
-                        160,
+                        100,
                         100,
                         (c, s) => paintGrille(
                           c,
                           Offset.zero & s,
                           const Color(0xFFE3D9C2),
                           lightGrille: true,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      _box(
+                        100,
+                        100,
+                        (c, s) => paintGrille(
+                          c,
+                          Offset.zero & s,
+                          const Color(0xFF2A2A2A),
+                          piping: true,
                         ),
                       ),
                     ],
