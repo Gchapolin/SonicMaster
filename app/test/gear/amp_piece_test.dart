@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sonicmaster/gear/amp_piece.dart';
 import 'package:sonicmaster/gear/gear_specs.dart';
+import 'package:sonicmaster/gear/paint/knob_painter.dart';
 import 'package:sonicmaster/model/amp_gain.dart';
 
 // The amps in amp_gain.dart order (clean, crunch, rock/lead, high gain, bass).
@@ -142,19 +143,48 @@ void main() {
     expect(taps, 1);
   });
 
-  testWidgets('the jewel target is about 44pt and ignores the drawing', (
+  testWidgets(
+    'the head jewel target is 37.5pt wide by the panel height, drawing untouched',
+    (tester) async {
+      var taps = 0;
+      await tester.pumpWidget(_host(_amp('Brit 45', onSwitch: () => taps++)));
+      final hit = tester.getRect(find.byKey(const Key('jewel-hit')));
+      expect(hit.width, greaterThanOrEqualTo(37));
+      expect(hit.height, greaterThanOrEqualTo(40));
+      final c = tester.getCenter(find.byKey(const Key('jewel')));
+      // 16px left and 17px above the 13px glass: outside it, inside the target.
+      await tester.tapAt(c + const Offset(-16, -17));
+      expect(taps, 1);
+      expect(
+        tester.getSize(find.byKey(const Key('jewel'))),
+        const Size(13, 13),
+      );
+    },
+  );
+
+  testWidgets('on a combo the last knob is not covered by the jewel target', (
     tester,
   ) async {
     var taps = 0;
-    await tester.pumpWidget(_host(_amp('Brit 45', onSwitch: () => taps++)));
-    final hit = tester.getRect(find.byKey(const Key('jewel-hit')));
-    expect(hit.width, greaterThanOrEqualTo(37));
-    expect(hit.height, greaterThanOrEqualTo(40));
-    final c = tester.getCenter(find.byKey(const Key('jewel')));
-    // 16px left and 17px above the 13px glass: outside it, inside the target.
-    await tester.tapAt(c + const Offset(-16, -17));
+    final got = <(int, double)>[];
+    await tester.pumpWidget(
+      _host(_amp('Superb CL', onSwitch: () => taps++, onKnob: got.add)),
+    );
+    final n = ampSpecs['Superb CL']!.knobNames.length;
+    final knob = find.byWidgetPredicate(
+      (w) => w is CustomPaint && w.painter is GearKnobPainter,
+    );
+    final r = tester.getRect(knob.at(n - 1));
+    final edge = Offset(r.right - 1, r.center.dy);
+    await tester.tapAt(edge);
+    expect(taps, 0);
+    await tester.dragFrom(edge, const Offset(0, -30));
+    expect(taps, 0);
+    expect(got, isNotEmpty);
+    expect(got.every((e) => e.$1 == n - 1), true);
+    // The jewel itself still switches.
+    await tester.tap(find.byKey(const Key('jewel')));
     expect(taps, 1);
-    expect(tester.getSize(find.byKey(const Key('jewel'))), const Size(13, 13));
   });
 
   testWidgets('head toggles are centred on the panel row', (tester) async {

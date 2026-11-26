@@ -262,6 +262,21 @@ class AmpPiece extends StatelessWidget {
       painter: _PanelPainter(spec.panel, radius, wear),
       child: Stack(
         children: [
+          // Transparent switch target around the jewel (centre 15.5px from the
+          // panel's right edge), as tall as the panel. Heads reach 37.5px in
+          // from the edge (over the toggles); combos stop at 26px, short of
+          // the last knob. It sits below the Row, so a knob always wins.
+          Positioned(
+            top: 0,
+            bottom: 0,
+            right: 0,
+            width: toggles ? 37.5 : 26,
+            child: GestureDetector(
+              key: const Key('jewel-hit'),
+              behavior: HitTestBehavior.opaque,
+              onTap: onSwitch,
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.fromLTRB(9, 6, 9, 5),
             child: Row(
@@ -273,29 +288,18 @@ class AmpPiece extends StatelessWidget {
                 for (var i = 0; i < spec.knobNames.length; i++)
                   Flexible(child: _knob(i)),
                 if (toggles) ...[toggle, toggle],
-                KeyedSubtree(
-                  key: const Key('jewel'),
-                  child: PaintBox(
-                    13,
-                    13,
-                    (c, s) => paintJewel(c, s.center(Offset.zero), 13, lit),
+                // IgnorePointer: the glass passes taps to the target below.
+                IgnorePointer(
+                  child: KeyedSubtree(
+                    key: const Key('jewel'),
+                    child: PaintBox(
+                      13,
+                      13,
+                      (c, s) => paintJewel(c, s.center(Offset.zero), 13, lit),
+                    ),
                   ),
                 ),
               ],
-            ),
-          ),
-          // Transparent switch target over the jewel (centre 15.5px from the
-          // panel's right edge): reaches 22px each way, as far left and as
-          // tall as the panel allows, drawing and layout untouched.
-          Positioned(
-            top: 0,
-            bottom: 0,
-            right: 0,
-            width: 37.5,
-            child: GestureDetector(
-              key: const Key('jewel-hit'),
-              behavior: HitTestBehavior.opaque,
-              onTap: onSwitch,
             ),
           ),
         ],
