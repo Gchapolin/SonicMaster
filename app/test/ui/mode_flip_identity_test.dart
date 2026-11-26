@@ -126,7 +126,7 @@ void main() {
 
     expect(before['ChainView'], hasLength(1));
     expect(before['ModuleCard'], hasLength(9));
-    expect(cardWidths(), everyElement(96));
+    expect(cardWidths(), regularUnitWidths);
 
     await flipTo(tester, compact);
 
@@ -139,6 +139,6 @@ void main() {
 
     expectNoOverflow(tester);
     expect(rebuiltKinds(before, chainElements()), isEmpty);
-    expect(cardWidths(), everyElement(96));
+    expect(cardWidths(), regularUnitWidths);
   });
 }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart'; // Icons glyph font only
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../gear/gear_lookup.dart';
+import '../gear/gear_piece.dart';
 import '../model/chain_order.dart';
 import '../model/footswitch_assignment.dart';
 import '../model/footswitch_state.dart';
@@ -63,15 +65,17 @@ double chainCardWidth(
   );
 }
 
-/// One effect card in the signal chain: SVG icon, module name, effect name,
-/// and a [LedButton] status dot at the bottom-center for on/off. Pure
-/// presentation.
+/// One unit of the signal chain. Regular: the realistic mini piece of
+/// [model] in a fixed box (an empty dashed box without a model), the module
+/// tag under it, and the [LedButton] status dot. Compact: SVG icon, module
+/// name, effect name and the status dot. Pure presentation.
 class ModuleCard extends StatelessWidget {
   const ModuleCard({
     super.key,
     required this.iconId,
     required this.name,
     this.effect,
+    this.model,
     required this.isOn,
     required this.isSelected,
     required this.isEnabled,
@@ -85,6 +89,10 @@ class ModuleCard extends StatelessWidget {
   final int iconId;
   final String name;
   final String? effect;
+
+  /// The factory model name drawn as the regular unit's piece; null (no preset,
+  /// unknown effect) shows an empty slot.
+  final String? model;
   final bool isOn;
   final bool isSelected;
   final bool isEnabled;
@@ -102,6 +110,86 @@ class ModuleCard extends StatelessWidget {
   final double? width;
   final VoidCallback? onSelect;
   final VoidCallback? onToggle;
+
+  // The LED row. The gap above the LED and the card's bottom padding are the
+  // row's padding (identical geometry) and, in compact, part of the LED's tap
+  // target: a ~36x12 LED is too small for a finger. Regular leaves them inert,
+  // so taps there select the card as before; so does a disabled card.
+  Widget _ledRow(SonicMetrics metrics) => SonicHitArea(
+    padding: EdgeInsets.only(
+      top: metrics.chainLedGap,
+      bottom: metrics.chainCardPadding.bottom,
+    ),
+    onTap: metrics.isCompact && isEnabled ? onToggle : null,
+    // A small centered 3:1 slot for the status dot — NOT stretched across the
+    // card. (LedButton centers its dot, so it would otherwise expand to the
+    // full card width.)
+    child: Center(
+      child: SizedBox(
+        width: metrics.chainLedSize.width,
+        child: LedButton(
+          isOn: isOn,
+          label: '',
+          height: metrics.chainLedSize.height,
+          onTap: isEnabled ? onToggle : null,
+        ),
+      ),
+    ),
+  );
+
+  /// Regular: the mini piece in its fixed box (prototype N_Principal
+  /// pedalboard), the module tag, the LED. Selected = card fill with a primary
+  /// outline; an off module draws its piece unlit.
+  Widget _regularUnit(SonicMetrics metrics) {
+    final kind = gearKindForModule(iconId);
+    final fit = switch (kind) {
+      GearKind.amp => const Size(118, 76),
+      GearKind.cab => const Size(88, 92),
+      GearKind.pedal => const Size(66, 114),
+    };
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(6, 6, 6, 0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        color: isSelected ? Palette.surfaceContainerHigh : null,
+        border: Border.all(
+          width: 1.5,
+          color: isSelected
+              ? Palette.primary
+              : Palette.primary.withValues(alpha: 0),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: .min,
+        children: [
+          SizedBox(
+            width: fit.width,
+            height: 114,
+            child: Center(
+              child: model == null
+                  ? CustomPaint(
+                      key: const ValueKey('empty-slot'),
+                      size: fit,
+                      painter: _DashPainter(radius: 8),
+                    )
+                  : GearPiece(model: model!, kind: kind, fit: fit, lit: isOn),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            name,
+            style: AppText.chainLabel.copyWith(
+              fontSize: 11,
+              letterSpacing: 1,
+              color: isSelected ? Palette.primary : Palette.faint,
+            ),
+          ),
+          _ledRow(metrics),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -150,55 +238,32 @@ class ModuleCard extends StatelessWidget {
       child: GestureDetector(
         behavior: .opaque,
         onTap: onSelect,
-        child: Container(
-          width: width ?? metrics.chainCardMaxWidth,
-          // The bottom padding lives in the LED row below (its hit area).
-          padding: metrics.chainCardPadding.copyWith(bottom: 0),
-          // A flat Material card: selected is filled with secondaryContainer.
-          // The border keeps today's widths (2 selected, 1 otherwise) so the
-          // content does not move, drawn in the fill color so it shows no line.
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            color: fill,
-            border: Border.all(width: isSelected ? 2 : 1, color: fill),
-          ),
-          child: Column(
-            mainAxisSize: .min,
-            children: [
-              // Drag-handle grip: an 8×2 array of tactile dots, top-centre.
-              // Hidden (but space kept) on the fixed amp-block cards.
-              DragGrip(isVisible: draggable),
-              SizedBox(height: metrics.chainGripGap),
-              display,
-              // The LED row. The gap above the LED and the card's bottom
-              // padding are the row's padding (identical geometry) and, in
-              // compact, part of the LED's tap target: a ~36x12 LED is too
-              // small for a finger. Regular leaves them inert, so taps there
-              // select the card as before; so does a disabled card.
-              SonicHitArea(
-                padding: EdgeInsets.only(
-                  top: metrics.chainLedGap,
-                  bottom: metrics.chainCardPadding.bottom,
+        child: !metrics.isCompact
+            ? _regularUnit(metrics)
+            : Container(
+                width: width ?? metrics.chainCardMaxWidth,
+                // The bottom padding lives in the LED row below (its hit area).
+                padding: metrics.chainCardPadding.copyWith(bottom: 0),
+                // A flat Material card: selected is filled with secondaryContainer.
+                // The border keeps today's widths (2 selected, 1 otherwise) so the
+                // content does not move, drawn in the fill color so it shows no line.
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  color: fill,
+                  border: Border.all(width: isSelected ? 2 : 1, color: fill),
                 ),
-                onTap: metrics.isCompact && isEnabled ? onToggle : null,
-                // A small centered 3:1 slot for the status dot — NOT stretched
-                // across the card. (LedButton centers its dot, so it would
-                // otherwise expand to the full card width.)
-                child: Center(
-                  child: SizedBox(
-                    width: metrics.chainLedSize.width,
-                    child: LedButton(
-                      isOn: isOn,
-                      label: '',
-                      height: metrics.chainLedSize.height,
-                      onTap: isEnabled ? onToggle : null,
-                    ),
-                  ),
+                child: Column(
+                  mainAxisSize: .min,
+                  children: [
+                    // Drag-handle grip: an 8×2 array of tactile dots, top-centre.
+                    // Hidden (but space kept) on the fixed amp-block cards.
+                    DragGrip(isVisible: draggable),
+                    SizedBox(height: metrics.chainGripGap),
+                    display,
+                    _ledRow(metrics),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
       ),
     );
 
@@ -281,7 +346,7 @@ class AmpBlockBorder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => CustomPaint(
-    painter: _DashPainter(),
+    painter: _DashPainter(radius: _ampBlockRadius),
     child: Padding(
       padding: EdgeInsets.all(SonicMetrics.of(context).ampBlockPadding),
       child: child,
@@ -290,11 +355,15 @@ class AmpBlockBorder extends StatelessWidget {
 }
 
 class _DashPainter extends CustomPainter {
+  _DashPainter({required this.radius});
+
+  final double radius;
+
   @override
   void paint(Canvas canvas, Size size) {
     final r = RRect.fromRectAndRadius(
       Offset.zero & size,
-      const Radius.circular(_ampBlockRadius),
+      Radius.circular(radius),
     );
 
     final paint = Paint()
@@ -315,7 +384,7 @@ class _DashPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_DashPainter oldDelegate) => false;
+  bool shouldRepaint(_DashPainter oldDelegate) => oldDelegate.radius != radius;
 }
 
 /// Assembles the module cards into a reorderable horizontal signal chain,
@@ -355,6 +424,15 @@ class ChainView extends ConsumerWidget {
       return effectDisplayName(fx, data.effects, userNames);
     }
 
+    // The factory model name: the piece tables are keyed by it (user names
+    // would miss). Unknown effect or no preset → null → an empty slot.
+    String? modelName(String m) {
+      final id = editId(m);
+      final fx = id == null ? null : selected[id];
+
+      return fx == null ? null : data?.effects.byId(fx)?.name;
+    }
+
     ModuleCard card(String m, double width, {bool draggable = true}) {
       final isOn = state.moduleStates[m] ?? false;
       final sid = slotId(m);
@@ -370,6 +448,7 @@ class ChainView extends ConsumerWidget {
         iconId: data?.modules.idOf(m) ?? 0,
         name: m,
         effect: effectName(m),
+        model: modelName(m),
         isOn: isOn,
         isSelected: editId(m) == selectedModule,
         isEnabled: !isLoading && sid != null,

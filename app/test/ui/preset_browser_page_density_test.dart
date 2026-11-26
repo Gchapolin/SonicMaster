@@ -97,7 +97,7 @@ void main() {
           tester.getSize(inEditor(find.byKey(const Key('knob'))).first),
           const Size.square(120),
         );
-        expect(cardWidths(), everyElement(96));
+        expect(cardWidths(), regularUnitWidths);
       });
 
       testWidgets('${label(size)}: an empty editor keeps the 212 minimum', (

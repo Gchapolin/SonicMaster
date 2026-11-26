@@ -38,6 +38,20 @@ const loadedPresetState = DecodedPresetState(
   chainOrder: ['NR', 'FX1', 'DRV', 'AMP', 'IR', 'EQ', 'FX2', 'DLY', 'RVB'],
 );
 
+/// Regular unit widths of [loadedPresetState]'s chain: each piece box
+/// (pedal 66, amp 118, cab 88) plus 6-px padding and a 1.5-px border a side.
+const regularUnitWidths = [
+  81.0,
+  81.0,
+  81.0,
+  133.0,
+  103.0,
+  81.0,
+  81.0,
+  81.0,
+  81.0,
+];
+
 /// The bundled data tables, read from disk once per test file.
 final _assets = loadTestDataAssets();
 

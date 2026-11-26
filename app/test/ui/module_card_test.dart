@@ -4,10 +4,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sonicmaster/theme/app_colors.dart';
 import 'package:sonicmaster/ui/chain_view.dart';
 import 'package:sonicmaster/ui/led_button.dart';
+import 'package:sonicmaster/ui/sonic_metrics.dart';
 
+/// The compact card (icon, name, effect, LED). The regular unit draws the
+/// realistic piece instead: chain_pieces_test.dart.
 void main() {
   Widget host(Widget child) => MaterialApp(
-    home: Scaffold(body: Center(child: child)),
+    home: Scaffold(
+      body: SonicMetricsScope(
+        metrics: SonicMetrics.compact,
+        child: Center(child: child),
+      ),
+    ),
   );
 
   testWidgets('renders name + effect and fires onSelect on body tap', (

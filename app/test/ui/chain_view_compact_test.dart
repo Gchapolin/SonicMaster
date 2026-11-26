@@ -155,20 +155,52 @@ void main() {
     );
   }
 
-  testWidgets('regular 692: 96-px cards wrap as before', (tester) async {
+  // Regular units are as wide as their piece box, and still wrap.
+  testWidgets('regular 692: units sized by their piece, wrapping', (
+    tester,
+  ) async {
     await pumpChain(tester, width: 692, isCompact: false);
 
     expect(
       find.byType(ModuleCard).evaluate().map((e) => e.size!.width),
-      everyElement(96),
+      regularUnitWidths,
     );
     expect(spread(cardTops(tester)), greaterThan(100));
   });
 
+  // Regular: 1.5-px border, 6-px top padding, the 114-px piece box, an 8-px
+  // gap, the tag, then the LED row (gap, LED, bottom padding).
+  testWidgets('regular: unit internals follow the metrics', (tester) async {
+    await pumpChain(tester, width: 1200, isCompact: false);
+
+    const metrics = SonicMetrics.regular;
+    final fx1 = find.byType(ModuleCard).at(1);
+    final tag = tester.getSize(
+      find.descendant(of: fx1, matching: find.text('FX1')),
+    );
+    final height =
+        3 +
+        6 +
+        114 +
+        8 +
+        tag.height +
+        metrics.chainLedGap +
+        metrics.chainLedSize.height +
+        metrics.chainCardPadding.bottom;
+
+    expect(tester.getSize(fx1).height, closeTo(height, 0.01));
+    expect(
+      tester.getSize(
+        find.descendant(of: fx1, matching: find.byType(LedButton)),
+      ),
+      metrics.chainLedSize,
+    );
+  });
+
   // The card height is derived, never a literal: Oswald lines are 1.482 em
   // laid out on whole pixels (12-px name 18, 10-px effect 15), so the compact
-  // card is 101 and the regular one 141 (2 more when selected).
-  for (final isCompact in const [true, false]) {
+  // card is 101.
+  for (final isCompact in const [true]) {
     final metrics = isCompact ? SonicMetrics.compact : SonicMetrics.regular;
     final mode = isCompact ? 'compact' : 'regular';
 
@@ -246,31 +278,39 @@ void main() {
     );
   }
 
-  testWidgets('compact 624: dragging NR onto DLY still reorders the chain', (
-    tester,
-  ) async {
-    final container = await pumpChain(tester, width: 624);
-    final from = tester.getCenter(find.text('NR'));
-    final to = tester.getCenter(find.text('DLY'));
-    final gesture = await tester.startGesture(from);
+  for (final (isCompact, width) in const [(true, 624.0), (false, 1200.0)]) {
+    final mode = isCompact ? 'compact' : 'regular';
 
-    await gesture.moveBy(const Offset(24, 0)); // past the slop, sideways
-    await tester.pump();
-    await gesture.moveTo(to);
-    await tester.pump();
-    await gesture.up();
-    await tester.pump();
+    testWidgets('$mode ${width.toInt()}: dragging still reorders the chain', (
+      tester,
+    ) async {
+      final container = await pumpChain(
+        tester,
+        width: width,
+        isCompact: isCompact,
+      );
+      final from = tester.getCenter(find.text('NR'));
+      final to = tester.getCenter(find.text('DLY'));
+      final gesture = await tester.startGesture(from);
 
-    expect(container.read(currentPresetStateProvider)!.chainOrder, [
-      'FX1',
-      'DRV',
-      'AMP',
-      'IR',
-      'EQ',
-      'FX2',
-      'NR',
-      'DLY',
-      'RVB',
-    ]);
-  });
+      await gesture.moveBy(const Offset(24, 0)); // past the slop, sideways
+      await tester.pump();
+      await gesture.moveTo(to);
+      await tester.pump();
+      await gesture.up();
+      await tester.pump();
+
+      expect(container.read(currentPresetStateProvider)!.chainOrder, [
+        'FX1',
+        'DRV',
+        'AMP',
+        'IR',
+        'EQ',
+        'FX2',
+        'NR',
+        'DLY',
+        'RVB',
+      ]);
+    });
+  }
 }

@@ -21,6 +21,7 @@ abstract final class Palette {
   static Color get field => current.field;
   static Color get line2 => current.line2;
   static Color get ok => current.ok;
+  static Color get faint => current.faint;
 
   // Material 3 roles.
   static Color get primary => current.acc;
