@@ -27,6 +27,8 @@ import 'package:sonicmaster/ui/midi_map_dialog.dart';
 import 'package:sonicmaster/ui/sonic_controls.dart';
 import 'package:sonicmaster/ui/sonic_metrics.dart';
 
+import '../support/text_fit.dart';
+
 import '../fixtures/cfw_dumps.dart';
 import '../support/silent_transport.dart';
 import '../support/sonic_host.dart';
@@ -780,7 +782,7 @@ void main() {
         'NÍVEIS',
         'Canal MIDI',
         'Todos os canais',
-        'Mesmo preset de novo',
+        'Repetir o preset',
         'Editar mapa',
         'ORDEM DOS PRESETS',
         'Mover preset',
@@ -791,6 +793,12 @@ void main() {
       ]) {
         expect(inDialog(find.text(text)), findsOneWidget, reason: text);
       }
+    });
+
+    testWidgets('1180x820: no Portuguese label is cut', (tester) async {
+      await openSettings(tester, size: const Size(1180, 820), extra: on);
+
+      expectNoTruncatedText(tester, find.byType(GlobalSettingsDialog));
     });
 
     testWidgets('the factory reset asks in Portuguese', (tester) async {
