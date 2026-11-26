@@ -91,12 +91,6 @@ Future<String> _fetch(Uri u) async {
   });
 }
 
-Future<void> _loadFont(String family, String asset) async {
-  final loader = FontLoader(family)..addFont(rootBundle.load(asset));
-
-  await loader.load();
-}
-
 void main() {
   setUp(() => appLang = Lang.pt);
   tearDown(() => appLang = Lang.en);
@@ -104,9 +98,6 @@ void main() {
   testWidgets('community presets over the main screen, 1180x820', (
     tester,
   ) async {
-    await _loadFont('Inter', 'assets/fonts/Inter.ttf');
-    await _loadFont('Space Grotesk', 'assets/fonts/SpaceGrotesk.ttf');
-    await _loadFont('JetBrains Mono', 'assets/fonts/JetBrainsMono.ttf');
     await pumpPage(
       tester,
       size: const Size(1180, 820),

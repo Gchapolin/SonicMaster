@@ -228,6 +228,8 @@ void main() {
     expect(tester.element(find.byType(SavePresetDialog)), same(dialog));
     expect(field().widget.controller.text, 'Lead');
 
+    // With the real fonts the dialog scrolls back into place; let it land.
+    await tester.pumpAndSettle();
     await tester.tap(nameField);
     await tester.pump();
 

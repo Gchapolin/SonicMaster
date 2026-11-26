@@ -2,12 +2,11 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sonicmaster/l10n/lang.dart';
 import 'package:sonicmaster/device/device_service.dart';
+import 'package:sonicmaster/l10n/lang.dart';
 import 'package:sonicmaster/model/cfw_eq_models.dart';
 import 'package:sonicmaster/model/cfw_global_eq.dart';
 import 'package:sonicmaster/model/cfw_info.dart';
@@ -220,19 +219,6 @@ void main() {
     ];
     const screen = Size(1180, 820);
 
-    // The prototype's faces, so the fit is measured with the real metrics
-    // instead of the wide test font.
-    setUpAll(() async {
-      for (final (family, file) in const [
-        ('Inter', 'Inter'),
-        ('Space Grotesk', 'SpaceGrotesk'),
-        ('JetBrains Mono', 'JetBrainsMono'),
-      ]) {
-        await (FontLoader(
-          family,
-        )..addFont(rootBundle.load('assets/fonts/$file.ttf'))).load();
-      }
-    });
     setUp(() => appLang = Lang.pt);
     tearDown(() => appLang = Lang.en);
 

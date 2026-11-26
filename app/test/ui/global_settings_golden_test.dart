@@ -30,17 +30,6 @@ void main() {
         as Map<String, dynamic>,
   );
 
-  setUpAll(() async {
-    for (final (family, file) in const [
-      ('Inter', 'Inter'),
-      ('Space Grotesk', 'SpaceGrotesk'),
-      ('JetBrains Mono', 'JetBrainsMono'),
-    ]) {
-      await (FontLoader(
-        family,
-      )..addFont(rootBundle.load('assets/fonts/$file.ttf'))).load();
-    }
-  });
   setUp(() => appLang = Lang.pt);
   tearDown(() => appLang = Lang.en);
 

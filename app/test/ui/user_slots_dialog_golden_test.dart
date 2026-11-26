@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sonicmaster/l10n/lang.dart';
@@ -15,17 +14,6 @@ import '../fixtures/cfw_dumps.dart';
 import '../support/page_harness.dart';
 
 void main() {
-  setUpAll(() async {
-    for (final (family, file) in const [
-      ('Inter', 'Inter'),
-      ('Space Grotesk', 'SpaceGrotesk'),
-      ('JetBrains Mono', 'JetBrainsMono'),
-    ]) {
-      await (FontLoader(
-        family,
-      )..addFont(rootBundle.load('assets/fonts/$file.ttf'))).load();
-    }
-  });
   setUp(() => appLang = Lang.pt);
   tearDown(() => appLang = Lang.en);
 

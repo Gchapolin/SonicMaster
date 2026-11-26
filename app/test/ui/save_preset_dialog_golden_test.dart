@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sonicmaster/main.dart' show SonicMasterApp;
@@ -30,16 +29,6 @@ void main() {
   ];
 
   Future<void> open(WidgetTester tester) async {
-    // The dialog's prototype faces (Oswald is loaded by pumpPage).
-    for (final (family, file) in const [
-      ('Inter', 'Inter.ttf'),
-      ('JetBrains Mono', 'JetBrainsMono.ttf'),
-      ('Space Grotesk', 'SpaceGrotesk.ttf'),
-    ]) {
-      await (FontLoader(
-        family,
-      )..addFont(rootBundle.load('assets/fonts/$file'))).load();
-    }
     await pumpPage(
       tester,
       size: const Size(1180, 820),
