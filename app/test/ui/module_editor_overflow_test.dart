@@ -37,6 +37,11 @@ void main() {
   );
 
   Future<void> pumpTwoPanels(WidgetTester tester, double width) async {
+    // Tall enough for the regular editor's 440-px piece: this guard is about
+    // the width.
+    tester.view.physicalSize = const Size(1000, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
     final container = ProviderContainer(
       overrides: [
         dataAssetsProvider.overrideWith((_) => assets),

@@ -6,10 +6,23 @@ import 'package:sonicmaster/state/edit_providers.dart';
 
 import '../support/page_harness.dart';
 
-/// A band title in the open menu (knob labels can share its text: BASS).
-Finder _title(String text) => find.byWidgetPredicate(
-  (w) => w is Text && w.data == text && w.style?.fontSize == 11,
-);
+/// A band title in the open menu (knob labels can share its text: BASS; the
+/// header's band chip shares its style).
+Finder _title(String text) => find.byElementPredicate((e) {
+  final w = e.widget;
+
+  if (w is! Text || w.data != text || w.style?.fontSize != 11) return false;
+
+  var isChip = false;
+
+  e.visitAncestorElements((a) {
+    isChip = a.widget.key == const Key('amp-band');
+
+    return !isChip;
+  });
+
+  return !isChip;
+});
 
 void main() {
   tearDown(() => appLang = Lang.en);

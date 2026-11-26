@@ -3,6 +3,8 @@ import 'dart:math' as math;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sonicmaster/gear/gear_piece.dart';
+import 'package:sonicmaster/gear/paint/knob_painter.dart';
 import 'package:sonicmaster/state/edit_providers.dart';
 import 'package:sonicmaster/ui/chain_view.dart';
 import 'package:sonicmaster/ui/knob_control.dart';
@@ -79,7 +81,7 @@ void main() {
 
   group('regular keeps the pre-compact work area', () {
     for (final size in const [Size(1280, 800), Size(960, 640)]) {
-      testWidgets('${label(size)}: padding 12, gap 34, 120 dials', (
+      testWidgets('${label(size)}: padding 12, gap 34, the 660x440 piece', (
         tester,
       ) async {
         await pumpPage(tester, size: size);
@@ -93,9 +95,10 @@ void main() {
           tester.getSize(editorSurface()).width,
           tester.getSize(chain).width,
         );
+        // The knobs are on the selected module's piece, at full size.
         expect(
-          tester.getSize(inEditor(find.byKey(const Key('knob'))).first),
-          const Size.square(120),
+          tester.getRect(inEditor(find.byType(GearPiece))).size,
+          const Size(660, 440),
         );
         expect(cardWidths(), regularUnitWidths);
       });
@@ -118,7 +121,15 @@ void main() {
     await pumpPage(tester, size: const Size(1180, 820));
 
     expect(
-      tester.getRect(inEditor(find.byKey(const Key('knob'))).first).bottom,
+      tester
+          .getRect(
+            inEditor(
+              find.byWidgetPredicate(
+                (w) => w is CustomPaint && w.painter is GearKnobPainter,
+              ),
+            ).first,
+          )
+          .bottom,
       lessThanOrEqualTo(820),
     );
     expectNoOverflow(tester);

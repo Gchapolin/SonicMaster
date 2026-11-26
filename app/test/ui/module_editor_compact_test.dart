@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sonicmaster/gear/gear_piece.dart';
 import 'package:sonicmaster/model/decoded_preset_state.dart';
 import 'package:sonicmaster/model/footswitch_assignment.dart';
 import 'package:sonicmaster/state/data_providers.dart';
@@ -95,7 +96,6 @@ void main() {
 
   for (final (metrics, dial, header) in const [
     (SonicMetrics.compact, 72.0, 40.0), // 4 + 32-px dropdown + 4
-    (SonicMetrics.regular, 120.0, 56.0), // 12 + 40-px dropdown + 4
   ]) {
     final mode = metrics.isCompact ? 'compact' : 'regular';
 
@@ -117,6 +117,37 @@ void main() {
       },
     );
   }
+
+  // Regular draws the knobs on the piece (prototype N_Principal): no dials,
+  // the piece under a 56-px header (12 + 40-px selector + 4) and its 8-px
+  // padding, scaled down to the editor's width.
+  testWidgets('regular: the knobs are on the piece under a 56-px header', (
+    tester,
+  ) async {
+    await pumpEditor(
+      tester,
+      moduleId: 3,
+      fxId: 307,
+      metrics: SonicMetrics.regular,
+    );
+
+    expect(dials(tester), isEmpty);
+    expect(
+      tester.getTopLeft(find.byType(GearPiece)).dy -
+          tester.getTopLeft(find.byType(ModuleEditor)).dy,
+      56 + 8,
+    );
+    // Scaled down to the room inside the surface and the 16-px side padding.
+    expect(
+      tester.getRect(find.byType(GearPiece)).width,
+      inInclusiveRange(590, 634 - 32),
+    );
+    expect(
+      tester.getSize(find.byType(SonicDropdown<int>).first).height,
+      SonicMetrics.regular.editorControlHeight,
+    );
+    expect(find.text(assets.effects.byId(307)!.descriptionEn), findsOneWidget);
+  });
 
   testWidgets('compact: 32-px panel controls and slimmer FS segments', (
     tester,
