@@ -38,7 +38,7 @@ class DspChip extends ConsumerWidget {
         : Palette.ok;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Row(
         mainAxisSize: .min,
         children: [

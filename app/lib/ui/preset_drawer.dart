@@ -6,10 +6,13 @@ import 'package:flutter/rendering.dart' show RenderAbstractViewport;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../l10n/appearance_text.dart';
 import '../model/preset_ref.dart';
 import '../state/device_providers.dart';
 import '../state/layout_providers.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_text.dart';
+import 'appearance_dialog.dart';
 import 'preset_rail.dart';
 import 'sonic_controls.dart';
 import 'sonic_metrics.dart';
@@ -283,11 +286,17 @@ class _DrawerBody extends ConsumerWidget {
             mainAxisAlignment: .spaceBetween,
             crossAxisAlignment: .stretch,
             children: [
-              if (isConnected)
-                Column(
-                  mainAxisSize: .min,
-                  crossAxisAlignment: .stretch,
-                  children: [
+              Column(
+                mainAxisSize: .min,
+                crossAxisAlignment: .stretch,
+                children: [
+                  _AppearanceEntry(
+                    onTap: () {
+                      ref.read(presetDrawerOpenProvider.notifier).state = false;
+                      unawaited(showAppearanceDialog(context));
+                    },
+                  ),
+                  if (isConnected) ...[
                     RailControls(
                       isHoldToTurnOnTouch: true,
                       // Revealing the focused search reveals the list's
@@ -309,12 +318,40 @@ class _DrawerBody extends ConsumerWidget {
                       ),
                     ),
                   ],
-                )
-              else
-                const SizedBox.shrink(),
+                ],
+              ),
               const RailFooter(),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The drawer's Appearance row: the phone bar has no room for the icon.
+class _AppearanceEntry extends StatelessWidget {
+  const _AppearanceEntry({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      key: const ValueKey('drawer-appearance'),
+      behavior: .opaque,
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            Icon(Icons.palette, size: 20, color: Palette.onSurfaceVariant),
+            const SizedBox(width: 10),
+            Text(
+              AppearanceText.current.title,
+              style: AppText.ui.copyWith(color: Palette.onSurface),
+            ),
+          ],
         ),
       ),
     );

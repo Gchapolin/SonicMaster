@@ -3,6 +3,7 @@ import 'package:flutter/material.dart'; // Icons glyph font only
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../l10n/appearance_text.dart';
+import '../l10n/common_text.dart';
 import '../model/preset_ref.dart';
 import '../state/cfw_providers.dart';
 import '../state/device_providers.dart';
@@ -108,6 +109,11 @@ class TopBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final metrics = SonicMetrics.of(context);
     final isCompact = metrics.isCompact;
+    // Regular: tighter than the metrics token so the CFW bar (DSP, battery,
+    // tuner, Save label) still fits one row at 1180 px.
+    final iconPadding = isCompact
+        ? metrics.topBarIconPadding
+        : const EdgeInsets.symmetric(horizontal: 5, vertical: 8);
     final isConnected = ref.watch(connectionStateProvider);
     final current = ref.watch(currentPresetProvider);
     final isLoading = ref.watch(presetLoadingProvider);
@@ -194,7 +200,7 @@ class TopBar extends ConsumerWidget {
                       if (isConnected && ref.watch(cfwInfoProvider) != null)
                         SonicIconButton(
                           icon: Icons.music_note,
-                          padding: metrics.topBarIconPadding,
+                          padding: iconPadding,
                           onPressed: isLoading
                               ? null
                               : () => showSonicDialog<void>(
@@ -202,22 +208,22 @@ class TopBar extends ConsumerWidget {
                                   builder: (_) => const TunerDialog(),
                                 ),
                         ),
-                      // ponytail: not on the compact bar (no room, 14 px short
-                      // at 568x320); the phone has no entry to Appearance yet.
-                      if (!isCompact)
+                      // Phones have no room (14 px short at 568x320): they reach
+                      // Appearance from the preset drawer instead.
+                      if (!isCompact || MediaQuery.sizeOf(context).width >= 700)
                         Semantics(
                           label: AppearanceText.current.title,
                           button: true,
                           excludeSemantics: true,
                           child: SonicIconButton(
                             icon: Icons.palette,
-                            padding: metrics.topBarIconPadding,
+                            padding: iconPadding,
                             onPressed: () => showAppearanceDialog(context),
                           ),
                         ),
                       SonicIconButton(
                         icon: Icons.tune,
-                        padding: metrics.topBarIconPadding,
+                        padding: iconPadding,
                         onPressed: (isConnected && !isLoading)
                             ? () {
                                 refreshGlobalSettings(ref);
@@ -234,14 +240,14 @@ class TopBar extends ConsumerWidget {
                       // the pedal (arrow up).
                       SonicIconButton(
                         icon: Icons.file_download,
-                        padding: metrics.topBarIconPadding,
+                        padding: iconPadding,
                         onPressed: (isConnected && state != null)
                             ? () => exportPreset(ref)
                             : null,
                       ),
                       SonicIconButton(
                         icon: Icons.file_upload,
-                        padding: metrics.topBarIconPadding,
+                        padding: iconPadding,
                         onPressed: (isConnected && !isLoading)
                             ? () => importPreset(ref)
                             : null,
@@ -252,16 +258,14 @@ class TopBar extends ConsumerWidget {
                       if (!kIsWeb)
                         SonicIconButton(
                           icon: Icons.public,
-                          padding: metrics.topBarIconPadding,
+                          padding: iconPadding,
                           onPressed: () => showSonicDialog<void>(
                             context: context,
                             builder: (_) => const CommunityPresetsDialog(),
                           ),
                         ),
-                      SonicIconButton(
-                        icon: Icons.save,
-                        color: Palette.primary,
-                        padding: metrics.topBarIconPadding,
+                      _SaveButton(
+                        isCompact: isCompact,
                         onPressed:
                             (isConnected && !isLoading && current != null)
                             ? () => showSavePresetDialog(context)
@@ -274,11 +278,11 @@ class TopBar extends ConsumerWidget {
                       if (kDebugMode && !isCompact)
                         SonicIconButton(
                           icon: Icons.terminal,
-                          padding: metrics.topBarIconPadding,
+                          padding: iconPadding,
                           color: isConsoleOpen ? Palette.accent : null,
                           onPressed: onConsoleToggle,
                         ),
-                      SizedBox(width: isCompact ? 8 : 12),
+                      SizedBox(width: 8),
                       // Connection status, pinned to the right edge.
                       // Compact: the whole well, stretched to the bar's
                       // height, connects while disconnected (the 26-px button
@@ -447,6 +451,70 @@ class _PresetWell extends StatelessWidget {
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+/// The primary Save button: accent fill, on-accent icon and label (the label
+/// drops on the compact bar, where only the icon fits).
+class _SaveButton extends StatelessWidget {
+  const _SaveButton({required this.isCompact, required this.onPressed});
+
+  final bool isCompact;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final isEnabled = onPressed != null;
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: isCompact ? 0 : 4),
+      child: MouseRegion(
+        cursor: isEnabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
+        child: GestureDetector(
+          key: const ValueKey('save-button'),
+          behavior: .opaque,
+          onTap: onPressed,
+          // Compact: the 38x46 touch target the bar's icons share.
+          child: SizedBox(
+            width: isCompact ? 38 : null,
+            height: isCompact ? 46 : null,
+            child: Center(
+              child: Opacity(
+                opacity: isEnabled ? 1 : 0.4,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: Palette.primary,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isCompact ? 8 : 12,
+                      vertical: 8,
+                    ),
+                    child: Row(
+                      mainAxisSize: .min,
+                      children: [
+                        Icon(Icons.save, size: 18, color: Palette.onPrimary),
+                        if (!isCompact) ...[
+                          const SizedBox(width: 6),
+                          Text(
+                            CommonText.current.save,
+                            style: AppText.ui.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: Palette.onPrimary,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

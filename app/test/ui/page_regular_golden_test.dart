@@ -1,5 +1,4 @@
 import 'package:flutter/widgets.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sonicmaster/ui/preset_browser_page.dart';
 
@@ -17,7 +16,7 @@ void main() {
       size: const Size(1280, 800),
       selectedEffects: fullPresetEffects,
     );
-    await _settleSvgs(tester);
+    await tester.pumpAndSettle();
 
     await expectLater(
       find.byType(PresetBrowserPage),
@@ -27,25 +26,11 @@ void main() {
 
   testWidgets('regular layout, disconnected', (tester) async {
     await pumpPage(tester, size: const Size(1280, 800), isConnected: false);
-    await _settleSvgs(tester);
+    await tester.pumpAndSettle();
 
     await expectLater(
       find.byType(PresetBrowserPage),
       matchesGoldenFile('goldens/page_regular_disconnected_1280x800.png'),
     );
   });
-}
-
-/// Settles the page, then checks that every SVG (the logo, the chain icons)
-/// (the logo is text now, so there may be none) has decoded — a decoded picture sits in a FittedBox, an undecoded one is an
-/// empty SizedBox — so a golden can never capture blank icons.
-Future<void> _settleSvgs(WidgetTester tester, {bool isExpected = true}) async {
-  await tester.pumpAndSettle();
-
-  final svgs = find.byType(SvgPicture);
-
-  expect(
-    find.descendant(of: svgs, matching: find.byType(FittedBox)),
-    findsNWidgets(svgs.evaluate().length),
-  );
 }

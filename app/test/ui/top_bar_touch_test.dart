@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart'; // Icons glyph font only
+import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart' show ValueKey; // Icons glyph font only
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sonicmaster/state/device_providers.dart';
 import 'package:sonicmaster/ui/connection_controls.dart';
@@ -91,17 +92,18 @@ void main() {
   ) async {
     await pumpPage(tester, size: phone);
 
-    for (final icon in [
-      Icons.tune,
-      Icons.file_download,
-      Icons.file_upload,
-      Icons.save,
-    ]) {
+    for (final icon in [Icons.tune, Icons.file_download, Icons.file_upload]) {
       expect(
         tester.getSize(find.widgetWithIcon(SonicIconButton, icon)),
         const Size(38, 46),
       );
     }
+
+    // Save is the filled button, with the same touch target.
+    expect(
+      tester.getSize(find.byKey(const ValueKey('save-button'))),
+      const Size(38, 46),
+    );
   });
 
   testWidgets('regular: only the Connect button connects (unchanged)', (
