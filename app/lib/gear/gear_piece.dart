@@ -18,8 +18,8 @@ const _genericPedal = PedalSpec(PedalFamily.std, _grey, _ink, KnobStyle.black, [
 ]);
 const _genericAmp = AmpSpec(
   true,
-  _grey,
-  Color(0xFF3A3A3A),
+  Tolex.grey,
+  Grille.black,
   AmpPanel.silver,
   KnobStyle.black,
   false,
@@ -28,8 +28,8 @@ const _genericAmp = AmpSpec(
 const _genericCab = CabSpec(
   2,
   12,
-  _grey,
-  Color(0xFF3A3A3A),
+  Tolex.grey,
+  Grille.black,
   false,
   false,
   false,
