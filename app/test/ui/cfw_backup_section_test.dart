@@ -13,7 +13,7 @@ import 'package:sonicmaster/theme/app_colors.dart';
 import 'package:sonicmaster/ui/cfw_backup_section.dart';
 import 'package:sonicmaster/ui/sonic_controls.dart';
 
-import '../support/backup_fixtures.dart';
+import '../support/changed_backup.dart';
 import '../support/fake_cfw_pedal.dart';
 import '../support/sonic_host.dart';
 import '../support/test_assets.dart';
@@ -87,32 +87,6 @@ void main() {
       findsOneWidget,
     );
   });
-
-  Future<String> changedBackup(
-    FakeCfwPedal pedal, {
-    bool withOrder = false,
-  }) async {
-    final b = await readPedalBackup(pedal, testCfwInfo(), app: 'test');
-
-    pedal.reads.clear();
-
-    return encodeCfwBackup(
-      CfwBackup(
-        created: b.created,
-        app: b.app,
-        pedal: b.pedal,
-        sections: b.sections,
-        presets: [
-          for (final p in b.presets)
-            p.index == 1
-                ? BackupPreset(index: 1, record: testPresetRecord('New'))
-                : p,
-        ],
-        cfwSettings: b.cfwSettings,
-        order: withOrder ? List.generate(50, (i) => i) : null,
-      ),
-    );
-  }
 
   testWidgets('Restore shows what it overwrites and writes after Restore', (
     tester,
@@ -236,6 +210,14 @@ void main() {
       );
       expect(warning, findsOneWidget);
       expect(tester.widget<Text>(warning).style?.color, Palette.primary);
+    });
+
+    testWidgets('shows the confirmWarning text', (tester) async {
+      await openConfirm(tester);
+
+      final note = find.textContaining('Isso regrava a memória da pedaleira');
+      expect(note, findsOneWidget);
+      expect(tester.widget<Text>(note).style?.color, Palette.onSurfaceVariant);
     });
 
     testWidgets('Restaurar is the primary action', (tester) async {

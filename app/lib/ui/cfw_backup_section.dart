@@ -350,6 +350,8 @@ class _RestoreConfirm extends StatelessWidget {
                 ),
               ],
             ),
+            const SizedBox(height: 6),
+            Text(t.confirmWarning, style: muted),
           ],
           const SizedBox(height: 16),
           Row(
