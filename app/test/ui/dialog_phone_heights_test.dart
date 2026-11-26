@@ -365,8 +365,8 @@ void main() {
       ('unsaved changes', Rect.fromLTRB(400, 301, 880, 499)),
       ('save preset', Rect.fromLTRB(450, 266, 830, 534)),
       ('device picker, scanning', Rect.fromLTRB(420, 160, 860, 640)),
-      // The redesign's three-column grid (no scrolling list any more).
-      ('settings', Rect.fromLTRB(90, 121, 1190, 679)),
+      // The redesign's three-column grid, Close in the header.
+      ('settings', Rect.fromLTRB(90, 151, 1190, 649)),
     ]) {
       testWidgets(name, (tester) async {
         final dialog = _cases.firstWhere((c) => c.name == name);

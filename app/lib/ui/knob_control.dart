@@ -7,6 +7,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 
 import '../model/slider_nudge.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_text.dart';
 import 'sonic_field.dart';
 import 'sonic_metrics.dart';
 
@@ -32,6 +33,7 @@ class KnobControl extends HookWidget {
     this.isEnabled = true,
     this.size = 120,
     this.isHoldToTurnOnTouch = false,
+    this.isDense = false,
   });
 
   // Pixels of vertical drag that span the whole [min,max] range. One tunable:
@@ -69,6 +71,10 @@ class KnobControl extends HookWidget {
   /// Vol, the Settings knobs). Mouse and trackpad are unaffected.
   final bool isHoldToTurnOnTouch;
 
+  /// Draws the readout and caption with the compact faces and a tighter cell,
+  /// for dense panels; input behaviour still follows the layout.
+  final bool isDense;
+
   @override
   Widget build(BuildContext context) {
     final isEditing = useState(false);
@@ -78,6 +84,9 @@ class KnobControl extends HookWidget {
     final controller = useTextEditingController();
     final editorFocus = useFocusNode();
     final metrics = SonicMetrics.of(context);
+    final valueStyle = isDense
+        ? AppText.knobValueCompact
+        : metrics.knobValueStyle;
 
     // One step of vertical travel, shared by every pointer kind: up increases
     // ([dy] is +down, so negate). Shift = fine-tune (~4× slower); read
@@ -273,7 +282,7 @@ class KnobControl extends HookWidget {
                   focusNode: editorFocus,
                   autofocus: true,
                   textAlign: .center,
-                  style: metrics.knobValueStyle,
+                  style: valueStyle,
                   isRecessed: false,
                   padding: EdgeInsets.zero,
                   // Compact (phones): the number pad, signed where the range
@@ -305,7 +314,7 @@ class KnobControl extends HookWidget {
               child: Center(
                 child: Text(
                   valueText ?? '$value${unit ?? ''}',
-                  style: metrics.knobValueStyle,
+                  style: valueStyle,
                 ),
               ),
             ),
@@ -314,7 +323,7 @@ class KnobControl extends HookWidget {
     // A vertical cell — value on top, knob, name below — so cells sit side by
     // side in a Wrap like the knobs on a hardware unit.
     return Padding(
-      padding: EdgeInsets.all(metrics.knobCellPadding),
+      padding: EdgeInsets.all(isDense ? 4 : metrics.knobCellPadding),
       child: Column(
         mainAxisSize: .min,
         children: [
@@ -324,7 +333,12 @@ class KnobControl extends HookWidget {
             child: knob,
           ),
           if (label.isNotEmpty)
-            Text(label.toUpperCase(), style: metrics.knobLabelStyle),
+            Text(
+              label.toUpperCase(),
+              style: isDense
+                  ? AppText.knobLabelCompact
+                  : metrics.knobLabelStyle,
+            ),
         ],
       ),
     );

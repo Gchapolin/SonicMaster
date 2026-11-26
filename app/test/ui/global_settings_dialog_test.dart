@@ -23,8 +23,10 @@ import 'package:sonicmaster/state/device_providers.dart';
 import 'package:sonicmaster/state/preset_providers.dart';
 import 'package:sonicmaster/ui/eq_curve_view.dart';
 import 'package:sonicmaster/ui/global_settings_dialog.dart';
+import 'package:sonicmaster/ui/knob_control.dart';
 import 'package:sonicmaster/ui/midi_map_dialog.dart';
 import 'package:sonicmaster/ui/sonic_controls.dart';
+import 'package:sonicmaster/ui/sonic_metrics.dart';
 
 import '../fixtures/cfw_dumps.dart';
 import '../support/silent_transport.dart';
@@ -41,6 +43,7 @@ void main() {
     WidgetTester tester, {
     required Size size,
     List<Override> extra = const [],
+    int expFsType = 0,
   }) async {
     final transport = SilentTransport();
     final context = await pumpSonicHost(
@@ -56,12 +59,13 @@ void main() {
           return service;
         }),
         globalSettingsProvider.overrideWith(
-          (_) => const GlobalSettings(
+          (_) => GlobalSettings(
             globalVolume: 50,
             inputLevel: 0,
             fxRecLevel: 0,
             monitorLevel: 0,
             btRecLevel: 0,
+            expFsType: expFsType,
           ),
         ),
         ...extra,
@@ -232,43 +236,71 @@ void main() {
     setUp(() => appLang = Lang.pt);
     tearDown(() => appLang = Lang.en);
 
-    testWidgets(
-      'all nine sections fit in three columns at 1180x820 without scrolling',
-      (tester) async {
-        await openSettings(tester, size: screen, extra: full);
+    // Typical, and the tallest state: the Custom MIDI map (three more rows)
+    // with DualFS (two targets), as the prototype draws it.
+    for (final (state, info, expFsType) in [
+      ('', cfw, 0),
+      (
+        ' (Custom map, DualFS)',
+        cfw.copyWithSetting(CfwInfo.midiMapKey, CfwInfo.customMap),
+        2,
+      ),
+    ]) {
+      testWidgets(
+        'all nine sections fit in three columns at 1180x820 without scrolling'
+        '$state',
+        (tester) async {
+          await openSettings(
+            tester,
+            size: screen,
+            expFsType: expFsType,
+            extra: [
+              ...full.skip(2),
+              connectionStateProvider.overrideWith((_) => true),
+              cfwInfoProvider.overrideWith((_) => info),
+            ],
+          );
 
-        expectNoOverflow(tester);
-        for (final s in scrolls(tester)) {
-          expect(s.maxScrollExtent, 0);
-        }
+          expectNoOverflow(tester);
+          for (final s in scrolls(tester)) {
+            expect(s.maxScrollExtent, 0);
+          }
 
-        const titles = [
-          'NÍVEIS',
-          'EQ GLOBAL',
-          'TELA',
-          'FOOTSWITCHES',
-          'MIDI',
-          'ENERGIA',
-          'ORDEM DOS PRESETS',
-          'PEDALEIRA INTEIRA',
-          'REDEFINIR',
-        ];
-        final lefts = <double>{};
+          const titles = [
+            'NÍVEIS',
+            'EQ GLOBAL',
+            'TELA',
+            'FOOTSWITCHES',
+            'MIDI',
+            'ENERGIA',
+            'ORDEM DOS PRESETS',
+            'PEDALEIRA INTEIRA',
+            'REDEFINIR',
+          ];
+          final lefts = <double>{};
 
-        for (final title in titles) {
-          final rect = tester.getRect(inDialog(find.text(title)));
+          for (final title in titles) {
+            final rect = tester.getRect(inDialog(find.text(title)));
 
-          expectWithin(rect, Offset.zero & screen, title);
-          lefts.add(rect.left.roundToDouble());
-        }
-        expect(lefts, hasLength(3));
-        expectWithin(
-          tester.getRect(inDialog(find.text('Fechar'))),
-          Offset.zero & screen,
-          'Fechar',
-        );
-      },
-    );
+            expectWithin(rect, Offset.zero & screen, title);
+            lefts.add(rect.left.roundToDouble());
+          }
+          expect(lefts, hasLength(3));
+          expectWithin(
+            tester.getRect(inDialog(find.text('Fechar'))),
+            Offset.zero & screen,
+            'Fechar',
+          );
+          // Dense knobs keep the regular layout's input behaviour.
+          expect(
+            SonicMetrics.of(
+              tester.element(inDialog(find.byType(KnobControl)).first),
+            ).isCompact,
+            isFalse,
+          );
+        },
+      );
+    }
 
     testWidgets('selects open their options', (tester) async {
       await openSettings(tester, size: screen, extra: full);

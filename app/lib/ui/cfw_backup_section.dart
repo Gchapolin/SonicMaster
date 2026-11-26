@@ -282,6 +282,10 @@ class CfwBackupSection extends HookConsumerWidget {
             onPressed: isEnabled ? restore : null,
           ),
         ),
+        Text(
+          SettingsText.current.usbRecommended,
+          style: AppText.ui.copyWith(color: Palette.outline, fontSize: 12),
+        ),
         if (progress.value case final p?) Text(p, style: muted),
         if (isBusy.value) Text(t.dontTouch, style: AppText.dialogBody),
         if (status.value case final s?) Text(s, style: AppText.dialogBody),

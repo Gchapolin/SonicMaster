@@ -88,36 +88,34 @@ class GlobalSettingsDialog extends ConsumerWidget {
       final levels = _Section(
         title: t.levels,
         children: [
-          _DenseKnobs(
-            child: Row(
-              mainAxisAlignment: .spaceAround,
-              children: [
-                _LevelKnob(
-                  label: t.input,
-                  name: 'inputLevel',
-                  value: g0.inputLevel,
-                  isLoading: isLoading,
-                ),
-                _LevelKnob(
-                  label: 'FX Rec',
-                  name: 'fxRecLevel',
-                  value: g0.fxRecLevel,
-                  isLoading: isLoading,
-                ),
-                _LevelKnob(
-                  label: 'BT Rec',
-                  name: 'btRecLevel',
-                  value: g0.btRecLevel,
-                  isLoading: isLoading,
-                ),
-                _LevelKnob(
-                  label: 'Monitor',
-                  name: 'monitorLevel',
-                  value: g0.monitorLevel,
-                  isLoading: isLoading,
-                ),
-              ],
-            ),
+          Row(
+            mainAxisAlignment: .spaceAround,
+            children: [
+              _LevelKnob(
+                label: t.input,
+                name: 'inputLevel',
+                value: g0.inputLevel,
+                isLoading: isLoading,
+              ),
+              _LevelKnob(
+                label: 'FX Rec',
+                name: 'fxRecLevel',
+                value: g0.fxRecLevel,
+                isLoading: isLoading,
+              ),
+              _LevelKnob(
+                label: 'BT Rec',
+                name: 'btRecLevel',
+                value: g0.btRecLevel,
+                isLoading: isLoading,
+              ),
+              _LevelKnob(
+                label: 'Monitor',
+                name: 'monitorLevel',
+                value: g0.monitorLevel,
+                isLoading: isLoading,
+              ),
+            ],
           ),
           if (cfw == null)
             _SettingRow(
@@ -169,37 +167,34 @@ class GlobalSettingsDialog extends ConsumerWidget {
           Row(
             spacing: 10,
             children: [
-              _DenseKnobs(
-                child: cfw == null
-                    ? KnobControl(
-                        value: g0.backlight,
-                        min: 0,
-                        max: 10,
-                        step: 1,
-                        label: t.backlight,
-                        isEnabled: !isLoading,
-                        isHoldToTurnOnTouch: true,
-                        size: 40,
-                        onChanged: (v) =>
-                            setGlobalSetting(ref, 'backlight', v.round()),
-                      )
-                    : KnobControl(
-                        value: cfw.brightness.clamp(10, 100),
-                        min: 10,
-                        max: 100,
-                        step: 1,
-                        unit: '%',
-                        label: t.brightness,
-                        isEnabled: !isLoading,
-                        isHoldToTurnOnTouch: true,
-                        size: 40,
-                        onChanged: (v) => setCfwSetting(
-                          ref,
-                          CfwInfo.brightnessKey,
-                          v.round(),
-                        ),
-                      ),
-              ),
+              cfw == null
+                  ? KnobControl(
+                      value: g0.backlight,
+                      min: 0,
+                      max: 10,
+                      step: 1,
+                      label: t.backlight,
+                      isEnabled: !isLoading,
+                      isHoldToTurnOnTouch: true,
+                      size: 40,
+                      isDense: true,
+                      onChanged: (v) =>
+                          setGlobalSetting(ref, 'backlight', v.round()),
+                    )
+                  : KnobControl(
+                      value: cfw.brightness.clamp(10, 100),
+                      min: 10,
+                      max: 100,
+                      step: 1,
+                      unit: '%',
+                      label: t.brightness,
+                      isEnabled: !isLoading,
+                      isHoldToTurnOnTouch: true,
+                      size: 40,
+                      isDense: true,
+                      onChanged: (v) =>
+                          setCfwSetting(ref, CfwInfo.brightnessKey, v.round()),
+                    ),
               Expanded(
                 child: Column(
                   mainAxisSize: .min,
@@ -314,11 +309,16 @@ class GlobalSettingsDialog extends ConsumerWidget {
         ],
       );
       final reset = _Section(title: t.reset, children: const [_ResetButton()]);
+      final backup = _Section(
+        title: t.wholePedal,
+        children: const [CfwBackupSection()],
+      );
       final columns = [
         [levels, if (cfw != null) const _GlobalEqSection()],
-        // Reset closes the second column on a CFW pedal, whose third one is
-        // full; a stock pedal has nothing else for the third.
-        [display, footswitches, power, if (cfw != null) reset],
+        // The CFW sections split so the tallest state (Custom MIDI map,
+        // DualFS) still fits 1180x820; a stock pedal has only Reset left for
+        // the third column.
+        [display, footswitches, power, if (cfw != null) backup],
         [
           if (cfw != null) ...[
             _MidiSection(cfw: cfw, isLoading: isLoading),
@@ -326,9 +326,8 @@ class GlobalSettingsDialog extends ConsumerWidget {
               title: t.presetOrder,
               children: const [PresetOrderSection()],
             ),
-            _Section(title: t.wholePedal, children: const [CfwBackupSection()]),
-          ] else
-            reset,
+          ],
+          reset,
         ],
       ];
 
@@ -358,13 +357,24 @@ class GlobalSettingsDialog extends ConsumerWidget {
       );
     }
 
+    final close = SonicButton(
+      label: CommonText.current.close,
+      height: isWide ? 36 : 44,
+      minWidth: isWide ? 96 : 110,
+      onPressed: () => Navigator.pop(context),
+    );
+
     return SonicDialog(
       maxWidth: isWide ? 1100 : 460,
       child: Column(
         mainAxisSize: .min,
         crossAxisAlignment: .stretch,
         children: [
-          _Header(cfw: cfw, isConnected: isConnected),
+          _Header(
+            cfw: cfw,
+            isConnected: isConnected,
+            close: isWide ? close : null,
+          ),
           const SizedBox(height: 16),
           if (g == null)
             SizedBox(
@@ -378,15 +388,10 @@ class GlobalSettingsDialog extends ConsumerWidget {
             )
           else
             body(),
-          const SizedBox(height: 16),
-          Align(
-            alignment: Alignment.centerRight,
-            child: SonicButton(
-              label: CommonText.current.close,
-              minWidth: 110,
-              onPressed: () => Navigator.pop(context),
-            ),
-          ),
+          if (!isWide) ...[
+            const SizedBox(height: 16),
+            Align(alignment: Alignment.centerRight, child: close),
+          ],
         ],
       ),
     );
@@ -405,10 +410,13 @@ const double _controlHeight = 34;
 /// Icon, title and CFW badge on the left; the connection dot and the device
 /// model selector on the right.
 class _Header extends StatelessWidget {
-  const _Header({required this.cfw, required this.isConnected});
+  const _Header({required this.cfw, required this.isConnected, this.close});
 
   final CfwInfo? cfw;
   final bool isConnected;
+
+  /// The Close button, on wide screens only.
+  final Widget? close;
 
   @override
   Widget build(BuildContext context) {
@@ -445,6 +453,9 @@ class _Header extends StatelessWidget {
                   child: const SizedBox.square(dimension: 8),
                 ),
                 const Flexible(child: _DeviceModelSelector()),
+                // Wide: Close sits in the header, so the grid gets the
+                // footer's height and the tallest CFW state still fits.
+                ?close,
               ],
             ),
           ),
@@ -452,19 +463,6 @@ class _Header extends StatelessWidget {
       ),
     );
   }
-}
-
-/// Knobs drawn with the compact tokens (smaller readout and caption, tighter
-/// cell), so the dialog's knob rows stay short enough for the three-column
-/// grid.
-class _DenseKnobs extends StatelessWidget {
-  const _DenseKnobs({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) =>
-      SonicMetricsScope(metrics: SonicMetrics.compact, child: child);
 }
 
 /// A titled panel of settings rows, e.g. "USB" / "Display".
@@ -504,7 +502,6 @@ class _Section extends StatelessWidget {
   }
 }
 
-/// A small uppercase group header, e.g. "USB" / "Display".
 /// The CFW Global EQ: one EQ after the whole chain, for every preset. Shows
 /// the switch, the model and the model's knobs; a model this app has no data
 /// for shows only the switch.
@@ -556,28 +553,27 @@ class _GlobalEqSection extends ConsumerWidget {
         ),
         if (model != null) ...[
           EqCurve(model: model, slots: eq.slots, isOn: eq.isOn, height: 48),
-          _DenseKnobs(
-            child: Wrap(
-              alignment: .center,
-              children: [
-                for (final p in model.params)
-                  KnobControl(
-                    value: p.fromSlot(eq.slots[p.algId]).clamp(p.min, p.max),
-                    min: p.min,
-                    max: p.max,
-                    step: p.step,
-                    label: p.name,
-                    valueText: p.textFor(
-                      p.fromSlot(eq.slots[p.algId]).clamp(p.min, p.max),
-                    ),
-                    isEnabled: !isLoading,
-                    isHoldToTurnOnTouch: true,
-                    size: 44,
-                    onChanged: (v) =>
-                        setGlobalEq(ref, eq.withSlot(p.algId, p.toSlot(v))),
+          Wrap(
+            alignment: .center,
+            children: [
+              for (final p in model.params)
+                KnobControl(
+                  value: p.fromSlot(eq.slots[p.algId]).clamp(p.min, p.max),
+                  min: p.min,
+                  max: p.max,
+                  step: p.step,
+                  label: p.name,
+                  valueText: p.textFor(
+                    p.fromSlot(eq.slots[p.algId]).clamp(p.min, p.max),
                   ),
-              ],
-            ),
+                  isEnabled: !isLoading,
+                  isHoldToTurnOnTouch: true,
+                  size: 44,
+                  isDense: true,
+                  onChanged: (v) =>
+                      setGlobalEq(ref, eq.withSlot(p.algId, p.toSlot(v))),
+                ),
+            ],
           ),
         ],
       ],
@@ -950,6 +946,7 @@ class _LevelKnob extends ConsumerWidget {
       isEnabled: !isLoading,
       isHoldToTurnOnTouch: true,
       size: 40,
+      isDense: true,
       onChanged: (v) => setGlobalLevel(ref, name, v.round()),
     );
   }
