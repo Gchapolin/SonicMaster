@@ -359,8 +359,9 @@ class SonicDialog extends StatelessWidget {
           child: ConstrainedBox(
             constraints: BoxConstraints(maxWidth: maxWidth),
             child: SonicSurface(
-              radius: 28,
+              radius: 20,
               color: Palette.surfaceContainerHigh,
+              borderColor: Palette.line2,
               padding: EdgeInsets.zero,
               child: isScrollable
                   // Clamping on every platform: no bounce, and the scroll
@@ -992,12 +993,16 @@ class SonicSurface extends StatelessWidget {
     this.padding = const EdgeInsets.all(6),
     this.radius = 12,
     this.color,
+    this.borderColor,
   });
 
   final Widget child;
   final EdgeInsetsGeometry padding;
   final double radius;
   final Color? color;
+
+  /// Outline colour; null blends the border into the fill.
+  final Color? borderColor;
 
   @override
   Widget build(BuildContext context) {
@@ -1009,7 +1014,7 @@ class SonicSurface extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(radius),
         color: fill,
-        border: Border.all(color: fill),
+        border: Border.all(color: borderColor ?? fill),
       ),
       child: child,
     );

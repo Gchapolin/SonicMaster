@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sonicmaster/theme/app_colors.dart';
 import 'package:sonicmaster/ui/knob_control.dart';
 import 'package:sonicmaster/ui/sonic_controls.dart';
 import 'package:sonicmaster/ui/sonic_metrics.dart';
@@ -29,10 +30,7 @@ void main() {
       SonicMetrics.regular.dialogMargin,
       const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
     );
-    expect(
-      SonicMetrics.regular.dialogPadding,
-      const EdgeInsets.fromLTRB(24, 22, 24, 18),
-    );
+    expect(SonicMetrics.regular.dialogPadding, const EdgeInsets.all(24));
     expect(
       SonicMetrics.compact.dialogMargin,
       const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -41,6 +39,35 @@ void main() {
       SonicMetrics.compact.dialogPadding,
       const EdgeInsets.fromLTRB(16, 12, 16, 10),
     );
+  });
+
+  testWidgets('the dialog uses the card colour and radius 20', (tester) async {
+    await open(tester, const SonicDialog(child: SizedBox(height: 40)));
+
+    final box =
+        tester
+                .widget<Container>(
+                  find
+                      .descendant(
+                        of: find.byType(SonicSurface),
+                        matching: find.byType(Container),
+                      )
+                      .first,
+                )
+                .decoration!
+            as BoxDecoration;
+    expect(box.color, Palette.surfaceContainerHigh);
+    expect(box.borderRadius, BorderRadius.circular(20));
+    expect((box.border! as Border).top.color, Palette.line2);
+    expect(box.boxShadow, isNull);
+  });
+
+  testWidgets('the scrim still closes it', (tester) async {
+    await open(tester, const SonicDialog(child: SizedBox(height: 40)));
+    await tester.tapAt(const Offset(5, 5));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(SonicDialog), findsNothing);
   });
 
   testWidgets('regular: a dialog that fits keeps its exact geometry', (
@@ -52,7 +79,7 @@ void main() {
     );
 
     // maxWidth 460, centred; 100 + padding 22 + 18 + a 1-px border each side.
-    expect(plate(tester), const Rect.fromLTWH(410, 329, 460, 142));
+    expect(plate(tester), const Rect.fromLTWH(410, 325, 460, 150));
   });
 
   testWidgets('regular: the soft keyboard does not move the plate', (
@@ -64,7 +91,7 @@ void main() {
       keyboard: 300, // a tablet in landscape typing
     );
 
-    expect(plate(tester), const Rect.fromLTWH(410, 329, 460, 142));
+    expect(plate(tester), const Rect.fromLTWH(410, 325, 460, 150));
   });
 
   testWidgets('compact: tighter margin and padding', (tester) async {

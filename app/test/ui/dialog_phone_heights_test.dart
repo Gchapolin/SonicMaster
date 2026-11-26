@@ -362,10 +362,10 @@ void main() {
   // before SonicDialog learned to scroll and lift.
   group('regular 1280x800 plates are unchanged', () {
     for (final (name, rect) in const [
-      ('unsaved changes', Rect.fromLTRB(400, 305, 880, 495)),
-      ('save preset', Rect.fromLTRB(450, 270, 830, 530)),
+      ('unsaved changes', Rect.fromLTRB(400, 301, 880, 499)),
+      ('save preset', Rect.fromLTRB(450, 266, 830, 534)),
       ('device picker, scanning', Rect.fromLTRB(420, 160, 860, 640)),
-      ('settings', Rect.fromLTRB(420, 84, 860, 716)),
+      ('settings', Rect.fromLTRB(420, 80, 860, 720)),
     ]) {
       testWidgets(name, (tester) async {
         final dialog = _cases.firstWhere((c) => c.name == name);

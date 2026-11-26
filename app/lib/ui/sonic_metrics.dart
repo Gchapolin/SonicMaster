@@ -84,7 +84,7 @@ class SonicMetrics {
     chainConnectorPadding: 2,
     ampBlockPadding: 10,
     dialogMargin: EdgeInsets.symmetric(horizontal: 40, vertical: 24),
-    dialogPadding: EdgeInsets.fromLTRB(24, 22, 24, 18),
+    dialogPadding: EdgeInsets.all(24),
   );
 
   /// Phones (and a tablet in portrait): the overlay preset drawer instead of

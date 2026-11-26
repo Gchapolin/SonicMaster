@@ -176,8 +176,8 @@ void main() {
   });
 
   for (final (size, list, close) in const [
-    (Size(1280, 800), 496.0, Rect.fromLTRB(731, 653, 835, 697)),
-    (Size(960, 640), 396.8, Rect.fromLTRB(571, 523.4, 675, 567.4)),
+    (Size(1280, 800), 496.0, Rect.fromLTRB(731, 651, 835, 695)),
+    (Size(960, 640), 396.8, Rect.fromLTRB(571, 521.4, 675, 565.4)),
   ]) {
     final where = '${size.width.toInt()}x${size.height.toInt()}';
 
