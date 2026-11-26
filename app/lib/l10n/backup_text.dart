@@ -37,7 +37,6 @@ abstract class BackupText {
   String get confirmTitle;
   String made(String when, String model, String tag, String app);
   String get overwritesHeader;
-  String get confirmWarning;
 
   // --- Labels ---------------------------------------------------------------
 
@@ -226,11 +225,6 @@ class _En extends BackupText {
       'Made $when on the $model $tag by $app.';
   @override
   String get overwritesHeader => 'Overwrites on the pedal:';
-  @override
-  String get confirmWarning =>
-      'This rewrites the pedal’s memory. A backup of the pedal as it '
-      'is now is saved first; each preset written is read back. If '
-      'the restore stops, load the same file again to resume.';
 
   @override
   String get midiMap => 'Custom MIDI map';
@@ -551,11 +545,6 @@ class _Pt extends BackupText {
       'Feito em $when na $model $tag pelo $app.';
   @override
   String get overwritesHeader => 'Vai sobrescrever na pedaleira:';
-  @override
-  String get confirmWarning =>
-      'Isso regrava a memória da pedaleira. Antes, é salvo um backup da '
-      'pedaleira como está agora; cada preset gravado é lido de volta. Se a '
-      'restauração parar, carregue o mesmo arquivo de novo para continuar.';
 
   @override
   String get midiMap => 'Mapa MIDI personalizado';

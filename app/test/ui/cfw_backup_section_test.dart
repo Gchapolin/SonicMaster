@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart' show Icons; // glyph font only
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sonicmaster/l10n/lang.dart';
@@ -8,7 +9,9 @@ import 'package:sonicmaster/state/cfw_backup_io.dart';
 import 'package:sonicmaster/state/cfw_providers.dart';
 import 'package:sonicmaster/state/data_providers.dart';
 import 'package:sonicmaster/state/device_providers.dart';
+import 'package:sonicmaster/theme/app_colors.dart';
 import 'package:sonicmaster/ui/cfw_backup_section.dart';
+import 'package:sonicmaster/ui/sonic_controls.dart';
 
 import '../support/backup_fixtures.dart';
 import '../support/fake_cfw_pedal.dart';
@@ -85,7 +88,10 @@ void main() {
     );
   });
 
-  Future<String> changedBackup(FakeCfwPedal pedal) async {
+  Future<String> changedBackup(
+    FakeCfwPedal pedal, {
+    bool withOrder = false,
+  }) async {
     final b = await readPedalBackup(pedal, testCfwInfo(), app: 'test');
 
     pedal.reads.clear();
@@ -103,6 +109,7 @@ void main() {
                 : p,
         ],
         cfwSettings: b.cfwSettings,
+        order: withOrder ? List.generate(50, (i) => i) : null,
       ),
     );
   }
@@ -117,7 +124,7 @@ void main() {
     await tester.tap(find.text('Restore…'));
     await settle(tester);
 
-    expect(find.text('• Presets: 1 written (P02)'), findsOneWidget);
+    expect(find.text('Presets: 1 written (P02)'), findsOneWidget);
     expect(pedal.writes, isEmpty);
     expect(saved, isEmpty);
 
@@ -176,8 +183,8 @@ void main() {
 
       expect(tester.takeException(), isNull);
       expect(find.text('Restaurar este backup?'), findsOneWidget);
-      expect(find.text('Vai sobrescrever na pedaleira:'), findsOneWidget);
-      expect(find.text('• Presets: 1 gravados (P02)'), findsOneWidget);
+      expect(find.text('VAI SOBRESCREVER NA PEDALEIRA:'), findsOneWidget);
+      expect(find.text('Presets: 1 gravados (P02)'), findsOneWidget);
 
       await tester.tap(find.text('Restaurar'));
       await settle(tester);
@@ -192,6 +199,53 @@ void main() {
       await settle(tester);
 
       expect(find.textContaining('Backup salvo: /saved/'), findsOneWidget);
+    });
+
+    Future<void> openConfirm(WidgetTester tester) async {
+      final pedal = FakeCfwPedal();
+      final file = await tester.runAsync(
+        () => changedBackup(pedal, withOrder: true),
+      );
+
+      await pump(tester, pedal, picked: file);
+      await tester.tap(find.text('Restaurar…'));
+      await settle(tester);
+    }
+
+    testWidgets('lists what will be overwritten and what is not restored', (
+      tester,
+    ) async {
+      await openConfirm(tester);
+
+      expect(find.text('VAI SOBRESCREVER NA PEDALEIRA:'), findsOneWidget);
+      expect(find.text('Presets: 1 gravados (P02)'), findsOneWidget);
+      expect(find.byIcon(Icons.check), findsWidgets);
+      expect(
+        find.text('NÃO RESTAURADO / TOCA DIFERENTE AQUI:'),
+        findsOneWidget,
+      );
+      expect(find.byIcon(Icons.remove), findsWidgets);
+    });
+
+    testWidgets('warning text', (tester) async {
+      await openConfirm(tester);
+
+      final warning = find.descendant(
+        of: find.byType(SonicDialog),
+        matching: find.text('Não mexa na pedaleira até terminar.'),
+      );
+      expect(warning, findsOneWidget);
+      expect(tester.widget<Text>(warning).style?.color, Palette.primary);
+    });
+
+    testWidgets('Restaurar is the primary action', (tester) async {
+      await openConfirm(tester);
+
+      final button = tester.widget<SonicButton>(
+        find.widgetWithText(SonicButton, 'Restaurar'),
+      );
+      expect(button.isAccent, isTrue);
+      expect(find.text('Cancelar'), findsOneWidget);
     });
 
     testWidgets('a file that is not JSON is refused in Portuguese', (
