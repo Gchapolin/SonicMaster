@@ -1,7 +1,9 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../l10n/amp_text.dart';
 import '../l10n/shell_text.dart';
+import '../model/amp_gain.dart';
 import '../model/effect_parameter.dart';
 import '../model/footswitch_assignment.dart';
 import '../model/footswitch_state.dart';
@@ -99,9 +101,18 @@ class ModuleEditor extends ConsumerWidget {
     // set — some presets hold legacy/hidden effects (e.g. Fullchor / Flash /
     // Doctor CL) that decode but have no select command; this keeps the value
     // valid and the name shown.
-    final dropdownIds = effectIds.contains(fxId)
+    final offered = effectIds.contains(fxId)
         ? effectIds
         : <int>[fxId!, ...effectIds];
+    // Amps run clean to high gain, under band titles.
+    final isAmp = moduleId == 3;
+    final dropdownIds = isAmp ? byAmpGain(offered) : offered;
+    final sections = isAmp
+        ? {
+            for (final e in ampBandStarts(dropdownIds).entries)
+              e.key: AmpText.current.band(e.value),
+          }
+        : const <int, String>{};
 
     return Column(
       crossAxisAlignment: .stretch,
@@ -148,6 +159,7 @@ class ModuleEditor extends ConsumerWidget {
                                 ),
                               ),
                           ],
+                          sections: sections,
                           isEnabled: !isLoading,
                           onChanged: (id) => setEffectType(ref, moduleId, id),
                         )

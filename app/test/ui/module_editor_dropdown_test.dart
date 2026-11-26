@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sonicmaster/device/device_model.dart';
+import 'package:sonicmaster/model/amp_gain.dart';
 import 'package:sonicmaster/state/data_providers.dart';
 import 'package:sonicmaster/state/device_providers.dart';
 import 'package:sonicmaster/state/preset_providers.dart';
@@ -60,7 +61,8 @@ void main() {
   testWidgets('AMP dropdown offers every amp for Smart Box', (tester) async {
     final ids = await ampDropdownIds(tester, .smartBox);
 
-    expect(ids, assets.commands.effectIdsFor(3));
+    // Every amp, in clean-to-high-gain band order.
+    expect(ids, byAmpGain(assets.commands.effectIdsFor(3)));
     expect(ids, contains(338)); // Doctor OD — a Smart Box-only amp
   });
 
@@ -71,7 +73,9 @@ void main() {
 
     expect(
       ids,
-      assets.commands.effectIdsFor(3).where((id) => id <= 322).toList(),
+      byAmpGain(
+        assets.commands.effectIdsFor(3).where((id) => id <= 322).toList(),
+      ),
     );
     expect(ids, isNot(contains(323)));
     expect(ids, isNot(contains(338)));

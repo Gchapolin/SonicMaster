@@ -555,11 +555,16 @@ class SonicDropdown<T> extends HookWidget {
     this.width,
     this.isEnabled = true,
     this.height = 40,
+    this.sections = const {},
   });
 
   final T? value;
   final List<SonicItem<T>> items;
   final ValueChanged<T> onChanged;
+
+  /// Group titles in the open menu: each is shown above the item with that
+  /// value, and is not an option itself.
+  final Map<T, String> sections;
   final double? width;
   final bool isEnabled;
   final double height;
@@ -602,6 +607,7 @@ class SonicDropdown<T> extends HookWidget {
           link: link,
           triggerKey: triggerKey,
           items: items,
+          sections: sections,
           value: value,
           width: width,
           onSelected: (v) {
@@ -746,6 +752,7 @@ class _DropdownMenu<T> extends HookWidget {
     required this.link,
     required this.triggerKey,
     required this.items,
+    required this.sections,
     required this.value,
     required this.width,
     required this.onSelected,
@@ -755,6 +762,7 @@ class _DropdownMenu<T> extends HookWidget {
   final LayerLink link;
   final GlobalKey triggerKey;
   final List<SonicItem<T>> items;
+  final Map<T, String> sections;
   final T? value;
   final double? width;
   final ValueChanged<T> onSelected;
@@ -774,7 +782,9 @@ class _DropdownMenu<T> extends HookWidget {
       return math.max(widest, tp.width);
     });
 
-    return math.max(minWidth, maxLabel + 32); // 14*2 padding + margin
+    // The item's 14-px side padding, the plate's 6-px padding and 1-px
+    // border, both sides.
+    return math.max(minWidth, maxLabel + 2 * (14 + 6 + 1));
   }
 
   // The list's natural height: one row per item, a menu-text line plus the
@@ -791,7 +801,8 @@ class _DropdownMenu<T> extends HookWidget {
 
     painter.dispose();
 
-    return items.length * rowHeight;
+    // A section title takes a row of its own (same height, as an estimate).
+    return (items.length + sections.length) * rowHeight;
   }
 
   // The trigger's rect on screen as last laid out; null before its layout.
@@ -881,12 +892,15 @@ class _DropdownMenu<T> extends HookWidget {
                       child: Column(
                         mainAxisSize: .min,
                         children: [
-                          for (final it in items)
+                          for (final it in items) ...[
+                            if (sections[it.value] case final title?)
+                              _SonicMenuSection(title),
                             _SonicMenuItem(
                               label: it.label,
                               isSelected: it.value == value,
                               onTap: () => onSelected(it.value),
                             ),
+                          ],
                         ],
                       ),
                     ),
@@ -899,6 +913,31 @@ class _DropdownMenu<T> extends HookWidget {
       ),
     );
   }
+}
+
+/// A group title in a dropdown menu: muted, not tappable.
+class _SonicMenuSection extends StatelessWidget {
+  const _SonicMenuSection(this.title);
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(14, 12, 14, 4),
+    child: Align(
+      alignment: .centerLeft,
+      child: Text(
+        title.toUpperCase(),
+        maxLines: 1,
+        overflow: .ellipsis,
+        style: AppText.menuItem.copyWith(
+          color: Palette.onSurfaceVariant,
+          fontSize: 11,
+          letterSpacing: 1,
+        ),
+      ),
+    ),
+  );
 }
 
 class _SonicMenuItem extends StatelessWidget {
