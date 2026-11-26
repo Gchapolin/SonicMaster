@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sonicmaster/gear/gear_specs.dart';
+import 'package:sonicmaster/gear/paint/knob_painter.dart';
 import 'package:sonicmaster/gear/pedal_piece.dart';
 
 // One model per family, in PedalFamily order.
@@ -109,6 +110,77 @@ void main() {
     );
     await tester.tap(find.byKey(const Key('footswitch')));
     expect(taps, 1);
+  });
+
+  testWidgets(
+    'footswitch hit area is at least 44pt and the natural size holds',
+    (tester) async {
+      for (final m in _models) {
+        var taps = 0;
+        await tester.pumpWidget(
+          _host(
+            PedalPiece(spec: pedalSpecs[m]!, model: m, onSwitch: () => taps++),
+          ),
+        );
+        final f = find.byKey(const Key('footswitch'));
+        if (f.evaluate().isEmpty) continue;
+        final sz = tester.getSize(f);
+        expect(sz.width, greaterThanOrEqualTo(44), reason: m);
+        expect(sz.height, greaterThanOrEqualTo(44), reason: m);
+        // 20px off centre: outside the old 30-34px box, inside the 44px one.
+        await tester.tapAt(tester.getCenter(f) + const Offset(20, 0));
+        expect(taps, 1, reason: m);
+      }
+    },
+  );
+
+  testWidgets('a knob drags from just outside the cap, inside its cell', (
+    tester,
+  ) async {
+    final got = <(int, double)>[];
+    await tester.pumpWidget(
+      _host(
+        PedalPiece(
+          spec: pedalSpecs['Studio Delay']!,
+          model: 'Studio Delay',
+          onKnob: got.add,
+        ),
+      ),
+    );
+    final cap = find.byWidgetPredicate(
+      (w) => w is CustomPaint && w.painter is GearKnobPainter,
+    );
+    final r = tester.getRect(cap.first);
+    await tester.dragFrom(
+      Offset(r.right + 6, r.center.dy),
+      const Offset(0, -40),
+    );
+    expect(got, isNotEmpty);
+  });
+
+  testWidgets('graphic EQ sliders: 11px pitch, whole column drags', (
+    tester,
+  ) async {
+    final got = <(int, double)>[];
+    await tester.pumpWidget(
+      _host(
+        PedalPiece(
+          spec: pedalSpecs['GT EQ 1']!,
+          model: 'GT EQ 1',
+          onKnob: got.add,
+        ),
+      ),
+    );
+    final sl = find.byWidgetPredicate(
+      (w) => w is SizedBox && w.width == 11 && w.height == 66,
+    );
+    expect(sl, findsNWidgets(6));
+    final a = tester.getCenter(sl.at(0));
+    expect(tester.getCenter(sl.at(1)).dx - a.dx, 11);
+    // 5px right of the 3px track, still inside its 11px column.
+    await tester.dragFrom(a + const Offset(5, 0), const Offset(0, -30));
+    expect(got.every((e) => e.$1 == 0), true);
+    expect(got, isNotEmpty);
   });
 
   testWidgets('the model name is printed on the pedal', (tester) async {
