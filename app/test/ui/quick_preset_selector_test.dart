@@ -60,11 +60,11 @@ void main() {
     for (final f in t.sentFrames) f.toLowerCase(),
   ];
 
-  testWidgets('the tablet and desktop bar has no arrows', (tester) async {
+  testWidgets('the tablet and desktop bar has the arrows too', (tester) async {
     await pump(tester, size: const Size(1280, 800));
 
-    expect(previous, findsNothing);
-    expect(next, findsNothing);
+    expect(previous, findsOneWidget);
+    expect(next, findsOneWidget);
   });
 
   testWidgets('the phone bar steps to the next and the previous preset', (

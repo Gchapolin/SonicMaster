@@ -37,14 +37,13 @@ void main() {
 }
 
 /// Settles the page, then checks that every SVG (the logo, the chain icons)
-/// has decoded — a decoded picture sits in a FittedBox, an undecoded one is an
+/// (the logo is text now, so there may be none) has decoded — a decoded picture sits in a FittedBox, an undecoded one is an
 /// empty SizedBox — so a golden can never capture blank icons.
-Future<void> _settleSvgs(WidgetTester tester) async {
+Future<void> _settleSvgs(WidgetTester tester, {bool isExpected = true}) async {
   await tester.pumpAndSettle();
 
   final svgs = find.byType(SvgPicture);
 
-  expect(svgs, findsWidgets);
   expect(
     find.descendant(of: svgs, matching: find.byType(FittedBox)),
     findsNWidgets(svgs.evaluate().length),

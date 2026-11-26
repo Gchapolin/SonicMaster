@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/material.dart'; // Icons glyph font only
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
+import '../l10n/appearance_text.dart';
 import '../model/preset_ref.dart';
 import '../state/cfw_providers.dart';
 import '../state/device_providers.dart';
@@ -12,6 +12,7 @@ import '../state/preset_io.dart';
 import '../state/preset_providers.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text.dart';
+import 'appearance_dialog.dart';
 import 'bar_preset_fields.dart';
 import 'battery_chip.dart';
 import 'community_presets_dialog.dart';
@@ -50,13 +51,30 @@ class SonicLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final base = AppText.title.copyWith(fontSize: 20, letterSpacing: -0.5);
+
     return SizedBox(
       height: 40,
-      child: SvgPicture.asset(
-        'assets/images/logo.svg',
-        fit: .contain,
+      child: Align(
         alignment: Alignment.centerLeft,
-        colorFilter: ColorFilter.mode(Palette.textPrimary, .srcIn),
+        child: Text.rich(
+          TextSpan(
+            style: base.copyWith(
+              color: Palette.textPrimary,
+              fontWeight: FontWeight.w400,
+            ),
+            children: [
+              const TextSpan(text: 'sonic'),
+              TextSpan(
+                text: 'master',
+                style: TextStyle(
+                  color: Palette.primary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -160,7 +178,11 @@ class TopBar extends ConsumerWidget {
                         const FullscreenButton(),
                       ] else ...[
                         if (well != null) ...[
-                          well,
+                          _PresetStepper(
+                            current: current!,
+                            isEnabled: !isLoading,
+                            well: well,
+                          ),
                           const SizedBox(width: 12),
                           const BarPresetFields(),
                         ],
@@ -179,6 +201,19 @@ class TopBar extends ConsumerWidget {
                                   context: context,
                                   builder: (_) => const TunerDialog(),
                                 ),
+                        ),
+                      // ponytail: not on the compact bar (no room, 14 px short
+                      // at 568x320); the phone has no entry to Appearance yet.
+                      if (!isCompact)
+                        Semantics(
+                          label: AppearanceText.current.title,
+                          button: true,
+                          excludeSemantics: true,
+                          child: SonicIconButton(
+                            icon: Icons.palette,
+                            padding: metrics.topBarIconPadding,
+                            onPressed: () => showAppearanceDialog(context),
+                          ),
                         ),
                       SonicIconButton(
                         icon: Icons.tune,
@@ -225,6 +260,7 @@ class TopBar extends ConsumerWidget {
                         ),
                       SonicIconButton(
                         icon: Icons.save,
+                        color: Palette.primary,
                         padding: metrics.topBarIconPadding,
                         onPressed:
                             (isConnected && !isLoading && current != null)

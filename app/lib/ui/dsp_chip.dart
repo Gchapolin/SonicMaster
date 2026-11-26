@@ -13,6 +13,9 @@ class DspChip extends ConsumerWidget {
   const DspChip({super.key});
 
   static const alertFrom = 85;
+  static const meterWidth = 86.0;
+  static const trackKey = ValueKey('dsp-track');
+  static const fillKey = ValueKey('dsp-fill');
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -24,24 +27,45 @@ class DspChip extends ConsumerWidget {
     if (!isCfw || load == null) return const SizedBox.shrink();
 
     final percent = load.clamp(0, 100);
-    final color = percent >= alertFrom
+    final isAlert = percent >= alertFrom;
+    final color = isAlert ? Palette.error : Palette.onSurfaceVariant;
+    // Flat stand-in for the prototype's ok-to-primary ramp (no gradients):
+    // ok while light, primary once the load passes half, error at the alert.
+    final fill = isAlert
         ? Palette.error
-        : Palette.onSurfaceVariant;
+        : percent > 50
+        ? Palette.primary
+        : Palette.ok;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 6),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: color),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-          child: Text(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Row(
+        mainAxisSize: .min,
+        children: [
+          Text(
             'DSP $percent%',
-            style: AppText.dialogBody.copyWith(color: color),
+            style: AppText.mono.copyWith(color: color, fontSize: 11),
           ),
-        ),
+          const SizedBox(width: 8),
+          Container(
+            key: trackKey,
+            width: meterWidth,
+            height: 6,
+            decoration: BoxDecoration(
+              color: Palette.surfaceContainerHigh,
+              borderRadius: BorderRadius.circular(3),
+            ),
+            alignment: Alignment.centerLeft,
+            child: Container(
+              key: fillKey,
+              width: meterWidth * percent / 100,
+              decoration: BoxDecoration(
+                color: fill,
+                borderRadius: BorderRadius.circular(3),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -67,7 +67,7 @@ class PresetSlotChip extends StatelessWidget {
 }
 
 /// One preset row in the rail's chip list: a [PresetSlotChip] plus the decoded
-/// name (if any). Selected → secondaryContainer fill; disabled → dimmed, no tap.
+/// name (if any). Selected → raised fill with an accent border; disabled → dimmed, no tap.
 class PresetChip extends StatelessWidget {
   const PresetChip({
     super.key,
@@ -105,17 +105,21 @@ class PresetChip extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
               color: isSelected
-                  ? Palette.secondaryContainer
-                  : Palette.surfaceContainerLow,
+                  ? Palette.surfaceContainerHigh
+                  : Palette.surface,
               border: Border.all(
-                color: isSelected
-                    ? Palette.secondaryContainer
-                    : Palette.surfaceContainerLow,
+                color: isSelected ? Palette.primary : Palette.surface,
               ),
             ),
             child: Row(
               children: [
-                PresetSlotChip(slot),
+                Text(
+                  slot,
+                  style: AppText.mono.copyWith(
+                    fontSize: 12,
+                    color: Palette.primary,
+                  ),
+                ),
                 if (n != null && n.isNotEmpty) ...[
                   const SizedBox(width: 8),
                   Expanded(
@@ -123,7 +127,11 @@ class PresetChip extends StatelessWidget {
                       n,
                       maxLines: 1,
                       overflow: .ellipsis,
-                      style: _railStyle(14),
+                      style: AppText.ui.copyWith(
+                        color: isSelected
+                            ? Palette.onSurface
+                            : Palette.railText,
+                      ),
                     ),
                   ),
                 ],

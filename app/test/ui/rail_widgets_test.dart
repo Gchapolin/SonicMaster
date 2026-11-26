@@ -47,7 +47,7 @@ void main() {
     expect(taps, 0);
   });
 
-  testWidgets('a selected PresetChip is filled with secondaryContainer', (
+  testWidgets('a selected PresetChip is raised with an accent border', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -61,7 +61,8 @@ void main() {
         .whereType<BoxDecoration>()
         .firstWhere((d) => d.border != null);
 
-    expect(deco.color, Palette.secondaryContainer);
+    expect(deco.color, Palette.surfaceContainerHigh);
+    expect((deco.border! as Border).top.color, Palette.primary);
   });
 
   testWidgets('RailTab and RailButton render and tap', (tester) async {
