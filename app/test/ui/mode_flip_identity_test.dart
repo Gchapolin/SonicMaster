@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sonicmaster/gear/gear_piece.dart';
 import 'package:sonicmaster/state/edit_providers.dart';
 import 'package:sonicmaster/ui/chain_view.dart';
-import 'package:sonicmaster/ui/knob_control.dart';
 import 'package:sonicmaster/ui/module_editor.dart';
 import 'package:sonicmaster/ui/sonic_controls.dart';
 
@@ -58,16 +58,14 @@ void main() {
       find.descendant(of: find.byType(ModuleEditor), matching: finder);
 
   // The editor and the pieces of it that a mode switch might re-create. The
-  // header's controls are listed apart from the cells on purpose: the page
-  // gives the knob row a GlobalKey, so a new wrapper above the row would carry
-  // its cells over as the same elements and rebuild only the header. The
-  // effect description (regular only) is left out: it comes and goes.
+  // header and the knobs differ by mode since the regular editor draws the
+  // knobs on the piece (prototype N_Principal) under its own model header;
+  // the control row's cells (the page gives the knob row a GlobalKey) and the
+  // editor itself must survive. The effect description (regular only) is left
+  // out: it comes and goes.
   Map<String, List<Element>> editorElements() => {
     'ModuleEditor': elementsOf(find.byType(ModuleEditor)),
-    'effect dropdown': elementsOf(inEditor(find.byType(SonicDropdown<int>))),
-    'toggles': elementsOf(inEditor(find.byType(SonicToggle))),
     'panel cells': elementsOf(inEditor(find.byType(PanelCell))),
-    'knob cells': elementsOf(inEditor(find.byType(KnobControl))),
   };
 
   Size dial(WidgetTester tester) =>
@@ -83,7 +81,7 @@ void main() {
     // Every kind must match something, or its check passes without checking
     // ([] equals []).
     expect(before.values, everyElement(isNotEmpty));
-    expect(dial(tester), const Size.square(120));
+    expect(inEditor(find.byType(GearPiece)), findsOneWidget);
 
     await flipTo(tester, compact);
 
@@ -95,7 +93,7 @@ void main() {
 
     expectNoOverflow(tester);
     expect(rebuiltKinds(before, editorElements()), isEmpty);
-    expect(dial(tester), const Size.square(120));
+    expect(inEditor(find.byType(GearPiece)), findsOneWidget);
   });
 
   Map<String, List<Element>> chainElements() => {

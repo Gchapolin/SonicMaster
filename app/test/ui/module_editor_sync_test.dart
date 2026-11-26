@@ -7,9 +7,11 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sonicmaster/gear/gear_piece.dart';
 import 'package:sonicmaster/state/data_providers.dart';
 import 'package:sonicmaster/state/preset_providers.dart';
 import 'package:sonicmaster/ui/knob_control.dart';
+import 'package:sonicmaster/ui/knob_mapping.dart';
 import 'package:sonicmaster/ui/module_editor.dart';
 import 'package:sonicmaster/ui/sonic_controls.dart';
 import 'package:sonicmaster/ui/tap_tempo_control.dart';
@@ -63,6 +65,13 @@ void main() {
     of: find.byWidgetPredicate((w) => w is PanelCell && w.label == label),
     matching: find.byType(control),
   );
+
+  // The regular piece's value (0..100) for the knob named [label].
+  double? pieceValue(WidgetTester tester, String label) {
+    final piece = tester.widget<GearPiece>(find.byType(GearPiece));
+
+    return piece.values![piece.knobNames!.indexOf(label)];
+  }
 
   // A knob is returned bare (it carries its own label); only the sync-engaged
   // division dropdown gets wrapped in a PanelCell.
@@ -192,10 +201,15 @@ void main() {
         c.syncAlg: 0,
       });
 
-      final tempo = tester.widget<KnobControl>(tempoKnob(c.tempo));
+      // Regular: the tempo knob is on the piece, at its place in the range.
+      final param = assets.effects
+          .byId(c.fxId)!
+          .params
+          .firstWhere((p) => p.algId == c.tempoAlg);
 
-      expect(tempo.unit, c.tempo == 'Time' ? 'ms' : 'Hz');
-      expect(tempo.value, parked);
+      expect(param.unit, c.tempo == 'Time' ? 'ms' : 'Hz');
+      expect(tempoKnob(c.tempo), findsNothing);
+      expect(pieceValue(tester, c.tempo), toPieceValue(param, parked));
       // …and the gate itself is rendered, off.
       expect(
         tester.widget<SonicToggle>(inCell('Sync', SonicToggle)).value,
@@ -212,10 +226,11 @@ void main() {
         c.syncAlg: 1,
       });
 
+      // The piece knob holds no position: the slot is a note division.
       expect(
-        tempoKnob(c.tempo),
-        findsNothing,
-        reason: 'the ${c.tempo} knob must be gone once Sync is engaged',
+        pieceValue(tester, c.tempo),
+        isNull,
+        reason: 'the ${c.tempo} knob must be blank once Sync is engaged',
       );
 
       final divisions = tester.widget<SonicDropdown<int>>(

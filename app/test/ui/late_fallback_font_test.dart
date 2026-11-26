@@ -4,6 +4,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sonicmaster/state/edit_providers.dart';
 import 'package:sonicmaster/state/preset_providers.dart';
 import 'package:sonicmaster/theme/app_text.dart';
 import 'package:sonicmaster/ui/module_editor.dart';
@@ -164,7 +165,8 @@ void main() {
   group('the knob value editor', () {
     // The field takes any text, so a typed glyph outside Oswald (an arrow, a
     // Persian digit, "✱") makes the web fetch a face just like the marker.
-    // A module knob in regular, where the editor is the taller panel, and
+    // A module knob in regular, where the editor is the taller panel (the
+    // EQ's 125Hz band: regular draws the plain knobs on the piece), and
     // Patch Vol in compact, where the Preset panel is. Lines: round(18 or
     // 14 px × 1.482 em) pinned, round(18 or 14 px × 1.823 em) unpinned.
     for (final (name, size, panel, readout, style, pinned, unpinned) in [
@@ -195,7 +197,24 @@ void main() {
         Finder inPanel(Finder finder) =>
             find.descendant(of: find.byType(panel), matching: finder);
 
-        await pumpPage(tester, size: size, home: pageFallingBackTo(family));
+        final isRegular = size == regular;
+
+        await pumpPage(
+          tester,
+          size: size,
+          home: pageFallingBackTo(family),
+          selectedEffects: isRegular ? const {5: 501} : const {0: 1},
+          parameters: isRegular
+              ? const {
+                  5: {0: 50},
+                }
+              : const {
+                  0: {0: 50},
+                },
+          overrides: [
+            if (isRegular) selectedModuleProvider.overrideWith((_) => 5),
+          ],
+        );
         await openEditor(tester, inPanel(find.text(readout)));
         await tester.enterText(inPanel(find.byType(EditableText)), '$readout✱');
         await tester.pump();

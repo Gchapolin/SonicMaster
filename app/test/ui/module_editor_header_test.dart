@@ -12,10 +12,9 @@ import '../support/fonts.dart';
 import '../support/test_assets.dart';
 import '../support/view_helpers.dart';
 
-/// The editor header: [title][effect, centred][on/off]. A user-named clone
-/// holds up to 15 characters (CloUploadFrame.nameMaxChars), which used to push
-/// the header past the regular editor's 324 px at the 960 minimum
-/// (692 - 360 - 8). A name that fits must sit exactly where it always did.
+/// The regular editor header. A user-named clone holds up to 15 characters
+/// (CloUploadFrame.nameMaxChars); at the 692-px work area of the 960 minimum
+/// it must ellipsize, never overflow.
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -59,7 +58,7 @@ void main() {
             child: Align(
               alignment: Alignment.topLeft,
               child: SizedBox(
-                width: 324,
+                width: 692,
                 child: SingleChildScrollView(
                   child: SonicSurface(
                     padding: EdgeInsets.zero,
@@ -74,7 +73,7 @@ void main() {
     );
   }
 
-  testWidgets('a 15-character clone name ellipsizes in the 324-px header', (
+  testWidgets('a 15-character clone name ellipsizes in the header', (
     tester,
   ) async {
     await pumpEditor(
@@ -95,32 +94,36 @@ void main() {
     expect(effect.right, lessThanOrEqualTo(toggle.left));
   });
 
-  // A pin: true before and after the change. Spacer / effect / Spacer and
-  // Expanded(Center(effect)) both put a fitting effect at its natural width,
-  // centred in the room between the title and the toggle.
-  for (final (moduleId, fxId, title, isDropdown) in const [
-    (0, 1, 'NR', false), // NR has one effect: the static 'Gate' label
-    (3, 307, 'AMP', true), // AMP: the effect dropdown
-  ]) {
-    testWidgets('$title: an effect that fits sits midway, at natural width', (
-      tester,
-    ) async {
-      await pumpEditor(tester, moduleId: moduleId, fxId: fxId);
+  // Regular (prototype N_Principal): tag, prev, selector, next, the amp's
+  // band chip, then the on/off toggle pinned right, all on one line.
+  testWidgets('AMP: tag, prev, selector, next, band chip, toggle', (
+    tester,
+  ) async {
+    await pumpEditor(tester, moduleId: 3, fxId: 307);
 
-      final titleRect = tester.getRect(find.text(title));
-      final toggle = tester.getRect(find.byType(SonicToggle).first);
-      final effect = tester.getRect(
-        isDropdown
-            ? find.byType(SonicDropdown<int>).first
-            : find.text(assets.effects.byId(fxId)!.name),
-      );
+    expectNoOverflow(tester);
 
-      expect(
-        effect.center.dx,
-        closeTo((titleRect.right + toggle.left) / 2, 0.01),
-      );
-      expect(effect.center.dy, closeTo(toggle.center.dy, 0.01));
-      expect(effect.width, lessThan(toggle.left - titleRect.right));
-    });
-  }
+    final rects = [
+      tester.getRect(find.text('AMP')),
+      tester.getRect(find.byKey(const Key('model-prev'))),
+      tester.getRect(find.byType(SonicDropdown<int>).first),
+      tester.getRect(find.byKey(const Key('model-next'))),
+      tester.getRect(find.byKey(const Key('amp-band'))),
+      tester.getRect(find.byType(SonicToggle).first),
+    ];
+
+    for (var i = 1; i < rects.length; i++) {
+      expect(rects[i].left, greaterThanOrEqualTo(rects[i - 1].right));
+      expect(rects[i].center.dy, closeTo(rects[2].center.dy, 0.01));
+    }
+    expect(rects[2].width, greaterThanOrEqualTo(220));
+  });
+
+  testWidgets('NR (one effect): a static name, no arrows', (tester) async {
+    await pumpEditor(tester, moduleId: 0, fxId: 1);
+
+    expect(find.text(assets.effects.byId(1)!.name), findsOneWidget);
+    expect(find.byKey(const Key('model-prev')), findsNothing);
+    expect(find.byKey(const Key('model-next')), findsNothing);
+  });
 }

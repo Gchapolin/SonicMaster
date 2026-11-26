@@ -1,6 +1,9 @@
+import 'package:flutter/material.dart' show Icons;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../gear/gear_lookup.dart';
+import '../gear/gear_piece.dart';
 import '../l10n/amp_text.dart';
 import '../l10n/shell_text.dart';
 import '../model/amp_gain.dart';
@@ -17,6 +20,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_text.dart';
 import 'exp_controls.dart';
 import 'knob_control.dart';
+import 'knob_mapping.dart';
 import 'scene_controls.dart';
 import 'sonic_controls.dart';
 import 'sonic_metrics.dart';
@@ -114,80 +118,153 @@ class ModuleEditor extends ConsumerWidget {
           }
         : const <int, String>{};
 
+    final isRegular = !metrics.isCompact;
+    // Regular: the effect's knobs live on its big piece; the rest of its
+    // params stay in the control row below.
+    final onPiece = isRegular
+        ? pieceKnobs(def, isCfw: isCfw)
+        : const <EffectParameter>[];
+
     return Column(
       crossAxisAlignment: .stretch,
       mainAxisSize: .min,
       children: [
-        Padding(
-          padding: metrics.editorHeaderPadding,
-          child: Row(
-            children: [
-              // abbreviation — pinned left. The forced Oswald strut holds the
-              // line when "✱" (not in Oswald) shows: its fallback face, which
-              // the web fetches only after the first layout, would make the
-              // line taller than the IntrinsicHeight pass measured.
-              Text(
-                '$moduleName${modified ? '  ✱' : ''}',
-                strutStyle: StrutStyle.fromTextStyle(
-                  AppText.moduleTitle,
-                  forceStrutHeight: true,
-                ),
-                style: AppText.moduleTitle.copyWith(color: Palette.textPrimary),
-              ),
-              // effect type — dropdown (if selectable) or static name, centered
-              // between the title and the toggle. Expanded + Center puts it
-              // exactly where the former Spacer pair did whenever it fits, and
-              // lets a long name (a user-named clone holds up to 15 chars)
-              // ellipsize instead of overflowing the header.
-              // Gate on dropdownIds (not effectIds): device filtering can narrow
-              // the pickable set to one, but a legacy/unsupported current effect
-              // is still prepended, and the user must be able to switch off it.
-              Expanded(
-                child: Center(
-                  child: dropdownIds.length > 1
-                      ? SonicDropdown<int>(
-                          value: fxId,
-                          height: metrics.editorControlHeight,
-                          items: [
-                            for (final id in dropdownIds)
-                              (
-                                value: id,
-                                label: effectDisplayName(
-                                  id,
-                                  data.effects,
-                                  userNames,
-                                ),
-                              ),
-                          ],
-                          sections: sections,
-                          isEnabled: !isLoading,
-                          onChanged: (id) => setEffectType(ref, moduleId, id),
-                        )
-                      : Text(
-                          effectDisplayName(fxId!, data.effects, userNames),
-                          maxLines: 1,
-                          overflow: .ellipsis,
-                          style: AppText.controlLabel.copyWith(
-                            color: Palette.textPrimary,
-                          ),
-                        ),
-                ),
-              ),
-              // enabled — BOOST-style toggle (no label), pinned right
-              SonicToggle(
+        if (isRegular)
+          Padding(
+            padding: metrics.editorHeaderPadding,
+            child: _ModelHeader(
+              tag: '$moduleName${modified ? '  ✱' : ''}',
+              ids: dropdownIds,
+              current: fxId!,
+              labelOf: (id) => effectDisplayName(id, data.effects, userNames),
+              sections: sections,
+              band: isAmp ? ampGainOf(fxId) : null,
+              isEnabled: !isLoading,
+              onPick: (id) => setEffectType(ref, moduleId, id),
+              trailing: SonicToggle(
                 value: moduleOn,
                 onChanged: isLoading
                     ? null
                     : (v) => toggleModule(ref, physId, v),
               ),
-            ],
+            ),
+          )
+        else
+          Padding(
+            padding: metrics.editorHeaderPadding,
+            child: Row(
+              children: [
+                // abbreviation — pinned left. The forced Oswald strut holds the
+                // line when "✱" (not in Oswald) shows: its fallback face, which
+                // the web fetches only after the first layout, would make the
+                // line taller than the IntrinsicHeight pass measured.
+                Text(
+                  '$moduleName${modified ? '  ✱' : ''}',
+                  strutStyle: StrutStyle.fromTextStyle(
+                    AppText.moduleTitle,
+                    forceStrutHeight: true,
+                  ),
+                  style: AppText.moduleTitle.copyWith(
+                    color: Palette.textPrimary,
+                  ),
+                ),
+                // effect type — dropdown (if selectable) or static name, centered
+                // between the title and the toggle. Expanded + Center puts it
+                // exactly where the former Spacer pair did whenever it fits, and
+                // lets a long name (a user-named clone holds up to 15 chars)
+                // ellipsize instead of overflowing the header.
+                // Gate on dropdownIds (not effectIds): device filtering can narrow
+                // the pickable set to one, but a legacy/unsupported current effect
+                // is still prepended, and the user must be able to switch off it.
+                Expanded(
+                  child: Center(
+                    child: dropdownIds.length > 1
+                        ? SonicDropdown<int>(
+                            value: fxId,
+                            height: metrics.editorControlHeight,
+                            items: [
+                              for (final id in dropdownIds)
+                                (
+                                  value: id,
+                                  label: effectDisplayName(
+                                    id,
+                                    data.effects,
+                                    userNames,
+                                  ),
+                                ),
+                            ],
+                            sections: sections,
+                            isEnabled: !isLoading,
+                            onChanged: (id) => setEffectType(ref, moduleId, id),
+                          )
+                        : Text(
+                            effectDisplayName(fxId!, data.effects, userNames),
+                            maxLines: 1,
+                            overflow: .ellipsis,
+                            style: AppText.controlLabel.copyWith(
+                              color: Palette.textPrimary,
+                            ),
+                          ),
+                  ),
+                ),
+                // enabled — BOOST-style toggle (no label), pinned right
+                SonicToggle(
+                  value: moduleOn,
+                  onChanged: isLoading
+                      ? null
+                      : (v) => toggleModule(ref, physId, v),
+                ),
+              ],
+            ),
           ),
-        ),
+        if (isRegular)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+            // Narrower than the piece: it scales down, never overflows.
+            child: Center(
+              child: FittedBox(
+                fit: .scaleDown,
+                child: GearPiece(
+                  model: def.name,
+                  kind: gearKindForModule(physId),
+                  fit: const Size(660, 440),
+                  knobNames: [for (final p in onPiece) p.name],
+                  values: [
+                    for (final p in onPiece)
+                      // A synced Rate holds a note division, not a position.
+                      p.isSynced(values)
+                          ? null
+                          : toPieceValue(p, values[p.algId] ?? p.defaultValue),
+                  ],
+                  onKnob: isLoading
+                      ? null
+                      : (e) {
+                          final p = onPiece[e.$1];
+
+                          if (p.isSynced(values)) return;
+
+                          final v = fromPieceValue(p, e.$2);
+
+                          if (v == (values[p.algId] ?? p.defaultValue)) return;
+
+                          setParameter(ref, moduleId, p.algId, v);
+                        },
+                  onSwitch: isLoading
+                      ? null
+                      : () => toggleModule(ref, physId, !moduleOn),
+                  lit: moduleOn,
+                ),
+              ),
+            ),
+          ),
         // Every control — knobs, toggles, dropdowns — flows in ONE horizontal
         // Wrap like a hardware unit's front panel (always a single row that
         // wraps; never separate full-width rows). DLY (module 7) prepends its
         // tap-tempo cells (TAP / BPM / division / computed-ms) to the same row.
+        // Keyed: the regular piece above it comes and goes with the mode, and
+        // a live flip must not re-create the row (its cells hold state).
         Builder(
+          key: const ValueKey('control-row'),
           builder: (context) {
             final cells = [
               // AMP-only: Clone Mode toggle in the settings row (off = Normal/
@@ -247,14 +324,16 @@ class ModuleEditor extends ConsumerWidget {
                     ),
                   ),
               for (final p in knobs)
-                _control(
-                  context,
-                  ref,
-                  p,
-                  values[p.algId] ?? p.defaultValue,
-                  isLoading,
-                  values,
-                ),
+                // A synced Rate stays here: its division dropdown.
+                if (!onPiece.contains(p) || p.isSynced(values))
+                  _control(
+                    context,
+                    ref,
+                    p,
+                    values[p.algId] ?? p.defaultValue,
+                    isLoading,
+                    values,
+                  ),
               // Per-module footswitch assignment (None/FS1/FS2). Keyed on the
               // physical slot so the clone-amp editor (id 9) drives the amp's.
               if (state != null)
@@ -452,6 +531,144 @@ class _FootswitchCell extends StatelessWidget {
         disabledValues: disabled,
         onChanged: isEnabled ? onChanged : null,
       ),
+    );
+  }
+}
+
+/// The regular editor's header (prototype N_Principal): the module tag, the
+/// model selector between previous / next arrows (wrapping), the amp's band
+/// chip, and [trailing] pinned right.
+class _ModelHeader extends StatelessWidget {
+  const _ModelHeader({
+    required this.tag,
+    required this.ids,
+    required this.current,
+    required this.labelOf,
+    required this.sections,
+    required this.band,
+    required this.isEnabled,
+    required this.onPick,
+    required this.trailing,
+  });
+
+  final String tag;
+  final List<int> ids;
+  final int current;
+  final String Function(int id) labelOf;
+  final Map<int, String> sections;
+  final AmpGain? band;
+  final bool isEnabled;
+  final ValueChanged<int> onPick;
+  final Widget trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    final canWalk = ids.length > 1;
+
+    // The model [by] steps away in the list, wrapping at either end.
+    void walk(int by) {
+      final i = ids.indexOf(current);
+
+      onPick(ids[(i + by) % ids.length]);
+    }
+
+    // A 36-px box in a 44-wide hit area, as tall as the selector.
+    Widget arrow(String key, IconData icon, int by) => SizedBox(
+      key: Key(key),
+      width: 44,
+      height: SonicMetrics.of(context).editorControlHeight,
+      child: Center(
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: Palette.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: SonicIconButton(
+            icon: icon,
+            size: 16,
+            padding: const EdgeInsets.all(10),
+            onPressed: isEnabled ? () => walk(by) : null,
+          ),
+        ),
+      ),
+    );
+
+    return Row(
+      children: [
+        // Pinned to the prototype's 40-px tag column; the forced strut holds
+        // the line when "✱" (not in the face) shows.
+        ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 40),
+          child: Text(
+            tag,
+            strutStyle: StrutStyle.fromTextStyle(
+              AppText.moduleTitle,
+              forceStrutHeight: true,
+            ),
+            style: AppText.moduleTitle.copyWith(color: Palette.textPrimary),
+          ),
+        ),
+        const SizedBox(width: 4),
+        // The rest of the line, left-aligned: the selector keeps its natural
+        // width (220 at least) and ellipsizes only when the line is short.
+        Expanded(
+          child: Row(
+            children: [
+              if (canWalk) arrow('model-prev', Icons.chevron_left, -1),
+              Flexible(
+                child: canWalk
+                    ? ConstrainedBox(
+                        constraints: const BoxConstraints(minWidth: 220),
+                        child: SonicDropdown<int>(
+                          value: current,
+                          height: SonicMetrics.of(context).editorControlHeight,
+                          items: [
+                            for (final id in ids)
+                              (value: id, label: labelOf(id)),
+                          ],
+                          sections: sections,
+                          isEnabled: isEnabled,
+                          onChanged: onPick,
+                        ),
+                      )
+                    : Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Text(
+                          labelOf(current),
+                          maxLines: 1,
+                          overflow: .ellipsis,
+                          style: AppText.controlLabel.copyWith(
+                            color: Palette.textPrimary,
+                          ),
+                        ),
+                      ),
+              ),
+              if (canWalk) arrow('model-next', Icons.chevron_right, 1),
+              if (band case final band?) ...[
+                const SizedBox(width: 6),
+                DecoratedBox(
+                  key: const Key('amp-band'),
+                  decoration: BoxDecoration(
+                    color: Palette.primary.withValues(alpha: 0.14),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    child: Text(
+                      AmpText.current.band(band).toUpperCase(),
+                      style: AppText.section.copyWith(color: Palette.primary),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+        trailing,
+      ],
     );
   }
 }
