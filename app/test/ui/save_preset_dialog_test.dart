@@ -67,7 +67,6 @@ void main() {
     await open(tester, current: current, names: {current: 'MyPatch'});
 
     expect(fieldText(tester), 'MyPatch');
-    expect(find.text('7/10'), findsOneWidget); // the counter tracks the prefill
     expect(find.text('P05'), findsOneWidget); // slot defaults to the loaded one
   });
 
@@ -99,6 +98,62 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Save preset'), findsNothing);
+  });
+
+  group('slot menu', () {
+    const current = PresetRef(.user, 5);
+    final names = {
+      for (var n = 1; n <= 50; n++)
+        PresetRef(.user, n): 'Name${n.toString().padLeft(2, '0')}',
+    };
+
+    Future<void> openMenu(WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1180, 820);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await open(tester, current: current, names: names);
+      await tester.tap(find.text('P05'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('the slot menu lists all user slots in two columns without '
+        'scrolling', (tester) async {
+      await openMenu(tester);
+
+      for (var n = 1; n <= 50; n++) {
+        final id = 'P${n.toString().padLeft(2, '0')}';
+        // P05 also shows on the closed selector.
+        expect(find.text(id), n == 5 ? findsNWidgets(2) : findsOneWidget);
+        expect(
+          tester.getRect(find.text(id).last).bottom,
+          lessThanOrEqualTo(820),
+        );
+      }
+      expect(
+        tester.getTopLeft(find.text('P26').last).dx,
+        greaterThan(tester.getTopLeft(find.text('P01')).dx + 100),
+      );
+      expect(
+        tester.getTopLeft(find.text('P26').last).dy,
+        tester.getTopLeft(find.text('P01')).dy,
+      );
+    });
+
+    testWidgets('picking a slot fills the name', (tester) async {
+      await openMenu(tester);
+      await tester.tap(find.text('P12'));
+      await tester.pumpAndSettle();
+
+      expect(fieldText(tester), 'Name12');
+      expect(find.text('P12'), findsOneWidget);
+    });
+
+    testWidgets('name limited to 10 chars', (tester) async {
+      await open(tester, current: current, names: names);
+      await tester.enterText(find.byType(EditableText), '12345678901234');
+
+      expect(fieldText(tester), '1234567890');
+    });
   });
 
   group('Done / Enter in the real app shell', () {

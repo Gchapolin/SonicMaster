@@ -363,7 +363,7 @@ void main() {
   group('regular 1280x800 plates are unchanged', () {
     for (final (name, rect) in const [
       ('unsaved changes', Rect.fromLTRB(400, 301, 880, 499)),
-      ('save preset', Rect.fromLTRB(450, 266, 830, 534)),
+      ('save preset', Rect.fromLTRB(450, 247, 830, 553)),
       ('device picker, scanning', Rect.fromLTRB(420, 160, 860, 640)),
       ('settings', Rect.fromLTRB(420, 80, 860, 720)),
     ]) {

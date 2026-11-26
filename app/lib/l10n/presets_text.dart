@@ -12,6 +12,8 @@ abstract class PresetsText {
   String get savePresetTitle;
   String get presetName;
   String get nameHint;
+  String get slot;
+  String get maxChars;
 
   // Unsaved changes dialog.
   String get discardTitle;
@@ -71,6 +73,10 @@ class _En extends PresetsText {
   String get presetName => 'Preset name';
   @override
   String get nameHint => 'Name';
+  @override
+  String get slot => 'Slot';
+  @override
+  String get maxChars => 'Maximum 10 characters.';
 
   @override
   String get discardTitle => 'Discard unsaved changes?';
@@ -175,6 +181,10 @@ class _Pt extends PresetsText {
   String get presetName => 'Nome do preset';
   @override
   String get nameHint => 'Nome';
+  @override
+  String get slot => 'Slot';
+  @override
+  String get maxChars => 'Máximo de 10 caracteres.';
 
   @override
   String get discardTitle => 'Descartar alterações não salvas?';

@@ -82,7 +82,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Salvar preset'), findsOneWidget);
-    expect(find.text('Nome do preset'), findsOneWidget);
+    expect(find.text('NOME DO PRESET'), findsOneWidget);
+    expect(find.text('Máximo de 10 caracteres.'), findsOneWidget);
     expect(find.text('Cancelar'), findsOneWidget);
     expect(find.text('Salvar'), findsOneWidget);
     expect(tester.takeException(), isNull);

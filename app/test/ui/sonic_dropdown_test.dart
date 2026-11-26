@@ -121,75 +121,6 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    Rect trigger(WidgetTester tester) =>
-        tester.getRect(find.byType(SonicDropdown<int>));
-
-    // The menu's plate: the SonicSurface closest around a menu row (the
-    // dialog's plate is an ancestor too: the menu lives in its OverlayPortal).
-    Rect menu(WidgetTester tester) => tester.getRect(
-      find
-          .ancestor(of: find.text('P06'), matching: find.byType(SonicSurface))
-          .first,
-    );
-
-    // On screen (above the keyboard) and attached to its trigger: 6 px below
-    // it, or 6 px above it.
-    void expectPlaced(WidgetTester tester, Rect visible) {
-      final (menuRect, triggerRect) = (menu(tester), trigger(tester));
-
-      expectWithin(menuRect, visible, 'the menu');
-      expect(
-        (menuRect.top - triggerRect.bottom - 6).abs() < 0.01 ||
-            (triggerRect.top - menuRect.bottom - 6).abs() < 0.01,
-        isTrue,
-        reason: 'menu $menuRect is not attached to its trigger $triggerRect',
-      );
-    }
-
-    testWidgets('568x320: it opens upward, fully on screen', (tester) async {
-      await openSave(tester, size: const Size(568, 320));
-
-      expect(menu(tester).bottom, lessThanOrEqualTo(trigger(tester).top));
-      expectPlaced(tester, const Rect.fromLTWH(0, 0, 568, 320));
-    });
-
-    testWidgets('the keyboard closing under it: it stays open and follows', (
-      tester,
-    ) async {
-      await openSave(tester, size: const Size(852, 393), keyboard: 180);
-      expectPlaced(tester, const Rect.fromLTWH(0, 0, 852, 393 - 180));
-
-      final before = trigger(tester);
-
-      await setKeyboard(tester, 0); // the dialog re-centres: the trigger moves
-      await tester.pumpAndSettle();
-
-      expect(trigger(tester), isNot(before));
-      expect(find.text('P06'), findsOneWidget); // still open
-      expectPlaced(tester, const Rect.fromLTWH(0, 0, 852, 393));
-    });
-
-    // A phone turned to portrait and back while the Slot menu is open: the
-    // menu must land on screen again, attached to the moved trigger, not keep
-    // the placement it had for the portrait screen.
-    testWidgets('turning the phone and back: it stays open and on screen', (
-      tester,
-    ) async {
-      await openSave(tester, size: const Size(852, 393));
-
-      tester.view.physicalSize = const Size(393, 852);
-      await tester.pumpAndSettle();
-
-      expect(find.text('P06'), findsOneWidget);
-      expectPlaced(tester, const Rect.fromLTWH(0, 0, 393, 852));
-
-      tester.view.physicalSize = const Size(852, 393);
-      await tester.pumpAndSettle();
-
-      expect(find.text('P06'), findsOneWidget);
-      expectPlaced(tester, const Rect.fromLTWH(0, 0, 852, 393));
-    });
-
     testWidgets('compact: Back closes the menu, then the dialog', (
       tester,
     ) async {
@@ -206,7 +137,7 @@ void main() {
       expect(find.text('Save preset'), findsNothing);
     });
 
-    testWidgets('regular: Escape still closes the dialog with its menu', (
+    testWidgets('regular: Escape closes the menu, then the dialog', (
       tester,
     ) async {
       await openSave(tester, size: const Size(1280, 800));
@@ -214,6 +145,11 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('P06'), findsNothing);
+      expect(find.text('Save preset'), findsOneWidget);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pumpAndSettle();
+
       expect(find.text('Save preset'), findsNothing);
     });
   });
