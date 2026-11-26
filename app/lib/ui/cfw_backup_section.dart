@@ -7,6 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../l10n/backup_text.dart';
 import '../l10n/common_text.dart';
+import '../l10n/settings_text.dart';
 import '../protocol/cfw_backup.dart';
 import '../state/cfw_backup_io.dart';
 import '../state/cfw_providers.dart';
@@ -228,29 +229,57 @@ class CfwBackupSection extends HookConsumerWidget {
     final isEnabled = !isLoading && !isBusy.value;
     final muted = AppText.dialogBody.copyWith(color: Palette.onSurfaceVariant);
 
+    final rowLabel = AppText.ui.copyWith(color: Palette.onSurfaceVariant);
+    Widget row(String label, Widget button) => ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 36),
+      child: Row(
+        spacing: 10,
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              maxLines: 2,
+              overflow: .ellipsis,
+              style: rowLabel,
+            ),
+          ),
+          button,
+        ],
+      ),
+    );
+
     return Column(
       mainAxisSize: .min,
       crossAxisAlignment: .stretch,
+      spacing: 4,
       children: [
-        Text(t.intro, style: muted),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          child: Row(
-            children: [
-              SonicButton(
-                label: t.backUpNow,
-                onPressed: isEnabled ? backUp : null,
-              ),
-              const SizedBox(width: 10),
-              SonicButton(
-                label: t.restoreEllipsis,
-                onPressed: isEnabled ? restore : null,
-              ),
-              if (isBusy.value) ...[
-                const SizedBox(width: 12),
-                const SonicSpinner(size: 20),
+        Semantics(
+          label: t.intro,
+          child: row(
+            SettingsText.current.backupRow,
+            Row(
+              mainAxisSize: .min,
+              spacing: 8,
+              children: [
+                if (isBusy.value) const SonicSpinner(size: 20),
+                SonicButton(
+                  label: t.backUpNow,
+                  height: 34,
+                  minWidth: 0,
+                  isAccent: true,
+                  onPressed: isEnabled ? backUp : null,
+                ),
               ],
-            ],
+            ),
+          ),
+        ),
+        row(
+          SettingsText.current.restoreRow,
+          SonicButton(
+            label: t.restoreEllipsis,
+            height: 34,
+            minWidth: 0,
+            onPressed: isEnabled ? restore : null,
           ),
         ),
         if (progress.value case final p?) Text(p, style: muted),

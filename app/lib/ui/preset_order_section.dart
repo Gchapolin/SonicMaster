@@ -54,12 +54,14 @@ class PresetOrderSection extends HookConsumerWidget {
     return Column(
       mainAxisSize: .min,
       crossAxisAlignment: .stretch,
+      spacing: 4,
       children: [
         _Row(
           label: t.move,
           child: SonicDropdown<int>(
             value: from.value,
-            width: 190,
+            width: 170,
+            height: 34,
             isEnabled: isEnabled,
             items: [
               for (var n = 1; n <= 50; n++)
@@ -70,42 +72,44 @@ class PresetOrderSection extends HookConsumerWidget {
         ),
         _Row(
           label: t.toPosition,
-          child: SonicDropdown<int>(
-            value: to.value,
-            width: 190,
-            isEnabled: isEnabled,
-            items: [
-              for (var n = 1; n <= 50; n++)
-                (value: n, label: PresetRef(.user, n).label),
-            ],
-            onChanged: (v) => to.value = v,
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6),
           child: Row(
+            mainAxisSize: .min,
+            spacing: 6,
             children: [
-              Expanded(
-                child: Text(
-                  status.value ?? t.orderHint,
-                  style: AppText.dialogBody.copyWith(
-                    color: Palette.onSurfaceVariant,
-                  ),
-                ),
+              SonicDropdown<int>(
+                value: to.value,
+                width: 96,
+                height: 34,
+                isEnabled: isEnabled,
+                items: [
+                  for (var n = 1; n <= 50; n++)
+                    (value: n, label: PresetRef(.user, n).label),
+                ],
+                onChanged: (v) => to.value = v,
               ),
-              const SizedBox(width: 8),
               SonicButton(
                 label: t.movePreset,
+                height: 34,
+                minWidth: 0,
                 onPressed: isEnabled && from.value != to.value ? move : null,
               ),
             ],
           ),
+        ),
+        // The hint until a move reports back; the settings grid keeps it to
+        // one line.
+        Text(
+          status.value ?? t.orderHint,
+          maxLines: status.value == null ? 1 : null,
+          overflow: status.value == null ? .ellipsis : null,
+          style: AppText.ui.copyWith(color: Palette.onSurfaceVariant),
         ),
       ],
     );
   }
 }
 
+/// A label on the left and a trailing [child] control on the right.
 class _Row extends StatelessWidget {
   const _Row({required this.label, required this.child});
 
@@ -113,11 +117,19 @@ class _Row extends StatelessWidget {
   final Widget child;
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 6),
+  Widget build(BuildContext context) => ConstrainedBox(
+    constraints: const BoxConstraints(minHeight: 36),
     child: Row(
+      spacing: 10,
       children: [
-        Expanded(child: Text(label, style: AppText.dialogBody)),
+        Expanded(
+          child: Text(
+            label,
+            maxLines: 2,
+            overflow: .ellipsis,
+            style: AppText.ui.copyWith(color: Palette.onSurfaceVariant),
+          ),
+        ),
         child,
       ],
     ),
