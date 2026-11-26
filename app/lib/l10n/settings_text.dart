@@ -288,7 +288,7 @@ class _Pt extends SettingsText {
   @override
   String channel(int ch) => 'Canal $ch';
   @override
-  String get sameAgain => 'Preset repetido';
+  String get sameAgain => 'Mesmo preset de novo';
   @override
   String get off => 'Desligado';
   @override
