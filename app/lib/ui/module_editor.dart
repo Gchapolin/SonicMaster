@@ -180,7 +180,7 @@ class ModuleEditor extends ConsumerWidget {
                     onPick: (id) => setEffectType(ref, moduleId, id),
                   ),
                 ),
-                _PieceEditor(
+                PieceEditor(
                   // A new model starts the value line on its first knob again.
                   key: ValueKey(def.id),
                   model: def.name,
@@ -278,7 +278,7 @@ class ModuleEditor extends ConsumerWidget {
         ),
         // The effect's piece, scaled to the width (compact tablet only).
         if (showPiece)
-          _PieceEditor(
+          PieceEditor(
             key: ValueKey(def.id),
             model: def.name,
             kind: gearKindForModule(physId),
@@ -696,8 +696,9 @@ const pieceFit = Size(600, 400);
 /// The regular editor's big piece (fitted to [pieceFit], scaled down when the
 /// editor is narrower) with the value line under it: the last-touched knob's
 /// name and value, as KnobControl prints it. Tapping the value types one in.
-class _PieceEditor extends HookWidget {
-  const _PieceEditor({
+@visibleForTesting
+class PieceEditor extends HookWidget {
+  const PieceEditor({
     super.key,
     required this.model,
     required this.kind,
@@ -744,6 +745,7 @@ class _PieceEditor extends HookWidget {
         p.min ?? 0,
         p.max ?? 100,
         p.step ?? 1,
+        isDecimalCommaAccepted: true,
       );
 
       if (v != null) set(p, v);
@@ -757,13 +759,18 @@ class _PieceEditor extends HookWidget {
         color: Palette.textPrimary,
       );
 
-      return Row(
+      final row = Row(
         key: const Key('piece-value'),
-        mainAxisAlignment: .center,
+        mainAxisSize: .min,
         children: [
-          Text(
-            p.name,
-            style: AppText.section.copyWith(color: Palette.textMuted),
+          // 5 px under it: it stays level with the value text (centred in
+          // the 39 px it had before the value's 44-px hit area).
+          Padding(
+            padding: const EdgeInsets.only(bottom: 5),
+            child: Text(
+              p.name,
+              style: AppText.section.copyWith(color: Palette.textMuted),
+            ),
           ),
           const SizedBox(width: 10),
           if (isEditing.value)
@@ -792,33 +799,45 @@ class _PieceEditor extends HookWidget {
               ),
             )
           else
-            GestureDetector(
-              behavior: .opaque,
-              onTap: isEnabled
-                  ? () {
-                      final text = '$value';
-
-                      controller.value = TextEditingValue(
-                        text: text,
-                        selection: TextSelection.collapsed(offset: text.length),
-                      );
-                      isEditing.value = true;
-                    }
-                  : null,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                child: Text(
-                  p.textFor(value) ?? '$value${p.unit ?? ''}',
-                  style: valueStyle,
-                ),
+            // 6 above (as before) and 11 below, so the row is 44 high.
+            Padding(
+              padding: const EdgeInsets.only(top: 6, bottom: 11),
+              child: Text(
+                p.textFor(value) ?? '$value${p.unit ?? ''}',
+                style: valueStyle,
               ),
             ),
         ],
       );
+
+      if (isEditing.value) return row;
+
+      // The whole line (name and value, 44 high, at least 44 wide) takes the
+      // tap that starts typing; it is as wide as its content, centred.
+      return GestureDetector(
+        behavior: .opaque,
+        onTap: isEnabled
+            ? () {
+                final text = '$value';
+
+                controller.value = TextEditingValue(
+                  text: text,
+                  selection: TextSelection.collapsed(offset: text.length),
+                );
+                isEditing.value = true;
+              }
+            : null,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 44),
+          child: row,
+        ),
+      );
     }
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+      // 7 below: the 44-px value line takes the other 5 px, so the editor
+      // keeps its height.
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 7),
       child: Column(
         mainAxisSize: .min,
         children: [
@@ -834,6 +853,10 @@ class _PieceEditor extends HookWidget {
                 values: [for (final k in knobs) toPieceValue(k, _valueOf(k))],
                 onKnob: isEnabled
                     ? (e) {
+                        // A piece with no knob params (the generic one draws
+                        // placeholder knobs) has nothing to set.
+                        if (e.$1 >= knobs.length) return;
+
                         touched.value = e.$1;
                         set(knobs[e.$1], fromPieceValue(knobs[e.$1], e.$2));
                       }

@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:sonicmaster/ui/knob_mapping.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sonicmaster/device/device_service.dart';
@@ -263,6 +264,91 @@ void main() {
     expect(valueLine('72'), findsOneWidget);
     final piece = tester.widget<GearPiece>(find.byType(GearPiece));
     expect(piece.values![0], 72);
+  });
+
+  testWidgets('a decimal comma is read as a point (pt-BR keyboard)', (
+    tester,
+  ) async {
+    // The first effect whose first piece knob has a fractional step.
+    final def = assets.effects.effects.values.firstWhere(
+      (d) =>
+          d.id < 1000 &&
+          pieceKnobs(d).isNotEmpty &&
+          pieceKnobs(d).first.step != null &&
+          pieceKnobs(d).first.step != pieceKnobs(d).first.step!.roundToDouble(),
+    );
+    final knob = pieceKnobs(def).first;
+    final (c, _) = await pumpEditor(
+      tester,
+      moduleId: def.id ~/ 100,
+      fxId: def.id,
+      params: {knob.algId: knob.min ?? 0},
+    );
+
+    await tester.tap(find.byKey(const Key('piece-value')).hitTestable());
+    await tester.pump();
+    await tester.enterText(find.byType(EditableText), '1,5');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pump();
+
+    expect(c.read(currentParametersProvider)[def.id ~/ 100]![knob.algId], 1.5);
+  });
+
+  testWidgets('the value line is a 44x44 tap target', (tester) async {
+    await pumpEditor(tester, moduleId: 0, fxId: 1, params: {0: 50});
+
+    final line = tester.getRect(find.byKey(const Key('piece-value')));
+
+    expect(line.width, greaterThanOrEqualTo(44));
+    expect(line.height, greaterThanOrEqualTo(44));
+
+    // Its corners (inside by 2 px) open the editor, not only the digits.
+    for (final p in [
+      line.topLeft + const Offset(2, 2),
+      line.bottomRight - const Offset(2, 2),
+    ]) {
+      await tester.tapAt(p);
+      await tester.pump();
+      expect(find.byType(EditableText), findsOneWidget, reason: '$p');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump();
+    }
+  });
+
+  testWidgets('a piece with no knob params ignores knob drags', (tester) async {
+    var sets = 0;
+
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: .ltr,
+        child: MediaQuery(
+          data: const MediaQueryData(),
+          child: Align(
+            child: PieceEditor(
+              model: 'No Such Model',
+              kind: GearKind.pedal,
+              knobs: const [],
+              values: const {},
+              isOn: true,
+              isEnabled: true,
+              onSet: (p, v) => sets++,
+              onSwitch: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final knobs = find.byWidgetPredicate(
+      (w) => w is CustomPaint && w.painter is GearKnobPainter,
+    );
+
+    expect(knobs, findsWidgets); // the generic piece draws placeholders
+    await tester.drag(knobs.first, const Offset(0, -40));
+    await tester.pump();
+
+    expect(sets, 0);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('a typed value out of range is clamped', (tester) async {

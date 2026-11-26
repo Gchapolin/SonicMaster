@@ -250,7 +250,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 50));
     });
 
-    testWidgets('regular: a decimal comma commits nothing (unchanged)', (
+    testWidgets('regular: a decimal comma is read as a point too', (
       tester,
     ) async {
       final changed = await pump(tester, value: 5, max: 10, step: 0.1);
@@ -260,7 +260,7 @@ void main() {
       await tester.testTextInput.receiveAction(.done);
       await tester.pump();
 
-      expect(changed, isEmpty);
+      expect(changed, [2.5]);
       expect(find.byType(EditableText), findsNothing);
       await tester.pump(const Duration(milliseconds: 50));
     });

@@ -207,7 +207,7 @@ class KnobControl extends HookWidget {
         min,
         max,
         step,
-        isDecimalCommaAccepted: metrics.isCompact,
+        isDecimalCommaAccepted: true,
       );
 
       if (isEditing.value) isEditing.value = false;
