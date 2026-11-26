@@ -5,6 +5,7 @@ import 'package:sonicmaster/model/decoded_preset_state.dart';
 import 'package:sonicmaster/state/data_providers.dart';
 import 'package:sonicmaster/state/names_providers.dart';
 import 'package:sonicmaster/state/preset_providers.dart';
+import 'package:sonicmaster/ui/block_panel.dart';
 import 'package:sonicmaster/ui/module_editor.dart';
 import 'package:sonicmaster/ui/sonic_controls.dart';
 
@@ -25,6 +26,7 @@ void main() {
     required int fxId,
     bool isCloneMode = false,
     Map<int, String> userNames = const {},
+    double width = 692,
   }) async {
     final container = ProviderContainer(
       overrides: [
@@ -55,7 +57,7 @@ void main() {
             child: Align(
               alignment: Alignment.topLeft,
               child: SizedBox(
-                width: 692,
+                width: width,
                 child: SingleChildScrollView(
                   child: SonicSurface(
                     padding: EdgeInsets.zero,
@@ -85,18 +87,18 @@ void main() {
 
     final title = tester.getRect(find.text('AMP'));
     final effect = tester.getRect(find.byType(SonicDropdown<int>).first);
-    final toggle = tester.getRect(find.byType(SonicToggle).first);
+    final panel = tester.getRect(find.byType(BlockPanel));
 
     expect(effect.left, greaterThanOrEqualTo(title.right));
-    expect(effect.right, lessThanOrEqualTo(toggle.left));
+    expect(effect.right, lessThanOrEqualTo(panel.left));
   });
 
-  // Regular (prototype N_Principal): tag, prev, selector, next, the amp's
-  // band chip, then the on/off toggle pinned right, all on one line.
-  testWidgets('AMP: tag, prev, selector, next, band chip, toggle', (
-    tester,
-  ) async {
-    await pumpEditor(tester, moduleId: 3, fxId: 307);
+  // Regular (prototype N_Principal): tag, prev, selector, next and the amp's
+  // band chip, all on one line; the on/off is the block panel's.
+  testWidgets('AMP: tag, prev, selector, next, band chip', (tester) async {
+    // The editor at the iPad's 1180 (at the 960 minimum the selector
+    // ellipsizes below its 220 beside the block panel).
+    await pumpEditor(tester, moduleId: 3, fxId: 307, width: 944);
 
     expectNoOverflow(tester);
 
@@ -106,7 +108,6 @@ void main() {
       tester.getRect(find.byType(SonicDropdown<int>).first),
       tester.getRect(find.byKey(const Key('model-next'))),
       tester.getRect(find.byKey(const Key('amp-band'))),
-      tester.getRect(find.byType(SonicToggle).first),
     ];
 
     for (var i = 1; i < rects.length; i++) {

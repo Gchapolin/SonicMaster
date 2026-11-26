@@ -59,10 +59,10 @@ void main() {
     );
   }
 
-  // The module header carries its own on/off SonicToggle, so a byType lookup
-  // is ambiguous — go through the labelled PanelCell instead.
+  // The block panel carries its own on/off SonicToggle, so a byType lookup
+  // is ambiguous — go through the param's keyed row instead.
   Finder inCell(String label, Type control) => find.descendant(
-    of: find.byWidgetPredicate((w) => w is PanelCell && w.label == label),
+    of: find.byKey(ValueKey('param:$label')),
     matching: find.byType(control),
   );
 

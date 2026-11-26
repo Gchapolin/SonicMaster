@@ -3,9 +3,9 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sonicmaster/gear/gear_piece.dart';
 import 'package:sonicmaster/state/edit_providers.dart';
+import 'package:sonicmaster/ui/block_panel.dart';
 import 'package:sonicmaster/ui/chain_view.dart';
 import 'package:sonicmaster/ui/module_editor.dart';
-import 'package:sonicmaster/ui/sonic_controls.dart';
 
 import '../support/page_harness.dart';
 import '../support/view_helpers.dart';
@@ -58,14 +58,12 @@ void main() {
       find.descendant(of: find.byType(ModuleEditor), matching: finder);
 
   // The editor and the pieces of it that a mode switch might re-create. The
-  // header and the knobs differ by mode since the regular editor draws the
-  // knobs on the piece (prototype N_Principal) under its own model header;
-  // the control row's cells (the page gives the knob row a GlobalKey) and the
-  // editor itself must survive. The effect description (regular only) is left
-  // out: it comes and goes.
+  // header, the knobs and the other controls differ by mode since the regular
+  // editor draws the knobs on the piece (prototype N_Principal) under its own
+  // model header, with the rest in the block panel beside it; the editor
+  // itself must survive.
   Map<String, List<Element>> editorElements() => {
     'ModuleEditor': elementsOf(find.byType(ModuleEditor)),
-    'panel cells': elementsOf(inEditor(find.byType(PanelCell))),
   };
 
   Size dial(WidgetTester tester) =>
@@ -82,12 +80,14 @@ void main() {
     // ([] equals []).
     expect(before.values, everyElement(isNotEmpty));
     expect(inEditor(find.byType(GearPiece)), findsOneWidget);
+    expect(inEditor(find.byType(BlockPanel)), findsOneWidget);
 
     await flipTo(tester, compact);
 
     expectNoOverflow(tester);
     expect(rebuiltKinds(before, editorElements()), isEmpty);
     expect(dial(tester), const Size.square(72));
+    expect(inEditor(find.byType(BlockPanel)), findsNothing);
 
     await flipTo(tester, regular);
 

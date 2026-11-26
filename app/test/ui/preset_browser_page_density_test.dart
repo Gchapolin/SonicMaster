@@ -81,7 +81,7 @@ void main() {
 
   group('regular keeps the pre-compact work area', () {
     for (final size in const [Size(1280, 800), Size(960, 640)]) {
-      testWidgets('${label(size)}: padding 12, gap 34, the 660x440 piece', (
+      testWidgets('${label(size)}: padding 12, gap 34, the 3:2 piece', (
         tester,
       ) async {
         await pumpPage(tester, size: size);
@@ -95,11 +95,12 @@ void main() {
           tester.getSize(editorSurface()).width,
           tester.getSize(chain).width,
         );
-        // The knobs are on the selected module's piece, at full size.
-        expect(
-          tester.getRect(inEditor(find.byType(GearPiece))).size,
-          const Size(660, 440),
-        );
+        // The knobs are on the selected module's piece: full size at 1280,
+        // scaled down (3:2 kept) beside the block panel at 960.
+        final piece = tester.getRect(inEditor(find.byType(GearPiece))).size;
+
+        expect(piece.aspectRatio, closeTo(1.5, 0.01));
+        if (size.width == 1280) expect(piece, pieceFit);
         expect(cardWidths(), regularUnitWidths);
       });
 

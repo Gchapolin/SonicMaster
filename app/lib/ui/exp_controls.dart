@@ -26,7 +26,20 @@ const _none = -1;
 /// momentary) and between which ends of the knob's range. The slots belong to
 /// the loaded preset. Empty on stock firmware or while disconnected.
 class ExpControls extends HookConsumerWidget {
-  const ExpControls({super.key, required this.moduleId, required this.params});
+  const ExpControls({
+    super.key,
+    required this.moduleId,
+    required this.params,
+    this.padding = const EdgeInsets.fromLTRB(12, 0, 12, 8),
+    this.isModeExpanded = false,
+  });
+
+  /// The mode bar fills the width (the narrow block panel), its labels
+  /// scaled down to fit.
+  final bool isModeExpanded;
+
+  /// Around the controls (the block panel pads them itself).
+  final EdgeInsets padding;
 
   /// Physical module id (0 NR … 8 RVB).
   final int moduleId;
@@ -57,7 +70,7 @@ class ExpControls extends HookConsumerWidget {
     void set(ExpAssign? a) => setExpAssign(ref, slot.value, a);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+      padding: padding,
       child: Wrap(
         alignment: .center,
         crossAxisAlignment: .center,
@@ -107,6 +120,7 @@ class ExpControls extends HookConsumerWidget {
             SonicSegmented<int>(
               value: assign!.mode,
               height: height,
+              isExpanded: isModeExpanded,
               segments: [
                 (value: ExpAssign.continuous, label: t.continuous),
                 (value: ExpAssign.toggle, label: t.toggle),

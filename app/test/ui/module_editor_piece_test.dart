@@ -106,7 +106,7 @@ void main() {
 
     expect(piece.model, 'Brit 800');
     expect(piece.kind, GearKind.amp);
-    expect(piece.fit, const Size(660, 440));
+    expect(piece.fit, pieceFit);
     // The effect's own knob names, in its order.
     final knobs = assets.effects
         .byId(308)!
@@ -297,7 +297,7 @@ void main() {
     expect(piece.values!.length, piece.knobNames!.length);
 
     final rate = find.descendant(
-      of: find.byWidgetPredicate((w) => w is PanelCell && w.label == 'Rate'),
+      of: find.byKey(const ValueKey('param:Rate')),
       matching: find.byType(SonicDropdown<int>),
     );
     tester.widget<SonicDropdown<int>>(rate).onChanged(7);

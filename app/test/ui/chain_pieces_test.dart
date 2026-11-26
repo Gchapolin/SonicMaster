@@ -8,6 +8,7 @@ import 'package:sonicmaster/state/data_providers.dart';
 import 'package:sonicmaster/state/preset_providers.dart';
 import 'package:sonicmaster/theme/app_colors.dart';
 import 'package:sonicmaster/ui/chain_view.dart';
+import 'package:sonicmaster/ui/led_button.dart';
 import 'package:sonicmaster/ui/sonic_metrics.dart';
 
 import '../support/page_harness.dart';
@@ -153,6 +154,29 @@ void main() {
     expect(deco.color, Palette.surfaceContainerHigh);
     expect((deco.border! as Border).top.color, Palette.primary);
     expect(tester.widget<Text>(find.text('AMP')).style?.color, Palette.primary);
+  });
+
+  // The panel's "Block on" (BlockPanel) is the regular on/off: the unit is
+  // the piece and its tag (prototype N_Principal), 6-px padding all round.
+  testWidgets('a regular unit has no LED', (tester) async {
+    await tester.pumpWidget(
+      host(
+        const ModuleCard(
+          iconId: 0,
+          name: 'NR',
+          model: 'Gate',
+          isOn: true,
+          isSelected: false,
+          isEnabled: true,
+        ),
+      ),
+    );
+
+    expect(find.byType(LedButton), findsNothing);
+    expect(
+      tester.widget<Container>(find.byKey(const Key('regular-unit'))).padding,
+      const EdgeInsets.all(6),
+    );
   });
 
   // The prototype pedalboard is one row of nine units: at the iPad (A16) and

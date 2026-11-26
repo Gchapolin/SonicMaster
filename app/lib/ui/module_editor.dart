@@ -21,6 +21,7 @@ import '../state/names_providers.dart';
 import '../state/preset_providers.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text.dart';
+import 'block_panel.dart';
 import 'exp_controls.dart';
 import 'knob_control.dart';
 import 'knob_mapping.dart';
@@ -40,6 +41,25 @@ const syncDivisions = <String>[
   '1/8', '1/8D', '1/8T', '1/16',
 ];
 
+/// The values [moduleId]'s editor shows: its params, with the live scene's
+/// over them on the CFW in SC1 / SC2 when the module takes part in scenes
+/// (values for knobs the effect lacks are never looked up).
+Map<int, num> editorValues(WidgetRef ref, int moduleId) {
+  final physId = moduleId == 9 ? 3 : moduleId;
+  final sceneRecord = ref.watch(sceneRecordsProvider)[physId];
+  final scene = ref.watch(currentSceneProvider);
+  final isSceneLive =
+      ref.watch(cfwInfoProvider) != null && scene != 0 && sceneRecord != null;
+
+  return {
+    ...?ref.watch(currentParametersProvider)[moduleId],
+    if (isSceneLive)
+      ...sceneRecord
+          .values(scene)
+          .map((k, v) => MapEntry(k, v == v.roundToDouble() ? v.round() : v)),
+  };
+}
+
 /// Editing controls for one module's selected effect. Each change sends a
 /// `0408` command via [setParameter].
 class ModuleEditor extends ConsumerWidget {
@@ -56,7 +76,6 @@ class ModuleEditor extends ConsumerWidget {
     final data = ref.watch(dataAssetsProvider).valueOrNull;
     final userNames = ref.watch(userNamesProvider);
     final selected = ref.watch(currentSelectedEffectsProvider);
-    final params = ref.watch(currentParametersProvider);
     final modified = ref.watch(presetModifiedProvider);
     final isLoading = ref.watch(presetLoadingProvider);
     final isConnected = ref.watch(connectionStateProvider);
@@ -81,20 +100,7 @@ class ModuleEditor extends ConsumerWidget {
       );
     }
 
-    // CFW: in SC1 / SC2, a module that takes part in scenes shows the scene's
-    // values over its base ones (values for knobs this effect lacks are never
-    // looked up).
-    final sceneRecord = ref.watch(sceneRecordsProvider)[physId];
-    final scene = ref.watch(currentSceneProvider);
-    final isSceneLive =
-        ref.watch(cfwInfoProvider) != null && scene != 0 && sceneRecord != null;
-    final values = <int, num>{
-      ...?params[moduleId],
-      if (isSceneLive)
-        ...sceneRecord
-            .values(scene)
-            .map((k, v) => MapEntry(k, v == v.roundToDouble() ? v.round() : v)),
-    };
+    final values = editorValues(ref, moduleId);
     final isCfw = ref.watch(cfwInfoProvider) != null;
     final effectIds = data.capabilities.availableEffectIds(
       data.commands,
@@ -122,129 +128,135 @@ class ModuleEditor extends ConsumerWidget {
           }
         : const <int, String>{};
 
-    final isRegular = !metrics.isCompact;
-    // Regular: the effect's knobs live on its big piece; the rest of its
-    // params stay in the control row below.
-    // A synced Rate / Time holds a note division, not a position: it stays
-    // off the piece and keeps its division dropdown in the control row.
-    final onPiece = isRegular
-        ? [
-            for (final p in pieceKnobs(def, isCfw: isCfw))
-              if (!p.isSynced(values)) p,
-          ]
-        : const <EffectParameter>[];
+    // Regular (prototype N_Principal): the header, the big piece and its
+    // value line, beside the block panel holding every other control.
+    if (!metrics.isCompact) {
+      // The effect's knobs live on the piece; a synced Rate / Time holds a
+      // note division, not a position: it stays off the piece and keeps its
+      // division dropdown in the panel.
+      final onPiece = [
+        for (final p in pieceKnobs(def, isCfw: isCfw))
+          if (!p.isSynced(values)) p,
+      ];
+
+      return Row(
+        crossAxisAlignment: .start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: .stretch,
+              mainAxisSize: .min,
+              children: [
+                Padding(
+                  padding: metrics.editorHeaderPadding,
+                  child: _ModelHeader(
+                    tag: '$moduleName${modified ? '  ✱' : ''}',
+                    ids: dropdownIds,
+                    current: fxId!,
+                    labelOf: (id) =>
+                        effectDisplayName(id, data.effects, userNames),
+                    sections: sections,
+                    band: isAmp ? ampGainOf(fxId) : null,
+                    isEnabled: !isLoading,
+                    onPick: (id) => setEffectType(ref, moduleId, id),
+                  ),
+                ),
+                _PieceEditor(
+                  // A new model starts the value line on its first knob again.
+                  key: ValueKey(def.id),
+                  model: def.name,
+                  kind: gearKindForModule(physId),
+                  knobs: onPiece,
+                  values: values,
+                  isOn: moduleOn,
+                  isEnabled: !isLoading,
+                  onSet: (p, v) => setParameter(ref, moduleId, p.algId, v),
+                  onSwitch: () => toggleModule(ref, physId, !moduleOn),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(0, 16, 16, 16),
+            child: BlockPanel(moduleId),
+          ),
+        ],
+      );
+    }
 
     return Column(
       crossAxisAlignment: .stretch,
       mainAxisSize: .min,
       children: [
-        if (isRegular)
-          Padding(
-            padding: metrics.editorHeaderPadding,
-            child: _ModelHeader(
-              tag: '$moduleName${modified ? '  ✱' : ''}',
-              ids: dropdownIds,
-              current: fxId!,
-              labelOf: (id) => effectDisplayName(id, data.effects, userNames),
-              sections: sections,
-              band: isAmp ? ampGainOf(fxId) : null,
-              isEnabled: !isLoading,
-              onPick: (id) => setEffectType(ref, moduleId, id),
-              trailing: SonicToggle(
+        Padding(
+          padding: metrics.editorHeaderPadding,
+          child: Row(
+            children: [
+              // abbreviation — pinned left. The forced Oswald strut holds the
+              // line when "✱" (not in Oswald) shows: its fallback face, which
+              // the web fetches only after the first layout, would make the
+              // line taller than the IntrinsicHeight pass measured.
+              Text(
+                '$moduleName${modified ? '  ✱' : ''}',
+                strutStyle: StrutStyle.fromTextStyle(
+                  AppText.moduleTitle,
+                  forceStrutHeight: true,
+                ),
+                style: AppText.moduleTitle.copyWith(color: Palette.textPrimary),
+              ),
+              // effect type — dropdown (if selectable) or static name, centered
+              // between the title and the toggle. Expanded + Center puts it
+              // exactly where the former Spacer pair did whenever it fits, and
+              // lets a long name (a user-named clone holds up to 15 chars)
+              // ellipsize instead of overflowing the header.
+              // Gate on dropdownIds (not effectIds): device filtering can narrow
+              // the pickable set to one, but a legacy/unsupported current effect
+              // is still prepended, and the user must be able to switch off it.
+              Expanded(
+                child: Center(
+                  child: dropdownIds.length > 1
+                      ? SonicDropdown<int>(
+                          value: fxId,
+                          height: metrics.editorControlHeight,
+                          items: [
+                            for (final id in dropdownIds)
+                              (
+                                value: id,
+                                label: effectDisplayName(
+                                  id,
+                                  data.effects,
+                                  userNames,
+                                ),
+                              ),
+                          ],
+                          sections: sections,
+                          isEnabled: !isLoading,
+                          onChanged: (id) => setEffectType(ref, moduleId, id),
+                        )
+                      : Text(
+                          effectDisplayName(fxId!, data.effects, userNames),
+                          maxLines: 1,
+                          overflow: .ellipsis,
+                          style: AppText.controlLabel.copyWith(
+                            color: Palette.textPrimary,
+                          ),
+                        ),
+                ),
+              ),
+              // enabled — BOOST-style toggle (no label), pinned right
+              SonicToggle(
                 value: moduleOn,
                 onChanged: isLoading
                     ? null
                     : (v) => toggleModule(ref, physId, v),
               ),
-            ),
-          )
-        else
-          Padding(
-            padding: metrics.editorHeaderPadding,
-            child: Row(
-              children: [
-                // abbreviation — pinned left. The forced Oswald strut holds the
-                // line when "✱" (not in Oswald) shows: its fallback face, which
-                // the web fetches only after the first layout, would make the
-                // line taller than the IntrinsicHeight pass measured.
-                Text(
-                  '$moduleName${modified ? '  ✱' : ''}',
-                  strutStyle: StrutStyle.fromTextStyle(
-                    AppText.moduleTitle,
-                    forceStrutHeight: true,
-                  ),
-                  style: AppText.moduleTitle.copyWith(
-                    color: Palette.textPrimary,
-                  ),
-                ),
-                // effect type — dropdown (if selectable) or static name, centered
-                // between the title and the toggle. Expanded + Center puts it
-                // exactly where the former Spacer pair did whenever it fits, and
-                // lets a long name (a user-named clone holds up to 15 chars)
-                // ellipsize instead of overflowing the header.
-                // Gate on dropdownIds (not effectIds): device filtering can narrow
-                // the pickable set to one, but a legacy/unsupported current effect
-                // is still prepended, and the user must be able to switch off it.
-                Expanded(
-                  child: Center(
-                    child: dropdownIds.length > 1
-                        ? SonicDropdown<int>(
-                            value: fxId,
-                            height: metrics.editorControlHeight,
-                            items: [
-                              for (final id in dropdownIds)
-                                (
-                                  value: id,
-                                  label: effectDisplayName(
-                                    id,
-                                    data.effects,
-                                    userNames,
-                                  ),
-                                ),
-                            ],
-                            sections: sections,
-                            isEnabled: !isLoading,
-                            onChanged: (id) => setEffectType(ref, moduleId, id),
-                          )
-                        : Text(
-                            effectDisplayName(fxId!, data.effects, userNames),
-                            maxLines: 1,
-                            overflow: .ellipsis,
-                            style: AppText.controlLabel.copyWith(
-                              color: Palette.textPrimary,
-                            ),
-                          ),
-                  ),
-                ),
-                // enabled — BOOST-style toggle (no label), pinned right
-                SonicToggle(
-                  value: moduleOn,
-                  onChanged: isLoading
-                      ? null
-                      : (v) => toggleModule(ref, physId, v),
-                ),
-              ],
-            ),
+            ],
           ),
-        if (isRegular)
-          _PieceEditor(
-            // A new model starts the value line on its first knob again.
-            key: ValueKey(def.id),
-            model: def.name,
-            kind: gearKindForModule(physId),
-            knobs: onPiece,
-            values: values,
-            isOn: moduleOn,
-            isEnabled: !isLoading,
-            onSet: (p, v) => setParameter(ref, moduleId, p.algId, v),
-            onSwitch: () => toggleModule(ref, physId, !moduleOn),
-          ),
+        ),
         // Every control — knobs, toggles, dropdowns — flows in ONE horizontal
         // Wrap like a hardware unit's front panel (always a single row that
         // wraps; never separate full-width rows). DLY (module 7) prepends its
         // tap-tempo cells (TAP / BPM / division / computed-ms) to the same row.
-        // Keyed: the regular piece above it comes and goes with the mode, and
-        // a live flip must not re-create the row (its cells hold state).
         Builder(
           key: const ValueKey('control-row'),
           builder: (context) {
@@ -306,15 +318,14 @@ class ModuleEditor extends ConsumerWidget {
                     ),
                   ),
               for (final p in knobs)
-                if (!onPiece.contains(p))
-                  _control(
-                    context,
-                    ref,
-                    p,
-                    values[p.algId] ?? p.defaultValue,
-                    isLoading,
-                    values,
-                  ),
+                _control(
+                  context,
+                  ref,
+                  p,
+                  values[p.algId] ?? p.defaultValue,
+                  isLoading,
+                  values,
+                ),
               // Per-module footswitch assignment (None/FS1/FS2). Keyed on the
               // physical slot so the clone-amp editor (id 9) drives the amp's.
               if (state != null)
@@ -374,18 +385,6 @@ class ModuleEditor extends ConsumerWidget {
               if (p.widgetType == .knob || p.widgetType == .eqBand) p,
           ],
         ),
-        // Effect description (from the web app data), set off with an accent
-        // rule down the left edge.
-        if (metrics.isEffectDescriptionVisible && def.descriptionEn.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-            // A flat outlined well (SonicRecess).
-            child: SonicRecess(
-              radius: 10,
-              padding: const EdgeInsets.fromLTRB(14, 12, 16, 12),
-              child: Text(def.descriptionEn, style: AppText.moduleDescription),
-            ),
-          ),
       ],
     );
   }
@@ -518,7 +517,7 @@ class _FootswitchCell extends StatelessWidget {
 
 /// The regular editor's header (prototype N_Principal): the module tag, the
 /// model selector between previous / next arrows (wrapping), the amp's band
-/// chip, and [trailing] pinned right.
+/// chip. The block's on/off is the panel's (BlockPanel).
 class _ModelHeader extends StatelessWidget {
   const _ModelHeader({
     required this.tag,
@@ -529,7 +528,6 @@ class _ModelHeader extends StatelessWidget {
     required this.band,
     required this.isEnabled,
     required this.onPick,
-    required this.trailing,
   });
 
   final String tag;
@@ -540,7 +538,6 @@ class _ModelHeader extends StatelessWidget {
   final AmpGain? band;
   final bool isEnabled;
   final ValueChanged<int> onPick;
-  final Widget trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -648,13 +645,17 @@ class _ModelHeader extends StatelessWidget {
             ],
           ),
         ),
-        trailing,
       ],
     );
   }
 }
 
-/// The regular editor's big piece (fitted to 660x440, scaled down when the
+/// The regular editor's piece box: the prototype's 660x440 scaled to 600x400
+/// (same 3:2), so at the iPad's 1180x820 the header, the piece and its value
+/// line fit under the pedalboard without scrolling.
+const pieceFit = Size(600, 400);
+
+/// The regular editor's big piece (fitted to [pieceFit], scaled down when the
 /// editor is narrower) with the value line under it: the last-touched knob's
 /// name and value, as KnobControl prints it. Tapping the value types one in.
 class _PieceEditor extends HookWidget {
@@ -790,7 +791,7 @@ class _PieceEditor extends HookWidget {
               child: GearPiece(
                 model: model,
                 kind: kind,
-                fit: const Size(660, 440),
+                fit: pieceFit,
                 knobNames: [for (final k in knobs) k.name],
                 values: [for (final k in knobs) toPieceValue(k, _valueOf(k))],
                 onKnob: isEnabled

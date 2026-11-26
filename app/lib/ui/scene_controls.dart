@@ -15,10 +15,17 @@ import 'sonic_metrics.dart';
 /// and, in SC1 or SC2, the module's on/off for that scene (BASE follows the
 /// preset). Empty on stock firmware or while disconnected.
 class SceneControls extends ConsumerWidget {
-  const SceneControls({super.key, required this.moduleId});
+  const SceneControls({
+    super.key,
+    required this.moduleId,
+    this.padding = const EdgeInsets.fromLTRB(12, 4, 12, 8),
+  });
 
   /// Physical module id (0 NR … 8 RVB).
   final int moduleId;
+
+  /// Around the controls (the block panel pads them itself).
+  final EdgeInsets padding;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -36,7 +43,7 @@ class SceneControls extends ConsumerWidget {
     final isOn = record?.isOn(scene);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+      padding: padding,
       child: Wrap(
         alignment: .center,
         crossAxisAlignment: .center,

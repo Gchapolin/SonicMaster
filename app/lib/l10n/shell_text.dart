@@ -24,6 +24,7 @@ abstract class ShellText {
   String get rotateFullscreenHint;
   String get rotateLockHint;
   String noDecodedEffect(String module);
+  String get blockOn;
   String get cloneMode;
   String get userSlots;
   String get footSwitch;
@@ -74,6 +75,8 @@ class _En extends ShellText {
       'If the screen does not turn, switch off the rotation lock.';
   @override
   String noDecodedEffect(String module) => '$module — no decoded effect';
+  @override
+  String get blockOn => 'Block on';
   @override
   String get cloneMode => 'Clone Mode';
   @override
@@ -137,6 +140,8 @@ class _Pt extends ShellText {
   @override
   String noDecodedEffect(String module) =>
       '$module — nenhum efeito decodificado';
+  @override
+  String get blockOn => 'Bloco ligado';
   @override
   String get cloneMode => 'Modo Clone';
   @override

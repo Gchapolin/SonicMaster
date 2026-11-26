@@ -176,30 +176,23 @@ void main() {
 
   // Regular: 1.5-px border, 6-px top padding, the 114-px piece box, an 8-px
   // gap, the tag, then the LED row (gap, LED, bottom padding).
+  // The regular unit: the piece's 114-px box and the tag, 6-px padding all
+  // round inside a 1.5-px border; no LED (the block panel toggles it).
   testWidgets('regular: unit internals follow the metrics', (tester) async {
     await pumpChain(tester, width: 1200, isCompact: false);
 
-    const metrics = SonicMetrics.regular;
     final fx1 = find.byType(ModuleCard).at(1);
     final tag = tester.getSize(
       find.descendant(of: fx1, matching: find.text('FX1')),
     );
-    final height =
-        3 +
-        6 +
-        114 +
-        8 +
-        tag.height +
-        metrics.chainLedGap +
-        metrics.chainLedSize.height +
-        metrics.chainCardPadding.bottom;
 
-    expect(tester.getSize(fx1).height, closeTo(height, 0.01));
     expect(
-      tester.getSize(
-        find.descendant(of: fx1, matching: find.byType(LedButton)),
-      ),
-      metrics.chainLedSize,
+      tester.getSize(fx1).height,
+      closeTo(3 + 6 + 114 + 8 + tag.height + 6, 0.01),
+    );
+    expect(
+      find.descendant(of: fx1, matching: find.byType(LedButton)),
+      findsNothing,
     );
   });
 

@@ -75,6 +75,8 @@ void main() {
           onSelect: () => selects++,
           onToggle: () => toggles++,
         ),
+        // The LED is compact only: regular toggles in the block panel.
+        metrics: SonicMetrics.compact,
       ),
     );
     await tester.tap(find.byType(LedButton));
@@ -126,14 +128,6 @@ void main() {
     final taps = await tapAroundLed(tester, metrics: SonicMetrics.compact);
 
     expect(taps, (selects: 0, toggles: 2));
-  });
-
-  testWidgets('regular: the same taps still select the card (unchanged)', (
-    tester,
-  ) async {
-    final taps = await tapAroundLed(tester, metrics: SonicMetrics.regular);
-
-    expect(taps, (selects: 2, toggles: 0));
   });
 
   // A phone user taps next to an LED while a preset load is in flight (the

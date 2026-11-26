@@ -137,11 +137,9 @@ void main() {
           tester.getTopLeft(find.byType(ModuleEditor)).dy,
       56 + 8,
     );
-    // Scaled down to the room inside the surface and the 16-px side padding.
-    expect(
-      tester.getRect(find.byType(GearPiece)).width,
-      inInclusiveRange(590, 634 - 32),
-    );
+    // Scaled down to the room inside the surface's 1-px border, beside the
+    // block panel (236 + 16 right padding), less the 16-px side padding.
+    expect(tester.getRect(find.byType(GearPiece)).width, 634 - 2 - 252 - 32);
     expect(
       tester.getSize(find.byType(SonicDropdown<int>).first).height,
       SonicMetrics.regular.editorControlHeight,
@@ -212,42 +210,35 @@ void main() {
   // The other non-knob controls follow the metrics' control height too: a
   // toggle parameter, a select parameter and the IR file buttons. (The Clone
   // Mode toggle, the clone buttons and the division dropdowns are pinned
-  // above.)
-  for (final (metrics, height) in const [
-    (SonicMetrics.compact, 32.0),
-    (SonicMetrics.regular, 40.0),
-  ]) {
-    final mode = metrics.isCompact ? 'compact' : 'regular';
-    final px = height.toInt();
+  // above.) Compact only: regular keeps them in the block panel, at the
+  // prototype's sizes (block_panel_test.dart).
+  testWidgets('compact: a toggle parameter is 32 tall', (tester) async {
+    // FX1 Auto Wah: its Sync toggle.
+    await pumpEditor(tester, moduleId: 1, fxId: 104);
 
-    testWidgets('$mode: a toggle parameter is $px tall', (tester) async {
-      // FX1 Auto Wah: its Sync toggle.
-      await pumpEditor(tester, moduleId: 1, fxId: 104, metrics: metrics);
+    expect(tester.getSize(inCell('Sync', SonicToggle)).height, 32);
+  });
 
-      expect(tester.getSize(inCell('Sync', SonicToggle)).height, height);
-    });
+  testWidgets('compact: a select parameter dropdown is 32 tall', (
+    tester,
+  ) async {
+    // FX1 Touch Wah: its Mode select (Guitar / Bass).
+    await pumpEditor(tester, moduleId: 1, fxId: 103);
 
-    testWidgets('$mode: a select parameter dropdown is $px tall', (
-      tester,
-    ) async {
-      // FX1 Touch Wah: its Mode select (Guitar / Bass).
-      await pumpEditor(tester, moduleId: 1, fxId: 103, metrics: metrics);
+    expect(tester.getSize(inCell('Mode', SonicDropdown<int>)).height, 32);
+  });
 
-      expect(tester.getSize(inCell('Mode', SonicDropdown<int>)).height, height);
-    });
+  testWidgets('compact: the IR file buttons are 32 tall', (tester) async {
+    await pumpEditor(tester, moduleId: 4, fxId: 416);
 
-    testWidgets('$mode: the IR file buttons are $px tall', (tester) async {
-      await pumpEditor(tester, moduleId: 4, fxId: 416, metrics: metrics);
-
-      for (final label in const ['Load…', 'Name…', 'Clear']) {
-        expect(
-          tester.getSize(find.widgetWithText(SonicButton, label)).height,
-          height,
-          reason: label,
-        );
-      }
-    });
-  }
+    for (final label in const ['Load…', 'Name…', 'Clear']) {
+      expect(
+        tester.getSize(find.widgetWithText(SonicButton, label)).height,
+        32,
+        reason: label,
+      );
+    }
+  });
 
   // (name, moduleId, fxId, params, isCloneMode)
   const editors = [

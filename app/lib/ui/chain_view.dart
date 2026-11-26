@@ -67,9 +67,9 @@ double chainCardWidth(
 }
 
 /// One unit of the signal chain. Regular: the realistic mini piece of
-/// [model] in a fixed box (an empty dashed box without a model), the module
-/// tag under it, and the [LedButton] status dot. Compact: SVG icon, module
-/// name, effect name and the status dot. Pure presentation.
+/// [model] in a fixed box (an empty dashed box without a model) and the module
+/// tag under it; its on/off lives in the block panel. Compact: SVG icon,
+/// module name, effect name and the [LedButton] status dot. Pure presentation.
 class ModuleCard extends StatelessWidget {
   const ModuleCard({
     super.key,
@@ -140,7 +140,7 @@ class ModuleCard extends StatelessWidget {
   );
 
   /// Regular: the mini piece in its fixed box (prototype N_Principal
-  /// pedalboard), the module tag, the LED. Selected = card fill with a primary
+  /// pedalboard) and the module tag. Selected = card fill with a primary
   /// outline; an off module draws its piece unlit.
   Widget _regularUnit(SonicMetrics metrics) {
     final kind = gearKindForModule(iconId);
@@ -152,7 +152,7 @@ class ModuleCard extends StatelessWidget {
 
     return Container(
       key: const Key('regular-unit'),
-      padding: const EdgeInsets.fromLTRB(6, 6, 6, 0),
+      padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(14),
         color: isSelected ? Palette.surfaceContainerHigh : null,
@@ -188,7 +188,6 @@ class ModuleCard extends StatelessWidget {
               color: isSelected ? Palette.primary : Palette.faint,
             ),
           ),
-          _ledRow(metrics),
         ],
       ),
     );

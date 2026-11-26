@@ -41,8 +41,10 @@ void main() {
             data: const MediaQueryData(),
             child: Align(
               alignment: Alignment.topLeft,
+              // The regular editor at the 960 minimum: the header beside
+              // the block panel.
               child: SizedBox(
-                width: 480,
+                width: 692,
                 child: SingleChildScrollView(child: ModuleEditor(3)),
               ),
             ),
