@@ -600,6 +600,8 @@ class SonicDropdown<T> extends HookWidget {
       isOpen.value = controller.isShowing;
     }
 
+    final fitted = width == null ? null : _fittedWidth(context, width!);
+
     return CompositedTransformTarget(
       link: link,
       child: OverlayPortal(
@@ -610,7 +612,7 @@ class SonicDropdown<T> extends HookWidget {
           items: items,
           sections: sections,
           value: value,
-          width: width,
+          width: fitted,
           onSelected: (v) {
             onChanged(v);
             close();
@@ -621,13 +623,46 @@ class SonicDropdown<T> extends HookWidget {
           triggerKey: triggerKey,
           label: label,
           isOpen: isOpen.value,
-          width: width,
+          width: fitted,
           isEnabled: isEnabled,
           height: height,
           onTap: toggle,
         ),
       ),
     );
+  }
+}
+
+/// The trigger's chrome around its label: padding 14 + 14, gap 8, 22px arrow.
+const double _triggerChrome = 14 + 14 + 8 + 22;
+
+/// Longest list whose every label is measured to size the trigger.
+const int _fitMaxItems = 200;
+
+/// [want] widened, when needed, to show the widest item label in full (the
+/// real fonts are wider than the fixed widths callers picked).
+extension on SonicDropdown {
+  double _fittedWidth(BuildContext context, double want) {
+    if (items.length > _fitMaxItems) return want;
+
+    final style = AppText.controlLabel;
+    final dir = Directionality.of(context);
+    final scaler = MediaQuery.textScalerOf(context);
+    var widest = 0.0;
+
+    for (final it in items) {
+      final tp = TextPainter(
+        text: TextSpan(text: it.label, style: style),
+        textDirection: dir,
+        textScaler: scaler,
+        maxLines: 1,
+      )..layout();
+
+      widest = math.max(widest, tp.width);
+      tp.dispose();
+    }
+
+    return math.max(want, (widest + _triggerChrome).ceilToDouble() + 1);
   }
 }
 

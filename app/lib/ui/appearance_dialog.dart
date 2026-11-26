@@ -113,6 +113,7 @@ class _Chip extends StatelessWidget {
       selected: isSelected,
       label: palette.name,
       child: GestureDetector(
+        key: ValueKey('chip-${palette.id}'),
         behavior: .opaque,
         onTap: onTap,
         child: Container(
@@ -157,14 +158,20 @@ class _Chip extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
+              // A long name shrinks to fit instead of being cut: two palettes
+              // differ only in their last word.
               Expanded(
-                child: Text(
-                  palette.name,
-                  maxLines: 1,
-                  overflow: .ellipsis,
-                  style: AppText.uiStrong.copyWith(
-                    fontSize: 13,
-                    color: Palette.onSurface,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    palette.name,
+                    maxLines: 1,
+                    softWrap: false,
+                    style: AppText.uiStrong.copyWith(
+                      fontSize: 13,
+                      color: Palette.onSurface,
+                    ),
                   ),
                 ),
               ),

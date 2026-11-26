@@ -169,6 +169,22 @@ void main() {
     expect(got, isNotEmpty);
   });
 
+  testWidgets('no pedal title touches the body edges', (tester) async {
+    for (final e in pedalSpecs.entries) {
+      await tester.pumpWidget(_host(PedalPiece(spec: e.value, model: e.key)));
+      final body = tester.getRect(find.byType(PedalPiece));
+      final title = find.text(
+        e.value.family == PedalFamily.mxr ? e.key : e.key.toUpperCase(),
+      );
+      expect(title, findsWidgets, reason: e.key);
+      final r = tester.getRect(title.first);
+
+      // Wrap rather than touch: at least 4px of body on each side.
+      expect(r.left, greaterThanOrEqualTo(body.left + 4), reason: e.key);
+      expect(r.right, lessThanOrEqualTo(body.right - 4), reason: e.key);
+    }
+  });
+
   testWidgets('the model name is printed on the pedal', (tester) async {
     await tester.pumpWidget(
       _host(PedalPiece(spec: pedalSpecs['Phaser M']!, model: 'Phaser M')),

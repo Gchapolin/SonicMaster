@@ -14,6 +14,7 @@ import 'package:sonicmaster/ui/preset_browser_page.dart';
 
 import '../support/page_harness.dart';
 import '../support/sonic_host.dart';
+import '../support/text_fit.dart';
 
 Future<ProviderContainer> _open(WidgetTester tester) async {
   SharedPreferences.setMockInitialValues({});
@@ -53,6 +54,34 @@ void main() {
     expect(second, greaterThan(first));
     expect(third, greaterThan(second));
     expect(fourth, first);
+  });
+
+  testWidgets('every palette name is shown in full inside its chip', (
+    tester,
+  ) async {
+    await _open(tester);
+
+    for (final p in appPalettes) {
+      expectNoTruncatedText(tester, find.byKey(ValueKey('chip-${p.id}')));
+      final text = tester.getRect(find.text(p.name).first);
+      final chip = tester.getRect(
+        find
+            .ancestor(
+              of: find.text(p.name).first,
+              matching: find.byType(Container),
+            )
+            .first,
+      );
+
+      expect(
+        text.right,
+        lessThanOrEqualTo(chip.right - 12 + 0.5),
+        reason: p.name,
+      );
+      expect(text.height, greaterThanOrEqualTo(11), reason: p.name);
+    }
+    // The two look-alikes are told apart by their last word.
+    expect(find.text('Vintage Neutral - Muted 2'), findsOneWidget);
   });
 
   testWidgets('picking a palette recolours the app at once and saves it', (
