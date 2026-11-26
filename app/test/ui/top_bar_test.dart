@@ -184,6 +184,28 @@ void main() {
     }
   });
 
+  testWidgets('852x393 with the CFW chips: no overflow', (tester) async {
+    await pumpPage(
+      tester,
+      size: const Size(852, 393),
+      overrides: [
+        cfwInfoProvider.overrideWith((_) => cfw),
+        dspLoadProvider.overrideWith((_) => 40),
+        batteryProvider.overrideWith(
+          (_) => const BatteryStatus(
+            flags: 1,
+            millivolts: 3880,
+            charge: BatteryCharge.onBattery,
+            bars: 3,
+            emptyMillivolts: 3540,
+          ),
+        ),
+      ],
+    );
+
+    expectNoOverflow(tester);
+  });
+
   testWidgets('Salvar is a primary filled button', (tester) async {
     await pumpPage(tester, size: regular);
 

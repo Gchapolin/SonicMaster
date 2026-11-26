@@ -18,6 +18,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_text.dart';
 import 'chain_view.dart';
 import 'dev_console_page.dart';
+import 'empty_board.dart';
 import 'module_editor.dart';
 import 'preset_drawer.dart';
 import 'preset_rail.dart';
@@ -222,8 +223,14 @@ class PresetBrowserPage extends HookConsumerWidget {
                                                   mainAxisAlignment: .center,
                                                   crossAxisAlignment: .stretch,
                                                   children: [
-                                                    if (emptyMessage !=
-                                                        null) ...[
+                                                    if (!isConnected)
+                                                      EmptyBoard(
+                                                        // No pedal at hand: a virtual one, nothing is sent anywhere.
+                                                        onDemo: () =>
+                                                            startDemo(ref),
+                                                      )
+                                                    else if (emptyMessage !=
+                                                        null)
                                                       Text(
                                                         emptyMessage,
                                                         textAlign: .center,
@@ -233,24 +240,8 @@ class PresetBrowserPage extends HookConsumerWidget {
                                                               color: Palette
                                                                   .textDim,
                                                             ),
-                                                      ),
-                                                      // No pedal at hand: a virtual one, nothing is sent anywhere.
-                                                      if (!isConnected) ...[
-                                                        const SizedBox(
-                                                          height: 16,
-                                                        ),
-                                                        Center(
-                                                          child: SonicButton(
-                                                            label: ShellText
-                                                                .current
-                                                                .tryDemo,
-                                                            onPressed: () =>
-                                                                startDemo(ref),
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ] else if (state !=
-                                                        null) ...[
+                                                      )
+                                                    else if (state != null) ...[
                                                       const ChainView(),
                                                       SizedBox(
                                                         height: metrics

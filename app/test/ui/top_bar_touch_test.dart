@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart' show ValueKey; // Icons glyph font only
+import 'package:flutter/material.dart'; // Icons glyph font only
+import 'package:flutter/widgets.dart' show ValueKey;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sonicmaster/state/device_providers.dart';
 import 'package:sonicmaster/ui/connection_controls.dart';

@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sonicmaster/device/device_service.dart';
 import 'package:sonicmaster/device/transport.dart';
+import 'package:sonicmaster/l10n/lang.dart';
 import 'package:sonicmaster/model/preset_ref.dart';
 import 'package:sonicmaster/state/device_providers.dart';
 import 'package:sonicmaster/state/names_providers.dart';
@@ -482,5 +483,35 @@ void main() {
 
     await pumpPage(tester, size: const Size(1280, 800));
     expect(find.text('Try demo'), findsNothing);
+  });
+
+  group('disconnected shows the empty board and Testar demo', () {
+    for (final size in const [
+      Size(1180, 820),
+      Size(820, 1180),
+      Size(852, 393),
+    ]) {
+      testWidgets('${size.width.toInt()}x${size.height.toInt()}', (
+        tester,
+      ) async {
+        appLang = Lang.pt;
+        addTearDown(() => appLang = Lang.en);
+
+        final c = await pumpPage(tester, size: size, isConnected: false);
+
+        expect(tester.takeException(), isNull);
+        expect(find.byKey(const ValueKey('empty-slot')), findsNWidgets(9));
+        expect(find.text('Nenhuma pedaleira conectada'), findsOneWidget);
+        expect(find.text('Testar demo'), findsOneWidget);
+
+        // startDemo: the page's own demo path (the harness swaps the
+        // transport for a silent one, so only the mode flag is observable).
+        await tester.tap(find.text('Testar demo'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 1100));
+
+        expect(c.read(demoModeProvider), isTrue);
+      });
+    }
   });
 }
