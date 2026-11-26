@@ -201,4 +201,53 @@ abstract final class AppText {
     fontFamily: _display,
     fontWeight: FontWeight.bold,
   );
+
+  // Prototype faces (redesign). Colors are set by the call site.
+
+  /// Default UI text.
+  static const TextStyle ui = TextStyle(
+    fontFamily: 'Inter',
+    fontWeight: FontWeight.w500,
+    fontSize: 13,
+  );
+
+  /// Emphasised UI text.
+  static const TextStyle uiStrong = TextStyle(
+    fontFamily: 'Inter',
+    fontWeight: FontWeight.w600,
+    fontSize: 15,
+  );
+
+  /// Screen / panel title.
+  static const TextStyle title = TextStyle(
+    fontFamily: 'Space Grotesk',
+    fontWeight: FontWeight.w600,
+    fontSize: 22,
+  );
+
+  /// Section header; upper-case the text at the call site.
+  static const TextStyle section = TextStyle(
+    fontFamily: 'Inter',
+    fontWeight: FontWeight.w600,
+    fontSize: 11,
+    letterSpacing: 1,
+  );
+
+  /// Numeric / code readout.
+  static const TextStyle mono = TextStyle(
+    fontFamily: 'JetBrains Mono',
+    fontSize: 13,
+  );
+
+  /// Label on a gear piece (size set by the call site).
+  static const TextStyle gearLabel = TextStyle(
+    fontFamily: 'Barlow Condensed',
+    fontWeight: FontWeight.w600,
+  );
+
+  /// Tiny meter scale readout.
+  static const TextStyle meter = TextStyle(
+    fontFamily: 'Share Tech Mono',
+    fontSize: 10,
+  );
 }

@@ -80,7 +80,34 @@ flutter:
     - assets/data/
     - assets/images/
     - assets/fonts/OFL.txt # Oswald SIL OFL-1.1 — ships with the embedded font
+    - assets/fonts/OFL-Inter.txt # Inter SIL OFL-1.1
+    - assets/fonts/OFL-SpaceGrotesk.txt # SpaceGrotesk SIL OFL-1.1
+    - assets/fonts/OFL-JetBrainsMono.txt # JetBrainsMono SIL OFL-1.1
+    - assets/fonts/OFL-BarlowCondensed.txt # BarlowCondensed SIL OFL-1.1
+    - assets/fonts/OFL-ShareTechMono.txt # ShareTechMono SIL OFL-1.1
   fonts:
     - family: Oswald
       fonts:
         - asset: assets/fonts/Oswald.ttf
+    # Prototype faces. Inter/Space Grotesk/JetBrains Mono are variable fonts:
+    # one file serves every weight through the wght axis.
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter.ttf
+    - family: Space Grotesk
+      fonts:
+        - asset: assets/fonts/SpaceGrotesk.ttf
+    - family: JetBrains Mono
+      fonts:
+        - asset: assets/fonts/JetBrainsMono.ttf
+    - family: Barlow Condensed
+      fonts:
+        - asset: assets/fonts/BarlowCondensed-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/BarlowCondensed-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/BarlowCondensed-Bold.ttf
+          weight: 700
+    - family: Share Tech Mono
+      fonts:
+        - asset: assets/fonts/ShareTechMono.ttf
