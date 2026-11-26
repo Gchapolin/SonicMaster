@@ -12,9 +12,11 @@ import 'package:sonicmaster/protocol/sysex_write_frame.dart';
 import 'package:sonicmaster/state/cfw_providers.dart';
 import 'package:sonicmaster/state/device_providers.dart';
 import 'package:sonicmaster/ui/midi_map_dialog.dart';
+import 'package:sonicmaster/ui/preset_browser_page.dart';
 import 'package:sonicmaster/ui/sonic_controls.dart';
 
 import '../fixtures/cfw_dumps.dart';
+import '../support/page_harness.dart';
 import '../support/silent_transport.dart';
 import '../support/sonic_host.dart';
 import '../support/view_helpers.dart';
@@ -85,6 +87,34 @@ class _MapPedal extends DeviceService {
 }
 
 void main() {
+  testWidgets('golden: the dialog over the main screen', (tester) async {
+    final pedal = _MapPedal(const [_bank, _freeze]);
+    appLang = Lang.pt;
+    addTearDown(() => appLang = Lang.en);
+    await pumpPage(
+      tester,
+      size: const Size(1180, 820),
+      overrides: [
+        deviceServiceProvider.overrideWithValue(pedal),
+        cfwInfoProvider.overrideWith(
+          (_) => decodeCfwSettingsFrame(cfwSettingsOriginal)!,
+        ),
+      ],
+    );
+    unawaited(
+      showSonicDialog<void>(
+        context: tester.element(find.byType(PresetBrowserPage)),
+        builder: (_) => const MidiMapDialog(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await expectLater(
+      find.byType(Navigator).first,
+      matchesGoldenFile('goldens/midi_map_dialog_1180x820.png'),
+    );
+  });
+
   final cfw = decodeCfwSettingsFrame(cfwSettingsOriginal)!;
 
   Future<_MapPedal> open(
@@ -124,8 +154,63 @@ void main() {
     await open(tester, const [_bank, _freeze]);
 
     expect(find.text('2 / 64 rows'), findsOneWidget);
-    expect(find.text('PC 101–102 → Bank −, Bank +'), findsOneWidget);
-    expect(find.text('CC 80 → Freeze · toggle'), findsOneWidget);
+    expect(find.text('PC 101–102'), findsOneWidget);
+    expect(find.text('Bank − / +'), findsOneWidget);
+    expect(find.text('Bank −, Bank +'), findsOneWidget);
+    expect(find.text('CC 80'), findsOneWidget);
+    expect(find.text('Freeze'), findsOneWidget);
+    expect(find.text('toggle'), findsOneWidget);
+  });
+
+  testWidgets('rows list with remove', (tester) async {
+    await open(tester, const [_bank, _freeze]);
+
+    expect(find.text('SOURCE'), findsOneWidget);
+    expect(find.text('FUNCTION'), findsOneWidget);
+    expect(find.text('OPTION'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.close).first);
+    await tester.pump();
+
+    expect(find.text('PC 101–102'), findsNothing);
+    expect(find.text('CC 80'), findsOneWidget);
+  });
+
+  testWidgets('add row form', (tester) async {
+    await open(tester, const []);
+
+    expect(find.text('NEW ROW'), findsOneWidget);
+    for (final label in ['Type', 'from', 'to', 'Value', 'Function']) {
+      expect(find.text(label), findsOneWidget);
+    }
+    expect(find.text('MIDI CH'), findsWidgets);
+
+    await tapText(tester, 'Add row');
+
+    // The new row's cells are in the rows panel, not just in the form.
+    final panel = find.ancestor(
+      of: find.text('SOURCE'),
+      matching: find.byType(Column),
+    );
+    expect(
+      find.descendant(of: panel.first, matching: find.text('CC 0')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: panel.first, matching: find.text('Tap tempo')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('status shows count of 64 and unsaved', (tester) async {
+    await open(tester, const [_bank]);
+
+    expect(find.text('1 / 64 rows'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.close).first);
+    await tester.pump();
+
+    expect(find.text('0 / 64 rows · Not saved yet'), findsOneWidget);
   });
 
   testWidgets('a new row is sent only on Save to pedal', (tester) async {
@@ -133,7 +218,7 @@ void main() {
 
     await tapText(tester, 'Add row');
 
-    expect(find.text('CC 0 → Tap tempo'), findsOneWidget);
+    expect(find.text('CC 0'), findsOneWidget);
     expect(find.text('1 / 64 rows · Not saved yet'), findsOneWidget);
     expect(pedal.sent, isEmpty);
 
@@ -170,7 +255,7 @@ void main() {
   testWidgets('deleting a row and saving writes the rest', (tester) async {
     final pedal = await open(tester, const [_bank, _freeze]);
 
-    await tester.tap(find.byIcon(Icons.delete).first);
+    await tester.tap(find.byIcon(Icons.close).first);
     await tester.pump();
     await tapText(tester, 'Save to pedal');
     await tester.pump();
@@ -285,8 +370,11 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.text('Mapa MIDI personalizado'), findsOneWidget);
       expect(find.text('2 / 64 linhas'), findsOneWidget);
-      expect(find.text('PC 101–102 → Banco −, Banco +'), findsOneWidget);
-      expect(find.text('CC 80 → Freeze · alterna'), findsOneWidget);
+      expect(find.text('PC 101–102'), findsOneWidget);
+      expect(find.text('Banco −, Banco +'), findsOneWidget);
+      expect(find.text('alterna'), findsOneWidget);
+      expect(find.text('ORIGEM'), findsOneWidget);
+      expect(find.text('NOVA LINHA'), findsOneWidget);
       expect(find.text('Adicionar linha'), findsOneWidget);
       expect(find.text('Salvar na pedaleira'), findsOneWidget);
       expect(find.text('Fechar'), findsOneWidget);

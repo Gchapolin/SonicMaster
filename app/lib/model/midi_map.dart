@@ -112,27 +112,40 @@ class MidiMapEntry {
     switchMode,
   ];
 
+  /// The options the row picks ("Bank −, Bank +"), or null when the function
+  /// has none to pick.
+  String? optionLabel() => _picked()?.label;
+
+  ({String label, bool isRange})? _picked() {
+    final options = optionsOf(function);
+
+    if (options.isEmpty || which >= options.length) return null;
+
+    final last = (which + to - from).clamp(which, options.length - 1);
+
+    return (
+      label: last == which
+          ? options[which]
+          : last - which == 1
+          ? '${options[which]}, ${options[last]}'
+          : '${options[which]} … ${options[last]}',
+      isRange: last > which,
+    );
+  }
+
   /// "PC 101–102 → Bank −, Bank +".
   String describe() {
     final message =
         '${trigger == pc ? 'PC' : 'CC'} $from${to == from ? '' : '–$to'}';
     final name = functions[function] ?? MidiMapText.current.function(function);
-    final options = optionsOf(function);
-    final count = to - from + 1;
+    final picked = _picked();
 
-    if (options.isEmpty || which >= options.length) return '$message → $name';
-
-    final last = (which + count - 1).clamp(which, options.length - 1);
-    final picked = last == which
-        ? options[which]
-        : last - which == 1
-        ? '${options[which]}, ${options[last]}'
-        : '${options[which]} … ${options[last]}';
+    if (picked == null) return '$message → $name';
 
     // "Bank − / +" already says what its two options are.
-    return picked.startsWith(name.split(' ').first) && last > which
-        ? '$message → $picked'
-        : '$message → $name: $picked';
+    return picked.label.startsWith(name.split(' ').first) && picked.isRange
+        ? '$message → ${picked.label}'
+        : '$message → $name: ${picked.label}';
   }
 
   MidiMapEntry copyWith({

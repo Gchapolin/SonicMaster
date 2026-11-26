@@ -149,6 +149,13 @@ void main() {
     expect(decodeMidiMapInfo('nope'), isNull);
   });
 
+  test('optionLabel is the picked options, null without any', () {
+    const bank = MidiMapEntry(from: 101, to: 102, function: 2);
+
+    expect(bank.optionLabel(), 'Bank −, Bank +');
+    expect(const MidiMapEntry(function: 5).optionLabel(), isNull);
+  });
+
   test('a row describes itself like the web app', () {
     final rows = _rows();
 

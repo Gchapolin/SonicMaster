@@ -26,6 +26,18 @@ abstract class MidiMapText {
   String get readAgain;
   String get saveToPedal;
   String get anyValue;
+  String get colOrigin;
+  String get colFunction;
+  String get colOption;
+  String get newRow;
+  String get typeLabel;
+  String get valueLabel;
+  String get modeLabel;
+  String get channelLabel;
+  String get functionLabel;
+  String get optionLabel;
+  String get editRow;
+  String removeRow(String source);
 
   /// Function code -> name.
   Map<int, String> get functions;
@@ -76,6 +88,30 @@ class _En extends MidiMapText {
   String get saveToPedal => 'Save to pedal';
   @override
   String get anyValue => 'any';
+  @override
+  String get colOrigin => 'SOURCE';
+  @override
+  String get colFunction => 'FUNCTION';
+  @override
+  String get colOption => 'OPTION';
+  @override
+  String get newRow => 'NEW ROW';
+  @override
+  String get typeLabel => 'Type';
+  @override
+  String get valueLabel => 'Value';
+  @override
+  String get modeLabel => 'Mode';
+  @override
+  String get channelLabel => 'MIDI CH';
+  @override
+  String get functionLabel => 'Function';
+  @override
+  String get optionLabel => 'Option';
+  @override
+  String get editRow => 'EDIT ROW';
+  @override
+  String removeRow(String source) => 'Remove row $source';
   @override
   Map<int, String> get functions => const {
     1: 'Select preset',
@@ -156,6 +192,30 @@ class _Pt extends MidiMapText {
   String get saveToPedal => 'Salvar na pedaleira';
   @override
   String get anyValue => 'qualquer';
+  @override
+  String get colOrigin => 'ORIGEM';
+  @override
+  String get colFunction => 'FUNÇÃO';
+  @override
+  String get colOption => 'OPÇÃO';
+  @override
+  String get newRow => 'NOVA LINHA';
+  @override
+  String get typeLabel => 'Tipo';
+  @override
+  String get valueLabel => 'Valor';
+  @override
+  String get modeLabel => 'Modo';
+  @override
+  String get channelLabel => 'MIDI CH';
+  @override
+  String get functionLabel => 'Função';
+  @override
+  String get optionLabel => 'Opção';
+  @override
+  String get editRow => 'EDITAR LINHA';
+  @override
+  String removeRow(String source) => 'Remover linha $source';
   @override
   Map<int, String> get functions => const {
     1: 'Escolher preset',
