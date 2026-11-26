@@ -45,7 +45,15 @@ void main() {
     await tester.runAsync(() async {
       await c.read(dataAssetsProvider.future);
       await startDemo(ref);
-      await Future<void>.delayed(const Duration(milliseconds: 400));
+      // connectAndSync fires the names + CFW reads unawaited; wait for the
+      // last of them (not a fixed delay) so nothing outlives the test.
+      final deadline = DateTime.now().add(const Duration(seconds: 20));
+
+      while (c.read(cfwInfoProvider) == null) {
+        if (DateTime.now().isAfter(deadline))
+          fail('the demo reads never ended');
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+      }
     });
 
     expect(c.read(demoModeProvider), isTrue);
