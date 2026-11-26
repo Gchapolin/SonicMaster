@@ -57,7 +57,7 @@ void main() {
     expect(find.text('Nome…'), findsNWidgets(20));
     expect(find.text('Limpar'), findsNWidgets(20));
     expect(find.text('Fechar'), findsOneWidget);
-    expect(find.text('IR 1 · Jazz 2x12'), findsOneWidget); // names stay
+    expect(find.text('Jazz 2x12'), findsOneWidget); // names stay
     expect(tester.takeException(), isNull);
   });
 

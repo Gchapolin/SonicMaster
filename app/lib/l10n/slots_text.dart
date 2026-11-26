@@ -12,6 +12,7 @@ abstract class SlotsText {
   String get title;
   String get irSection;
   String get profileSection;
+  String slotCount(int n);
   String get load;
   String get name;
   String get clear;
@@ -86,6 +87,8 @@ class _En extends SlotsText {
   String get irSection => 'User IR (cab)';
   @override
   String get profileSection => 'User Profile (Clone)';
+  @override
+  String slotCount(int n) => '$n slots';
   @override
   String get load => 'Load…';
   @override
@@ -212,6 +215,8 @@ class _Pt extends SlotsText {
   String get irSection => 'IR do usuário (cab)';
   @override
   String get profileSection => 'Perfil do usuário (Clone)';
+  @override
+  String slotCount(int n) => '$n slots';
   @override
   String get load => 'Carregar…';
   @override
