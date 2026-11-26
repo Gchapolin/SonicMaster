@@ -4,6 +4,7 @@
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/painting.dart';
 
 import 'surfaces.dart';
@@ -25,6 +26,10 @@ void _shadow(
   );
 }
 
+/// `box-shadow: 0 0 4px` -> sigma 2, no spread (the glow is the LED's own shape).
+@visibleForTesting
+const ledGlowSigma = 2.0;
+
 /// Status LED. On: red dome with a glow. Off: dark #3A1512 with an inner shade.
 void paintLed(Canvas canvas, Offset c, double size, bool on) {
   final r = size / 2;
@@ -32,10 +37,10 @@ void paintLed(Canvas canvas, Offset c, double size, bool on) {
   if (on) {
     canvas.drawCircle(
       c,
-      r * 1.3,
+      r,
       Paint()
         ..color = const Color(0x99FF3B30)
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, size * 0.3),
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, ledGlowSigma),
     );
     canvas.drawCircle(
       c,
@@ -162,7 +167,16 @@ void paintJewel(Canvas canvas, Offset c, double size, bool on) {
   canvas.drawCircle(c, r + 3, Paint()..color = const Color(0x80000000));
   canvas.drawCircle(c, r + 2, Paint()..color = const Color(0xFFD2D2D2));
   if (!on) {
-    canvas.drawCircle(c, r, Paint()..color = const Color(0xFF3A1512));
+    canvas.drawCircle(
+      c,
+      r,
+      cssRadial(
+        Rect.fromCircle(center: c, radius: r),
+        const Offset(0.4, 0.35),
+        const [Color(0xFF5A3532), Color(0xFF2A0D0B)],
+        const [0, 1],
+      ),
+    );
     return;
   }
   // CSS conic starts at 12 o'clock (here "from 10deg"); Flutter's sweep at
