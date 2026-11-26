@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -24,7 +25,7 @@ class TunerDialog extends HookConsumerWidget {
   static const pollEvery = Duration(milliseconds: 120);
 
   /// Within this many cents the note counts as in tune.
-  static const inTuneCents = 3.0;
+  static const inTuneCents = 5.0;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -79,23 +80,32 @@ class TunerDialog extends HookConsumerWidget {
     final cents = hasNote ? r.cents : 0.0;
     final isInTune = hasNote && cents.abs() <= inTuneCents;
     final t = TunerText.current;
-    final status = r == null
+    final a4 = r?.a4 ?? 440;
+    final info = r == null
         ? t.opening
         : !hasNote
         ? t.playString
-        : isInTune
-        ? t.inTune
-        : (cents < 0 ? t.flat : t.sharp);
-    final a4 = r?.a4 ?? 440;
+        : '${r.hz.toStringAsFixed(1)} Hz · '
+              '${cents >= 0 ? '+' : ''}${cents.toStringAsFixed(1)} cents';
+    Color labelColor(bool isActive) => isActive
+        ? (isInTune ? Palette.ok : Palette.onSurface)
+        : Palette.outline;
+    final labelStyle = AppText.section.copyWith(fontSize: 12);
 
     return SonicDialog(
       maxWidth: 420,
       child: Column(
         mainAxisSize: .min,
-        crossAxisAlignment: .stretch,
+        crossAxisAlignment: .center,
         children: [
-          Text(t.title, style: AppText.dialogTitle),
-          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              t.title,
+              style: AppText.title.copyWith(color: Palette.onSurface),
+            ),
+          ),
+          const SizedBox(height: 12),
           Row(
             mainAxisAlignment: .center,
             crossAxisAlignment: .baseline,
@@ -103,90 +113,92 @@ class TunerDialog extends HookConsumerWidget {
             children: [
               Text(
                 hasNote ? r.noteName! : '—',
-                style: AppText.bpmDisplay.copyWith(
-                  fontSize: 56,
-                  color: isInTune ? Palette.accent : Palette.onSurface,
+                style: AppText.title.copyWith(
+                  fontSize: 96,
+                  fontWeight: FontWeight.w700,
+                  height: 1,
+                  color: isInTune ? Palette.ok : Palette.onSurface,
                 ),
               ),
               if (hasNote) ...[
                 const SizedBox(width: 4),
                 Text(
                   '${r.octave}',
-                  style: AppText.dialogTitle.copyWith(
+                  style: AppText.title.copyWith(
                     color: Palette.onSurfaceVariant,
                   ),
                 ),
               ],
             ],
           ),
+          const SizedBox(height: 12),
           Text(
-            status,
+            info,
             textAlign: .center,
-            style: AppText.dialogBody.copyWith(
-              color: isInTune ? Palette.accent : Palette.onSurfaceVariant,
+            style: AppText.mono.copyWith(
+              fontSize: 14,
+              color: Palette.onSurfaceVariant,
             ),
           ),
-          const SizedBox(height: 10),
-          _Needle(cents: hasNote ? cents : null, isInTune: isInTune),
-          const SizedBox(height: 6),
-          Row(
-            mainAxisAlignment: .center,
-            children: [
-              Text(
-                hasNote
-                    ? '${cents >= 0 ? '+' : ''}${cents.toStringAsFixed(1)} ¢'
-                    : '— ¢',
-                style: AppText.dialogBody,
-              ),
-              const SizedBox(width: 16),
-              Text(
-                hasNote ? '${r.hz.toStringAsFixed(1)} Hz' : '— Hz',
-                style: AppText.dialogBody,
-              ),
-            ],
+          const SizedBox(height: 12),
+          TunerGauge(cents: hasNote ? cents : null),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: 320,
+            child: Row(
+              mainAxisAlignment: .spaceBetween,
+              children: [
+                Text(
+                  t.flat,
+                  style: labelStyle.copyWith(
+                    color: labelColor(hasNote && cents < -inTuneCents),
+                  ),
+                ),
+                Text(t.inTune, style: labelStyle.copyWith(color: Palette.ok)),
+                Text(
+                  t.sharp,
+                  style: labelStyle.copyWith(
+                    color: labelColor(hasNote && cents > inTuneCents),
+                  ),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 14),
-          Wrap(
-            alignment: .center,
-            crossAxisAlignment: .center,
-            spacing: 12,
-            runSpacing: 8,
+          const SizedBox(height: 20),
+          Container(height: 1, color: Palette.outlineVariant),
+          const SizedBox(height: 16),
+          Row(
             children: [
-              Row(
-                mainAxisSize: .min,
-                children: [
-                  Text(
-                    'A4',
-                    style: AppText.dialogBody.copyWith(
-                      color: Palette.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  SonicDropdown<int>(
-                    value: a4,
-                    width: 104,
-                    items: [
-                      for (final hz in {
-                        for (var hz = 430; hz <= 450; hz++) hz,
-                        a4,
-                      }.toList()..sort())
-                        (value: hz, label: '$hz Hz'),
-                    ],
-                    onChanged: (hz) => send(tunerA4Frame(hz)),
-                  ),
-                ],
+              Text(
+                'A4',
+                style: AppText.ui.copyWith(color: Palette.onSurfaceVariant),
               ),
-              SonicSegmented<bool>(
-                value: r?.isMuted ?? false,
-                segments: [
-                  (value: true, label: t.mute),
-                  (value: false, label: 'Bypass'),
+              const SizedBox(width: 8),
+              SonicDropdown<int>(
+                value: a4,
+                width: 104,
+                items: [
+                  for (final hz in {
+                    for (var hz = 430; hz <= 450; hz++) hz,
+                    a4,
+                  }.toList()..sort())
+                    (value: hz, label: '$hz Hz'),
                 ],
+                onChanged: (hz) => send(tunerA4Frame(hz)),
+              ),
+              const Spacer(),
+              SonicToggle(
+                value: r?.isMuted ?? false,
                 onChanged: (v) => send(tunerOutputFrame(isMuted: v)),
               ),
+              const SizedBox(width: 10),
+              Text(
+                t.mute,
+                style: AppText.uiStrong.copyWith(color: Palette.onSurface),
+              ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
           Align(
             alignment: Alignment.centerRight,
             child: SonicButton(
@@ -200,45 +212,98 @@ class TunerDialog extends HookConsumerWidget {
   }
 }
 
-/// A flat cents scale, -50..+50 with a centre mark; the marker sits at
-/// [cents] (null: no note, no marker).
-class _Needle extends StatelessWidget {
-  const _Needle({required this.cents, required this.isInTune});
+/// Needle angle from straight up, in radians: -50..+50 cents over
+/// -60..+60 degrees; beyond the scale it stops at the end.
+double tunerNeedleAngle(double cents) =>
+    cents.clamp(-50.0, 50.0) * 1.2 * pi / 180;
+
+/// The arc meter: -50..+50 cents, ticks every 5 (long every 10), the
+/// in-tune zone, and the needle at [cents] (null: no note, needle at rest).
+class TunerGauge extends StatelessWidget {
+  const TunerGauge({super.key, required this.cents});
 
   final double? cents;
-  final bool isInTune;
 
   @override
-  Widget build(BuildContext context) {
-    final at = cents?.clamp(-50, 50);
-
-    return SizedBox(
-      height: 22,
-      child: Stack(
-        alignment: .center,
-        children: [
-          Container(
-            height: 4,
-            decoration: BoxDecoration(
-              color: Palette.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          Container(width: 2, height: 22, color: Palette.outline),
-          if (at != null)
-            Align(
-              alignment: Alignment(at / 50, 0),
-              child: Container(
-                width: 8,
-                height: 18,
-                decoration: BoxDecoration(
-                  color: isInTune ? Palette.accent : Palette.onSurface,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-            ),
-        ],
+  Widget build(BuildContext context) => SizedBox(
+    width: 340,
+    height: 172,
+    child: CustomPaint(
+      painter: _GaugePainter(
+        cents: cents,
+        track: Palette.line2,
+        zone: Palette.ok,
+        minor: Palette.outlineVariant,
+        major: Palette.outline,
+        needle: Palette.onSurface,
+        hub: Palette.secondaryContainer,
       ),
-    );
+    ),
+  );
+}
+
+class _GaugePainter extends CustomPainter {
+  const _GaugePainter({
+    required this.cents,
+    required this.track,
+    required this.zone,
+    required this.minor,
+    required this.major,
+    required this.needle,
+    required this.hub,
+  });
+
+  final double? cents;
+  final Color track, zone, minor, major, needle, hub;
+
+  static const _pivot = Offset(170, 160);
+
+  Offset _at(double c, double r) {
+    final a = tunerNeedleAngle(c);
+
+    return _pivot + Offset(r * sin(a), -r * cos(a));
   }
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    Paint stroke(Color c, double w) => Paint()
+      ..color = c
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = w
+      ..strokeCap = StrokeCap.round;
+    void arc(double from, double to, Paint paint) => canvas.drawArc(
+      Rect.fromCircle(center: _pivot, radius: 148),
+      tunerNeedleAngle(from) - pi / 2,
+      tunerNeedleAngle(to) - tunerNeedleAngle(from),
+      false,
+      paint,
+    );
+
+    arc(-50, 50, stroke(track, 6));
+    arc(-5, 5, stroke(zone, 6));
+
+    for (var c = -50; c <= 50; c += 5) {
+      final isMajor = c % 10 == 0;
+
+      canvas.drawLine(
+        _at(c.toDouble(), isMajor ? 124 : 130),
+        _at(c.toDouble(), 138),
+        isMajor ? stroke(major, 2.5) : stroke(minor, 2),
+      );
+    }
+
+    canvas.drawLine(_pivot, _at(cents ?? 0, 132), stroke(needle, 3));
+    canvas.drawCircle(_pivot, 8, Paint()..color = hub);
+    canvas.drawCircle(_pivot, 8, stroke(needle, 2));
+  }
+
+  @override
+  bool shouldRepaint(_GaugePainter o) =>
+      o.cents != cents ||
+      o.track != track ||
+      o.zone != zone ||
+      o.minor != minor ||
+      o.major != major ||
+      o.needle != needle ||
+      o.hub != hub;
 }
