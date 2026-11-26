@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart' show Icons;
@@ -46,8 +47,12 @@ String _presetFile(String amp) => jsonEncode({
 class _Pedal extends DeviceService {
   _Pedal() : super(SilentTransport());
 
+  bool isFailing = false;
+
   @override
-  Future<void> sendFrame(String frameHex) async {}
+  Future<void> sendFrame(String frameHex) async {
+    if (isFailing) throw Exception('write failed');
+  }
 
   @override
   Future<String?> requestStateDump({
@@ -68,6 +73,7 @@ void main() {
     WidgetTester tester, {
     bool isConnected = true,
     Future<String> Function(Uri)? fetch,
+    DeviceService? pedal,
   }) async {
     tester.view.physicalSize = const Size(820, 1180);
     tester.view.devicePixelRatio = 1;
@@ -78,7 +84,7 @@ void main() {
       overrides: [
         dataAssetsProvider.overrideWith((_) => assets),
         connectionStateProvider.overrideWith((_) => isConnected),
-        deviceServiceProvider.overrideWithValue(_Pedal()),
+        deviceServiceProvider.overrideWithValue(pedal ?? _Pedal()),
         communityFetchProvider.overrideWithValue(fetch ?? _fetchAll),
       ],
     );
@@ -196,5 +202,95 @@ void main() {
 
     expect(find.text(status), findsOneWidget);
     expect(y(find.text(status)), greaterThan(y(find.text('DizzyHG'))));
+  });
+
+  testWidgets('a failed thumbnail fetch is retried on the next open', (
+    tester,
+  ) async {
+    var aCalls = 0;
+
+    final context = await pumpSonicHost(
+      tester,
+      overrides: [
+        dataAssetsProvider.overrideWith((_) => assets),
+        connectionStateProvider.overrideWith((_) => true),
+        deviceServiceProvider.overrideWithValue(_Pedal()),
+        communityFetchProvider.overrideWithValue((u) async {
+          if (u.path.endsWith('a.json') && ++aCalls == 1) {
+            throw Exception('offline');
+          }
+
+          return _fetchAll(u);
+        }),
+      ],
+    );
+
+    Future<void> open() async {
+      unawaited(
+        showSonicDialog<void>(
+          context: context,
+          builder: (_) => const CommunityPresetsDialog(),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    await open();
+    expect(find.byType(GearPiece), findsOneWidget);
+
+    Navigator.of(context).pop();
+    await tester.pumpAndSettle();
+    await open();
+
+    expect(find.byType(GearPiece), findsNWidgets(2));
+  });
+
+  testWidgets('malformed files show no thumbnail, the others do', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      fetch: (u) async => u.path.endsWith('a.json') ? '{oops' : _fetchAll(u),
+    );
+
+    expect(
+      tester.widgetList<GearPiece>(find.byType(GearPiece)).map((p) => p.model),
+      ['Dizzy VH'],
+    );
+  });
+
+  testWidgets('a try is not a second download of the thumbnail file', (
+    tester,
+  ) async {
+    var aCalls = 0;
+
+    await pump(
+      tester,
+      fetch: (u) {
+        if (u.path.endsWith('a.json')) aCalls++;
+
+        return _fetchAll(u);
+      },
+    );
+    await tester.tap(find.widgetWithText(SonicButton, 'Try').first);
+    await tester.pumpAndSettle();
+
+    expect(aCalls, 1);
+  });
+
+  testWidgets('a failed re-try clears the on-pedal status', (tester) async {
+    final pedal = _Pedal();
+
+    await pump(tester, pedal: pedal);
+
+    await tester.tap(find.widgetWithText(SonicButton, 'Try').first);
+    await tester.pumpAndSettle();
+    expect(find.text('On the pedal. Save to keep it.'), findsOneWidget);
+
+    pedal.isFailing = true;
+    await tester.tap(find.widgetWithText(SonicButton, 'Try').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('On the pedal. Save to keep it.'), findsNothing);
   });
 }

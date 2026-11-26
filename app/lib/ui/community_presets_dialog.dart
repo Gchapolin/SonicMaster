@@ -18,27 +18,19 @@ import 'save_preset_dialog.dart';
 import 'sonic_controls.dart';
 
 /// The amp model a community preset file uses (its AMP effect, or the Clone
-/// one in clone mode), for the card thumbnail; null when it has none or the
-/// file cannot be read. ponytail: one extra download per card, shown only
-/// once it arrives; a catalogue field would save them.
-final _communityAmpProvider = FutureProvider.family<String?, String>((
-  ref,
-  file,
-) async {
+/// one in clone mode), for the card thumbnail; null when [text] has none or
+/// is not a preset.
+String? _ampOf(String text) {
   try {
-    final text = await ref.watch(communityFetchProvider)(
-      Uri.parse(communityBaseUrl).resolve(file),
-    );
     final json = jsonDecode(text) as Map;
-    final modules = json['modules'] as Map?;
     final key = json['ampMode'] == 'Clone' ? 'Clone' : 'AMP';
-    final effect = (modules?[key] as Map?)?['effect'];
+    final effect = ((json['modules'] as Map?)?[key] as Map?)?['effect'];
 
     return effect is String && effect.isNotEmpty ? effect : null;
   } catch (_) {
     return null;
   }
-});
+}
 
 /// The Sonicake CFW community presets, like the CFW app's: Try sends one to
 /// the pedal's live state, Save to… does the same and opens Save preset with
@@ -66,7 +58,11 @@ class CommunityPresetsDialog extends HookConsumerWidget {
 
       busy.value = null;
       results.value = {...results.value, p.id: error};
-      if (error == null) live.value = p.id;
+      if (error == null) {
+        live.value = p.id;
+      } else if (live.value == p.id) {
+        live.value = null;
+      }
 
       if (error == null && save) {
         await showSavePresetDialog(context, name: p.name);
@@ -78,7 +74,10 @@ class CommunityPresetsDialog extends HookConsumerWidget {
       final canRun = isEnabled && busy.value == null;
       final isLive = live.value == p.id;
       final error = results.value[p.id];
-      final amp = ref.watch(_communityAmpProvider(p.file)).valueOrNull;
+      final fileText = ref
+          .watch(communityFileProvider(communityFileUrl(p)))
+          .valueOrNull;
+      final amp = fileText == null ? null : _ampOf(fileText);
       final byline = [
         ?p.author,
         if (p.genres.isNotEmpty) p.genres.join(', '),
