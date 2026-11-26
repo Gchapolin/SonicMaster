@@ -32,7 +32,7 @@ void main() {
     Map<int, num> params = const {},
     bool isCloneMode = false,
     Map<int, String> userNames = const {},
-    Size screen = const Size(800, 600),
+    Size screen = const Size(852, 393),
   }) async {
     final container = ProviderContainer(
       overrides: [
@@ -328,4 +328,55 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   }
+
+  // The gate: a compact tablet (shortest side 600+) draws the piece, a phone
+  // in either orientation does not.
+  for (final (screen, shown) in const [
+    (Size(820, 1180), true),
+    (Size(834, 1194), true),
+    (Size(1180, 820), true),
+    (Size(390, 844), false),
+    (Size(844, 390), false),
+  ]) {
+    testWidgets('piece on a ${screen.width.toInt()}x${screen.height.toInt()} '
+        'screen: $shown', (tester) async {
+      await pumpEditor(tester, moduleId: 3, fxId: 307, screen: screen);
+
+      expect(find.byType(GearPiece), shown ? findsOneWidget : findsNothing);
+    });
+  }
+
+  // With the piece, knob-type params live on it only; the rest stays in the
+  // control row. Without it (phone) the row keeps every knob.
+  testWidgets('tablet: knobs leave the control row, other controls stay', (
+    tester,
+  ) async {
+    await pumpEditor(
+      tester,
+      moduleId: 3,
+      fxId: 307,
+      screen: const Size(820, 1180),
+    );
+
+    expect(dials(tester), isEmpty);
+    expect(find.byType(PanelCell), findsWidgets); // FOOT SWITCH at least
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('control-row')),
+        matching: find.text(assets.effects.byId(307)!.params.first.name),
+      ),
+      findsNothing,
+    );
+  });
+
+  testWidgets('phone: the control row keeps every knob', (tester) async {
+    await pumpEditor(
+      tester,
+      moduleId: 3,
+      fxId: 307,
+      screen: const Size(844, 390),
+    );
+
+    expect(dials(tester), isNotEmpty);
+  });
 }

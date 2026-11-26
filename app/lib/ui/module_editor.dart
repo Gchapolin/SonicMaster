@@ -147,6 +147,11 @@ class ModuleEditor extends ConsumerWidget {
         if (!p.isSynced(values)) p,
     ];
 
+    // A compact tablet (shortest side 600+; phones have no room) draws the
+    // piece too, and its knobs live there instead of in the control row.
+    final showPiece =
+        metrics.isCompact && MediaQuery.sizeOf(context).shortestSide >= 600;
+
     // Regular (prototype N_Principal): the header, the big piece and its
     // value line, beside the block panel holding every other control.
     if (!metrics.isCompact) {
@@ -271,10 +276,8 @@ class ModuleEditor extends ConsumerWidget {
             ],
           ),
         ),
-        // iPad portrait: the effect's piece, scaled to the width (its knobs also
-        // stay below). A landscape phone has no height to spare for it.
-        if (MediaQuery.sizeOf(context).height >
-            MediaQuery.sizeOf(context).width)
+        // The effect's piece, scaled to the width (compact tablet only).
+        if (showPiece)
           _PieceEditor(
             key: ValueKey(def.id),
             model: def.name,
@@ -351,14 +354,15 @@ class ModuleEditor extends ConsumerWidget {
                     ),
                   ),
               for (final p in knobs)
-                _control(
-                  context,
-                  ref,
-                  p,
-                  values[p.algId] ?? p.defaultValue,
-                  isLoading,
-                  values,
-                ),
+                if (!showPiece || !onPiece.contains(p))
+                  _control(
+                    context,
+                    ref,
+                    p,
+                    values[p.algId] ?? p.defaultValue,
+                    isLoading,
+                    values,
+                  ),
               // Per-module footswitch assignment (None/FS1/FS2). Keyed on the
               // physical slot so the clone-amp editor (id 9) drives the amp's.
               if (state != null)
