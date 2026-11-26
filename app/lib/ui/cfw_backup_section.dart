@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/material.dart' show Icons; // glyph font only
 import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -278,41 +279,81 @@ class _RestoreConfirm extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = BackupText.current;
-    final muted = AppText.dialogBody.copyWith(color: Palette.onSurfaceVariant);
     final made = file.created.toLocal().toString().substring(0, 16);
+    final muted = AppText.ui.copyWith(color: Palette.onSurfaceVariant);
 
     return SonicDialog(
-      maxWidth: 440,
+      maxWidth: 520,
       child: Column(
         mainAxisSize: .min,
         crossAxisAlignment: .stretch,
         children: [
-          Text(
-            plan.isEmpty ? t.nothingToRestore : t.confirmTitle,
-            style: AppText.dialogTitle,
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Palette.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(Icons.history, size: 20, color: Palette.primary),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  plan.isEmpty ? t.nothingToRestore : t.confirmTitle,
+                  style: AppText.title.copyWith(color: Palette.onSurface),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
           Text(
             t.made(made, file.pedal.model, file.pedal.cfwTag ?? '', file.app),
             style: muted,
           ),
-          const SizedBox(height: 10),
-          if (!plan.isEmpty)
-            Text(t.overwritesHeader, style: AppText.dialogBody),
-          for (final line in plan.overwrites)
-            Text('• $line', style: AppText.dialogBody),
+          if (plan.overwrites.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            _ListCard(
+              header: t.overwritesHeader,
+              icon: Icons.check,
+              iconColor: Palette.primary,
+              textStyle: AppText.ui.copyWith(color: Palette.onSurface),
+              lines: plan.overwrites,
+            ),
+          ],
           if (plan.notes.isNotEmpty) ...[
-            const SizedBox(height: 10),
-            Text(t.notRestoredHeader, style: muted),
-            for (final n in plan.notes.take(30)) Text('• $n', style: muted),
-            if (plan.notes.length > 30)
-              Text(t.more(plan.notes.length - 30), style: muted),
+            const SizedBox(height: 16),
+            _ListCard(
+              header: t.notRestoredHeader,
+              icon: Icons.remove,
+              iconColor: Palette.outline,
+              textStyle: muted,
+              lines: plan.notes.take(30).toList(),
+              more: plan.notes.length > 30
+                  ? t.more(plan.notes.length - 30)
+                  : null,
+            ),
           ],
           if (!plan.isEmpty) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Icon(Icons.warning_amber, size: 16, color: Palette.primary),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    t.dontTouch,
+                    style: AppText.uiStrong.copyWith(color: Palette.primary),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
             Text(t.confirmWarning, style: muted),
           ],
-          const SizedBox(height: 18),
+          const SizedBox(height: 16),
           Row(
             mainAxisAlignment: .end,
             children: [
@@ -332,6 +373,66 @@ class _RestoreConfirm extends StatelessWidget {
               ],
             ],
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A header over a list of icon-led lines, on a recessed card.
+class _ListCard extends StatelessWidget {
+  const _ListCard({
+    required this.header,
+    required this.icon,
+    required this.iconColor,
+    required this.textStyle,
+    required this.lines,
+    this.more,
+  });
+
+  final String header;
+  final IconData icon;
+  final Color iconColor;
+  final TextStyle textStyle;
+  final List<String> lines;
+  final String? more;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Palette.surfaceContainerLow,
+        border: Border.all(color: Palette.outlineVariant),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        crossAxisAlignment: .start,
+        children: [
+          Text(
+            header.toUpperCase(),
+            style: AppText.section.copyWith(color: Palette.outline),
+          ),
+          for (final line in lines)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Row(
+                crossAxisAlignment: .start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 3),
+                    child: Icon(icon, size: 14, color: iconColor),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(child: Text(line, style: textStyle)),
+                ],
+              ),
+            ),
+          if (more case final m?)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Text(m, style: textStyle),
+            ),
         ],
       ),
     );
