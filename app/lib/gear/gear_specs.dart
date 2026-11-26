@@ -60,6 +60,46 @@ class PedalSpec extends GearSpec {
   final List<String> knobNames;
 }
 
+/// The prototype's TOLEX table: [color] is the base, the weave is drawn per kind.
+enum Tolex {
+  black(Color(0xFF1C1C1C)),
+  tweed(Color(0xFFD2B47A)),
+  blonde(Color(0xFFE9DCC0)),
+  orange(Color(0xFFE8761E)),
+  blue(Color(0xFF2F5D8A)),
+  grey(Color(0xFF3A3D42));
+
+  const Tolex(this.color);
+  final Color color;
+}
+
+/// The prototype's GRILLE table: [color] is the base, the weave is drawn per
+/// kind. [lightAmp] is the amp badge's `lightGrille` list, [goldBadgeCab] the
+/// cab badge's (they differ in the prototype).
+enum Grille {
+  silver(Color(0xFFA9ABAE)),
+  oxblood(Color(0xFF5A261D)),
+  diamond(Color(0xFF2A1D13)),
+  saltpepper(Color(0xFF5C5C5C)),
+  black(Color(0xFF222222)),
+  jc(Color(0xFFB9BBBE)),
+  tan(Color(0xFFB59B74)),
+  cream(Color(0xFFE3D9C2)),
+  basket(Color(0xFFC1AC82)),
+  plate(Color(0xFFA2A6AC)),
+  metal(Color(0xFF2E2F31)),
+  check(Color(0xFF1E2638));
+
+  const Grille(this.color);
+  final Color color;
+
+  bool get lightAmp =>
+      const {silver, saltpepper, basket, tan, cream, jc, plate}.contains(this);
+
+  bool get goldBadgeCab =>
+      const {silver, saltpepper, basket, tan, cream, jc, check}.contains(this);
+}
+
 class AmpSpec extends GearSpec {
   const AmpSpec(
     this.isHead,
@@ -71,8 +111,8 @@ class AmpSpec extends GearSpec {
     this.knobNames,
   );
   final bool isHead;
-  final Color tolex;
-  final Color grille;
+  final Tolex tolex;
+  final Grille grille;
   final AmpPanel panel;
   final KnobStyle knob;
   final bool piping;
@@ -131,7 +171,7 @@ class AmpPanel {
   static const svt = AmpPanel(
     Color(0xFFC9CDD2),
     Color(0xFFC9CDD2),
-    _dark,
+    Color(0xFFF2F2F2), // the labels sit on the blue band
     band: Color(0xFF2C4F8C),
   );
 }
@@ -148,8 +188,8 @@ class CabSpec extends GearSpec {
   );
   final int speakers;
   final int inch;
-  final Color tolex;
-  final Color grille;
+  final Tolex tolex;
+  final Grille grille;
   final bool slant;
   final bool piping;
   final bool corners;
@@ -769,8 +809,8 @@ const Map<String, PedalSpec> pedalSpecs = {
 const Map<String, AmpSpec> ampSpecs = {
   'TWD Deluxe': AmpSpec(
     false,
-    Color(0xFFD2B47A),
-    Color(0xFF5A261D),
+    Tolex.tweed,
+    Grille.oxblood,
     AmpPanel.chrome,
     KnobStyle.chickenBrown,
     false,
@@ -778,8 +818,8 @@ const Map<String, AmpSpec> ampSpecs = {
   ),
   'B-Man N': AmpSpec(
     false,
-    Color(0xFFD2B47A),
-    Color(0xFF5A261D),
+    Tolex.tweed,
+    Grille.oxblood,
     AmpPanel.chrome,
     KnobStyle.chickenBrown,
     false,
@@ -787,8 +827,8 @@ const Map<String, AmpSpec> ampSpecs = {
   ),
   'B-Man B': AmpSpec(
     false,
-    Color(0xFFD2B47A),
-    Color(0xFF5A261D),
+    Tolex.tweed,
+    Grille.oxblood,
     AmpPanel.chrome,
     KnobStyle.chickenBrown,
     false,
@@ -796,8 +836,8 @@ const Map<String, AmpSpec> ampSpecs = {
   ),
   'Dark Twin': AmpSpec(
     false,
-    Color(0xFF1C1C1C),
-    Color(0xFFA9ABAE),
+    Tolex.black,
+    Grille.silver,
     AmpPanel.blackface,
     KnobStyle.skirt,
     true,
@@ -805,8 +845,8 @@ const Map<String, AmpSpec> ampSpecs = {
   ),
   'Voks 30N': AmpSpec(
     false,
-    Color(0xFF1C1C1C),
-    Color(0xFF2A1D13),
+    Tolex.black,
+    Grille.diamond,
     AmpPanel.copper,
     KnobStyle.chickenCream,
     true,
@@ -814,8 +854,8 @@ const Map<String, AmpSpec> ampSpecs = {
   ),
   'Voks 30TB': AmpSpec(
     false,
-    Color(0xFF1C1C1C),
-    Color(0xFF2A1D13),
+    Tolex.black,
+    Grille.diamond,
     AmpPanel.copper,
     KnobStyle.chickenCream,
     true,
@@ -823,8 +863,8 @@ const Map<String, AmpSpec> ampSpecs = {
   ),
   'Jazz 120': AmpSpec(
     false,
-    Color(0xFF1C1C1C),
-    Color(0xFFB9BBBE),
+    Tolex.black,
+    Grille.jc,
     AmpPanel.silver,
     KnobStyle.blackFlat,
     false,
@@ -832,8 +872,8 @@ const Map<String, AmpSpec> ampSpecs = {
   ),
   'Calif Star CL': AmpSpec(
     false,
-    Color(0xFF1C1C1C),
-    Color(0xFFB59B74),
+    Tolex.black,
+    Grille.tan,
     AmpPanel.blackface,
     KnobStyle.chrome,
     false,
@@ -841,8 +881,8 @@ const Map<String, AmpSpec> ampSpecs = {
   ),
   'Calif IIC+': AmpSpec(
     false,
-    Color(0xFF1C1C1C),
-    Color(0xFF222222),
+    Tolex.black,
+    Grille.black,
     AmpPanel.blackface,
     KnobStyle.chrome,
     false,
@@ -850,8 +890,8 @@ const Map<String, AmpSpec> ampSpecs = {
   ),
   'Calif IV LD': AmpSpec(
     false,
-    Color(0xFF1C1C1C),
-    Color(0xFF222222),
+    Tolex.black,
+    Grille.black,
     AmpPanel.blackface,
     KnobStyle.chrome,
     false,
@@ -859,8 +899,8 @@ const Map<String, AmpSpec> ampSpecs = {
   ),
   'Superb CL': AmpSpec(
     false,
-    Color(0xFF2F5D8A),
-    Color(0xFFE3D9C2),
+    Tolex.blue,
+    Grille.cream,
     AmpPanel.chrome,
     KnobStyle.cream,
     false,
@@ -868,8 +908,8 @@ const Map<String, AmpSpec> ampSpecs = {
   ),
   'Superb OD': AmpSpec(
     false,
-    Color(0xFF2F5D8A),
-    Color(0xFFE3D9C2),
+    Tolex.blue,
+    Grille.cream,
     AmpPanel.chrome,
     KnobStyle.cream,
     false,
@@ -877,8 +917,8 @@ const Map<String, AmpSpec> ampSpecs = {
   ),
   'Doctor CL': AmpSpec(
     false,
-    Color(0xFFE9DCC0),
-    Color(0xFF5A261D),
+    Tolex.blonde,
+    Grille.oxblood,
     AmpPanel.chrome,
     KnobStyle.chickenBlack,
     false,
@@ -886,8 +926,8 @@ const Map<String, AmpSpec> ampSpecs = {
   ),
   'Doctor OD': AmpSpec(
     false,
-    Color(0xFFE9DCC0),
-    Color(0xFF5A261D),
+    Tolex.blonde,
+    Grille.oxblood,
     AmpPanel.chrome,
     KnobStyle.chickenBlack,
     false,
@@ -895,8 +935,8 @@ const Map<String, AmpSpec> ampSpecs = {
   ),
   'Brit 45': AmpSpec(
     true,
-    Color(0xFF1C1C1C),
-    Color(0xFF5C5C5C),
+    Tolex.black,
+    Grille.saltpepper,
     AmpPanel.gold,
     KnobStyle.goldcap,
     true,
@@ -904,8 +944,8 @@ const Map<String, AmpSpec> ampSpecs = {
   ),
   'Brit 50': AmpSpec(
     true,
-    Color(0xFF1C1C1C),
-    Color(0xFF5C5C5C),
+    Tolex.black,
+    Grille.saltpepper,
     AmpPanel.gold,
     KnobStyle.goldcap,
     true,
@@ -913,8 +953,8 @@ const Map<String, AmpSpec> ampSpecs = {
   ),
   'Brit 50JP': AmpSpec(
     true,
-    Color(0xFF1C1C1C),
-    Color(0xFF5C5C5C),
+    Tolex.black,
+    Grille.saltpepper,
     AmpPanel.gold,
     KnobStyle.goldcap,
     true,
@@ -922,8 +962,8 @@ const Map<String, AmpSpec> ampSpecs = {
   ),
   'Brit 800': AmpSpec(
     true,
-    Color(0xFF1C1C1C),
-    Color(0xFF222222),
+    Tolex.black,
+    Grille.black,
     AmpPanel.gold,
     KnobStyle.goldcap,
     true,
@@ -931,8 +971,8 @@ const Map<String, AmpSpec> ampSpecs = {
   ),
   'Brit 900': AmpSpec(
     true,
-    Color(0xFF1C1C1C),
-    Color(0xFF222222),
+    Tolex.black,
+    Grille.black,
     AmpPanel.gold,
     KnobStyle.goldcap,
     true,
@@ -940,8 +980,8 @@ const Map<String, AmpSpec> ampSpecs = {
   ),
   'Sol 100 OD': AmpSpec(
     true,
-    Color(0xFF1C1C1C),
-    Color(0xFF222222),
+    Tolex.black,
+    Grille.black,
     AmpPanel.chrome,
     KnobStyle.blackFlat,
     false,
@@ -949,8 +989,8 @@ const Map<String, AmpSpec> ampSpecs = {
   ),
   'Supero 2 OD': AmpSpec(
     true,
-    Color(0xFF1C1C1C),
-    Color(0xFF222222),
+    Tolex.black,
+    Grille.black,
     AmpPanel.chrome,
     KnobStyle.blackFlat,
     false,
@@ -958,8 +998,8 @@ const Map<String, AmpSpec> ampSpecs = {
   ),
   'Sol 100 LD': AmpSpec(
     true,
-    Color(0xFF1C1C1C),
-    Color(0xFF222222),
+    Tolex.black,
+    Grille.black,
     AmpPanel.chrome,
     KnobStyle.blackFlat,
     false,
@@ -967,8 +1007,8 @@ const Map<String, AmpSpec> ampSpecs = {
   ),
   'Dizzy VH': AmpSpec(
     true,
-    Color(0xFF1C1C1C),
-    Color(0xFF222222),
+    Tolex.black,
+    Grille.black,
     AmpPanel.alu,
     KnobStyle.blackFlat,
     false,
@@ -976,8 +1016,8 @@ const Map<String, AmpSpec> ampSpecs = {
   ),
   'Dizzy VH+': AmpSpec(
     true,
-    Color(0xFF1C1C1C),
-    Color(0xFF222222),
+    Tolex.black,
+    Grille.black,
     AmpPanel.alu,
     KnobStyle.blackFlat,
     false,
@@ -985,8 +1025,8 @@ const Map<String, AmpSpec> ampSpecs = {
   ),
   'Eng 120': AmpSpec(
     true,
-    Color(0xFF1C1C1C),
-    Color(0xFF222222),
+    Tolex.black,
+    Grille.black,
     AmpPanel.black,
     KnobStyle.silvercap,
     false,
@@ -994,8 +1034,8 @@ const Map<String, AmpSpec> ampSpecs = {
   ),
   'Eng Power': AmpSpec(
     true,
-    Color(0xFF1C1C1C),
-    Color(0xFF222222),
+    Tolex.black,
+    Grille.black,
     AmpPanel.black,
     KnobStyle.silvercap,
     false,
@@ -1003,8 +1043,8 @@ const Map<String, AmpSpec> ampSpecs = {
   ),
   'Halen 51': AmpSpec(
     true,
-    Color(0xFF1C1C1C),
-    Color(0xFF222222),
+    Tolex.black,
+    Grille.black,
     AmpPanel.black,
     KnobStyle.blackFlat,
     false,
@@ -1012,8 +1052,8 @@ const Map<String, AmpSpec> ampSpecs = {
   ),
   'Calif DualV': AmpSpec(
     true,
-    Color(0xFF1C1C1C),
-    Color(0xFFA2A6AC),
+    Tolex.black,
+    Grille.plate,
     AmpPanel.black,
     KnobStyle.chrome,
     false,
@@ -1021,8 +1061,8 @@ const Map<String, AmpSpec> ampSpecs = {
   ),
   'Calif DualM': AmpSpec(
     true,
-    Color(0xFF1C1C1C),
-    Color(0xFFA2A6AC),
+    Tolex.black,
+    Grille.plate,
     AmpPanel.black,
     KnobStyle.chrome,
     false,
@@ -1030,8 +1070,8 @@ const Map<String, AmpSpec> ampSpecs = {
   ),
   'Flyman B1': AmpSpec(
     true,
-    Color(0xFF1C1C1C),
-    Color(0xFF222222),
+    Tolex.black,
+    Grille.black,
     AmpPanel.brass,
     KnobStyle.goldcap,
     true,
@@ -1039,8 +1079,8 @@ const Map<String, AmpSpec> ampSpecs = {
   ),
   'Flyman B1+': AmpSpec(
     true,
-    Color(0xFF1C1C1C),
-    Color(0xFF222222),
+    Tolex.black,
+    Grille.black,
     AmpPanel.brass,
     KnobStyle.goldcap,
     true,
@@ -1048,8 +1088,8 @@ const Map<String, AmpSpec> ampSpecs = {
   ),
   'Bog XT V': AmpSpec(
     true,
-    Color(0xFF1C1C1C),
-    Color(0xFF222222),
+    Tolex.black,
+    Grille.black,
     AmpPanel.chrome,
     KnobStyle.blackFlat,
     false,
@@ -1057,8 +1097,8 @@ const Map<String, AmpSpec> ampSpecs = {
   ),
   'Bog XT M': AmpSpec(
     true,
-    Color(0xFF1C1C1C),
-    Color(0xFF222222),
+    Tolex.black,
+    Grille.black,
     AmpPanel.chrome,
     KnobStyle.blackFlat,
     false,
@@ -1066,8 +1106,8 @@ const Map<String, AmpSpec> ampSpecs = {
   ),
   'Bog SV CL': AmpSpec(
     true,
-    Color(0xFF1C1C1C),
-    Color(0xFF222222),
+    Tolex.black,
+    Grille.black,
     AmpPanel.silver,
     KnobStyle.blackFlat,
     false,
@@ -1075,8 +1115,8 @@ const Map<String, AmpSpec> ampSpecs = {
   ),
   'Tanger R100': AmpSpec(
     true,
-    Color(0xFFE8761E),
-    Color(0xFFC1AC82),
+    Tolex.orange,
+    Grille.basket,
     AmpPanel.white,
     KnobStyle.blackFlat,
     false,
@@ -1084,8 +1124,8 @@ const Map<String, AmpSpec> ampSpecs = {
   ),
   'A BassVT': AmpSpec(
     true,
-    Color(0xFF1C1C1C),
-    Color(0xFF222222),
+    Tolex.black,
+    Grille.black,
     AmpPanel.svt,
     KnobStyle.blackFlat,
     false,
@@ -1093,8 +1133,8 @@ const Map<String, AmpSpec> ampSpecs = {
   ),
   'Voks Bass': AmpSpec(
     true,
-    Color(0xFF1C1C1C),
-    Color(0xFF2A1D13),
+    Tolex.black,
+    Grille.diamond,
     AmpPanel.copper,
     KnobStyle.chickenCream,
     true,
@@ -1102,8 +1142,8 @@ const Map<String, AmpSpec> ampSpecs = {
   ),
   'Calif Bass': AmpSpec(
     true,
-    Color(0xFF1C1C1C),
-    Color(0xFF222222),
+    Tolex.black,
+    Grille.black,
     AmpPanel.blackface,
     KnobStyle.chrome,
     false,
@@ -1112,83 +1152,19 @@ const Map<String, AmpSpec> ampSpecs = {
 };
 
 const Map<String, CabSpec> cabSpecs = {
-  'TWD 1x8': CabSpec(
-    1,
-    8,
-    Color(0xFFD2B47A),
-    Color(0xFF5A261D),
-    false,
-    false,
-    false,
-  ),
-  'TWD-P 1x10': CabSpec(
-    1,
-    10,
-    Color(0xFF1C1C1C),
-    Color(0xFFA9ABAE),
-    false,
-    true,
-    false,
-  ),
-  'Viblux 1x12': CabSpec(
-    1,
-    12,
-    Color(0xFF1C1C1C),
-    Color(0xFFA9ABAE),
-    false,
-    true,
-    false,
-  ),
-  'Voks 1x12': CabSpec(
-    1,
-    12,
-    Color(0xFF1C1C1C),
-    Color(0xFF2A1D13),
-    false,
-    true,
-    false,
-  ),
-  'TWD 2x12': CabSpec(
-    2,
-    12,
-    Color(0xFFD2B47A),
-    Color(0xFF5A261D),
-    false,
-    false,
-    false,
-  ),
-  'Double 2x12': CabSpec(
-    2,
-    12,
-    Color(0xFF1C1C1C),
-    Color(0xFFA9ABAE),
-    false,
-    true,
-    false,
-  ),
-  'Star 2x12': CabSpec(
-    2,
-    12,
-    Color(0xFF1C1C1C),
-    Color(0xFFB59B74),
-    false,
-    false,
-    true,
-  ),
-  'Jazz 2x12': CabSpec(
-    2,
-    12,
-    Color(0xFF1C1C1C),
-    Color(0xFFB9BBBE),
-    false,
-    false,
-    false,
-  ),
+  'TWD 1x8': CabSpec(1, 8, Tolex.tweed, Grille.oxblood, false, false, false),
+  'TWD-P 1x10': CabSpec(1, 10, Tolex.black, Grille.silver, false, true, false),
+  'Viblux 1x12': CabSpec(1, 12, Tolex.black, Grille.silver, false, true, false),
+  'Voks 1x12': CabSpec(1, 12, Tolex.black, Grille.diamond, false, true, false),
+  'TWD 2x12': CabSpec(2, 12, Tolex.tweed, Grille.oxblood, false, false, false),
+  'Double 2x12': CabSpec(2, 12, Tolex.black, Grille.silver, false, true, false),
+  'Star 2x12': CabSpec(2, 12, Tolex.black, Grille.tan, false, false, true),
+  'Jazz 2x12': CabSpec(2, 12, Tolex.black, Grille.jc, false, false, false),
   'BritGN 2x12': CabSpec(
     2,
     12,
-    Color(0xFF1C1C1C),
-    Color(0xFF5C5C5C),
+    Tolex.black,
+    Grille.saltpepper,
     false,
     true,
     true,
@@ -1196,172 +1172,28 @@ const Map<String, CabSpec> cabSpecs = {
   'BritGN 4x12': CabSpec(
     4,
     12,
-    Color(0xFF1C1C1C),
-    Color(0xFF5C5C5C),
+    Tolex.black,
+    Grille.saltpepper,
     true,
     true,
     true,
   ),
-  'Bog 4x12': CabSpec(
-    4,
-    12,
-    Color(0xFF1C1C1C),
-    Color(0xFF222222),
-    false,
-    false,
-    true,
-  ),
-  'Dizzy 4x12': CabSpec(
-    4,
-    12,
-    Color(0xFF1C1C1C),
-    Color(0xFF222222),
-    false,
-    false,
-    true,
-  ),
-  'Halen 4x12': CabSpec(
-    4,
-    12,
-    Color(0xFF1C1C1C),
-    Color(0xFF222222),
-    true,
-    false,
-    true,
-  ),
-  'Sol 4x12': CabSpec(
-    4,
-    12,
-    Color(0xFF1C1C1C),
-    Color(0xFF222222),
-    false,
-    false,
-    true,
-  ),
-  'Dual 4x12': CabSpec(
-    4,
-    12,
-    Color(0xFF1C1C1C),
-    Color(0xFF2E2F31),
-    false,
-    false,
-    true,
-  ),
-  'Bass 4x10': CabSpec(
-    4,
-    10,
-    Color(0xFF1C1C1C),
-    Color(0xFF1E2638),
-    false,
-    false,
-    true,
-  ),
-  'Mark 2x10': CabSpec(
-    2,
-    10,
-    Color(0xFF1C1C1C),
-    Color(0xFF222222),
-    false,
-    false,
-    true,
-  ),
-  'Ampg 4x10': CabSpec(
-    4,
-    10,
-    Color(0xFF1C1C1C),
-    Color(0xFF1E2638),
-    false,
-    false,
-    true,
-  ),
-  'User IR 1': CabSpec(
-    1,
-    12,
-    Color(0xFF3A3D42),
-    Color(0xFF222222),
-    false,
-    false,
-    true,
-  ),
-  'User IR 2': CabSpec(
-    1,
-    12,
-    Color(0xFF3A3D42),
-    Color(0xFF222222),
-    false,
-    false,
-    true,
-  ),
-  'User IR 3': CabSpec(
-    1,
-    12,
-    Color(0xFF3A3D42),
-    Color(0xFF222222),
-    false,
-    false,
-    true,
-  ),
-  'User IR 4': CabSpec(
-    1,
-    12,
-    Color(0xFF3A3D42),
-    Color(0xFF222222),
-    false,
-    false,
-    true,
-  ),
-  'User IR 5': CabSpec(
-    1,
-    12,
-    Color(0xFF3A3D42),
-    Color(0xFF222222),
-    false,
-    false,
-    true,
-  ),
-  'User IR 6': CabSpec(
-    1,
-    12,
-    Color(0xFF3A3D42),
-    Color(0xFF222222),
-    false,
-    false,
-    true,
-  ),
-  'User IR 7': CabSpec(
-    1,
-    12,
-    Color(0xFF3A3D42),
-    Color(0xFF222222),
-    false,
-    false,
-    true,
-  ),
-  'User IR 8': CabSpec(
-    1,
-    12,
-    Color(0xFF3A3D42),
-    Color(0xFF222222),
-    false,
-    false,
-    true,
-  ),
-  'User IR 9': CabSpec(
-    1,
-    12,
-    Color(0xFF3A3D42),
-    Color(0xFF222222),
-    false,
-    false,
-    true,
-  ),
-  'User IR 10': CabSpec(
-    1,
-    12,
-    Color(0xFF3A3D42),
-    Color(0xFF222222),
-    false,
-    false,
-    true,
-  ),
+  'Bog 4x12': CabSpec(4, 12, Tolex.black, Grille.black, false, false, true),
+  'Dizzy 4x12': CabSpec(4, 12, Tolex.black, Grille.black, false, false, true),
+  'Halen 4x12': CabSpec(4, 12, Tolex.black, Grille.black, true, false, true),
+  'Sol 4x12': CabSpec(4, 12, Tolex.black, Grille.black, false, false, true),
+  'Dual 4x12': CabSpec(4, 12, Tolex.black, Grille.metal, false, false, true),
+  'Bass 4x10': CabSpec(4, 10, Tolex.black, Grille.check, false, false, true),
+  'Mark 2x10': CabSpec(2, 10, Tolex.black, Grille.black, false, false, true),
+  'Ampg 4x10': CabSpec(4, 10, Tolex.black, Grille.check, false, false, true),
+  'User IR 1': CabSpec(1, 12, Tolex.grey, Grille.black, false, false, true),
+  'User IR 2': CabSpec(1, 12, Tolex.grey, Grille.black, false, false, true),
+  'User IR 3': CabSpec(1, 12, Tolex.grey, Grille.black, false, false, true),
+  'User IR 4': CabSpec(1, 12, Tolex.grey, Grille.black, false, false, true),
+  'User IR 5': CabSpec(1, 12, Tolex.grey, Grille.black, false, false, true),
+  'User IR 6': CabSpec(1, 12, Tolex.grey, Grille.black, false, false, true),
+  'User IR 7': CabSpec(1, 12, Tolex.grey, Grille.black, false, false, true),
+  'User IR 8': CabSpec(1, 12, Tolex.grey, Grille.black, false, false, true),
+  'User IR 9': CabSpec(1, 12, Tolex.grey, Grille.black, false, false, true),
+  'User IR 10': CabSpec(1, 12, Tolex.grey, Grille.black, false, false, true),
 };

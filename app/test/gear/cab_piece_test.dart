@@ -75,6 +75,32 @@ void main() {
     expect(find.text('USER IR 3'), findsOneWidget);
   });
 
+  testWidgets('the badge plate is text + 12 padding + 2 border, even if long', (
+    tester,
+  ) async {
+    await _loadFont();
+    for (final m in const ['Mark 2x10', 'User IR 10']) {
+      await tester.pumpWidget(
+        _host(CabPiece(spec: cabSpecs[m] ?? cabSpecs['User IR 1']!, model: m)),
+      );
+      final plate = tester.getRect(find.byKey(const Key('cab-badge')));
+      final text = tester.getRect(find.text(m.toUpperCase()));
+      expect(plate.width, text.width + 14, reason: m);
+      expect(plate.height, text.height + 2, reason: m);
+    }
+  });
+
+  testWidgets('the badge is painted after the corners', (tester) async {
+    await tester.pumpWidget(_host(_cab('Mark 2x10')));
+    final stack = tester.widget<Stack>(
+      find
+          .descendant(of: find.byType(CabPiece), matching: find.byType(Stack))
+          .first,
+    );
+    int at(String k) => stack.children.indexWhere((w) => w.key == Key(k));
+    expect(at('cab-badge-pos'), greaterThan(at('cab-corner-3')));
+  });
+
   testWidgets('a slant cab keeps its corners and piping', (tester) async {
     await tester.pumpWidget(
       _host(RepaintBoundary(key: const Key('cab'), child: _cab('BritGN 4x12'))),

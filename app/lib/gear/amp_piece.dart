@@ -66,10 +66,8 @@ class AmpPiece extends StatelessWidget {
   final bool lit;
   final double wear;
 
-  // The prototype's lightGrille list (silver, saltpepper, basket, tan, cream,
-  // jc, plate) is exactly the cloths brighter than this; the dark ones
-  // (black, oxblood, diamond) sit well below it.
-  bool get _lightGrille => spec.grille.computeLuminance() > 0.08;
+  // The prototype's lightGrille list (see Grille.lightAmp).
+  bool get _lightGrille => spec.grille.lightAmp;
 
   double _value(int i) {
     final v = values != null && i < values!.length ? values![i] : null;
@@ -259,40 +257,61 @@ class AmpPiece extends StatelessWidget {
       11,
       (c, s) => paintJack(c, s.center(Offset.zero), 11),
     );
-    final toggle = PaintBox(9, 16, (c, s) => _paintToggle(c));
+    final toggle = PaintBox(9, 9, (c, s) => _paintToggle(c));
     return CustomPaint(
       painter: _PanelPainter(spec.panel, radius, wear),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(9, 6, 9, 5),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          spacing: 4,
-          children: [
-            jack,
-            jack,
-            for (var i = 0; i < spec.knobNames.length; i++)
-              Flexible(child: _knob(i)),
-            if (toggles) ...[toggle, toggle],
-            GestureDetector(
-              key: const Key('jewel'),
+      child: Stack(
+        children: [
+          // Transparent switch target around the jewel (centre 15.5px from the
+          // panel's right edge), as tall as the panel. Heads reach 37.5px in
+          // from the edge (over the toggles); combos stop at 26px, short of
+          // the last knob. It sits below the Row, so a knob always wins.
+          Positioned(
+            top: 0,
+            bottom: 0,
+            right: 0,
+            width: toggles ? 37.5 : 26,
+            child: GestureDetector(
+              key: const Key('jewel-hit'),
               behavior: HitTestBehavior.opaque,
               onTap: onSwitch,
-              child: PaintBox(
-                13,
-                13,
-                (c, s) => paintJewel(c, s.center(Offset.zero), 13, lit),
-              ),
             ),
-          ],
-        ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(9, 6, 9, 5),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              spacing: 4,
+              children: [
+                jack,
+                jack,
+                for (var i = 0; i < spec.knobNames.length; i++)
+                  Flexible(child: _knob(i)),
+                if (toggles) ...[toggle, toggle],
+                // IgnorePointer: the glass passes taps to the target below.
+                IgnorePointer(
+                  child: KeyedSubtree(
+                    key: const Key('jewel'),
+                    child: PaintBox(
+                      13,
+                      13,
+                      (c, s) => paintJewel(c, s.center(Offset.zero), 13, lit),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-// Chrome bat toggle (power, standby): a 9px ball with the bat sticking up.
+// Chrome bat toggle (power, standby): a 9px ball with the bat sticking up
+// 7px above its box (drawn outside it, like the prototype's top: -7px).
 void _paintToggle(Canvas c) {
-  final ball = Rect.fromLTWH(0, 7, 9, 9);
+  final ball = Rect.fromLTWH(0, 0, 9, 9);
   c.drawCircle(
     ball.center.translate(0, 1),
     4.5,
@@ -311,7 +330,7 @@ void _paintToggle(Canvas c) {
     ),
   );
   final bat = RRect.fromRectAndRadius(
-    const Rect.fromLTWH(2.5, 0, 4, 9),
+    const Rect.fromLTWH(2.5, -7, 4, 9),
     const Radius.circular(2),
   );
   _drop(c, bat, 1, 1, const Color(0x80000000));
@@ -351,7 +370,7 @@ void _inset(Canvas c, RRect rr, Offset o, double blur, Color color) =>
 /// (`boxDepth`) and the 1px near-black border.
 class _BoxPainter extends CustomPainter {
   _BoxPainter(this.tolex, this.radius);
-  final Color tolex;
+  final Tolex tolex;
   final double radius;
 
   @override
@@ -362,7 +381,7 @@ class _BoxPainter extends CustomPainter {
     _drop(canvas, rr, 2, 2, const Color(0x99000000));
     canvas.save();
     canvas.clipRRect(rr);
-    paintTolex(canvas, r, tolex);
+    paintTolex(canvas, r, tolex.color, kind: tolex);
     _inset(canvas, rr, const Offset(0, 2), 1, const Color(0x29FFFFFF));
     _inset(canvas, rr, const Offset(0, -4), 6, const Color(0x8C000000));
     _inset(canvas, rr, const Offset(4, 0), 5, const Color(0x0DFFFFFF));
@@ -372,6 +391,7 @@ class _BoxPainter extends CustomPainter {
       rr.deflate(0.5),
       Paint()
         ..style = PaintingStyle.stroke
+        ..strokeWidth = 1
         ..color = const Color(0xFF050505),
     );
   }
@@ -385,7 +405,7 @@ class _BoxPainter extends CustomPainter {
 /// (dust cap, cone, surround) laid out like the prototype's space-around row.
 class _GrillePainter extends CustomPainter {
   _GrillePainter(this.color, this.light, this.piping, this.speakers);
-  final Color color;
+  final Grille color;
   final bool light;
   final bool piping;
   final int speakers;
@@ -393,7 +413,7 @@ class _GrillePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final r = Offset.zero & size;
-    paintGrille(canvas, r, color, lightGrille: light);
+    paintGrille(canvas, r, color.color, lightGrille: light, kind: color);
     if (piping) {
       Paint stroke(double w, Color c) => Paint()
         ..style = PaintingStyle.stroke

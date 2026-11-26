@@ -12,6 +12,7 @@ import 'paint/knob_painter.dart';
 import 'paint/surfaces.dart';
 
 // The prototype's `vals`: knob positions when no value is given.
+const _minHit = 44.0;
 const _defaultVals = <double>[62, 45, 70, 38, 55, 66, 48, 58];
 // Graphic EQ slider positions when no value is given.
 const _sliderVals = <double>[60, 40, 55, 70, 45, 50];
@@ -85,31 +86,26 @@ class PedalPiece extends StatelessWidget {
   TextStyle _labelStyle(double size) =>
       _font(size, spec.label, spacing: 0.5, height: 1.2);
 
-  Widget _knob(int i, double size, double lbl) => KnobDrag(
-    value: _value(i),
-    perPx: 0.5,
-    onChanged: _report(i),
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SizedBox.square(
-          dimension: size,
-          child: CustomPaint(
-            painter: GearKnobPainter(style: spec.knob, value: _value(i)),
-          ),
+  Widget _knob(int i, double size, double lbl) => Column(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      SizedBox.square(
+        dimension: size,
+        child: CustomPaint(
+          painter: GearKnobPainter(style: spec.knob, value: _value(i)),
         ),
-        const SizedBox(height: 2),
-        FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Text(
-            spec.knobNames[i].toUpperCase(),
-            maxLines: 1,
-            softWrap: false,
-            style: _labelStyle(lbl),
-          ),
+      ),
+      const SizedBox(height: 2),
+      FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(
+          spec.knobNames[i].toUpperCase(),
+          maxLines: 1,
+          softWrap: false,
+          style: _labelStyle(lbl),
         ),
-      ],
-    ),
+      ),
+    ],
   );
 
   /// CSS `grid-template-columns: repeat(cols, minmax(0, 1fr))`. With [avail]
@@ -142,16 +138,35 @@ class PedalPiece extends StatelessWidget {
     for (var r = 0; r < n; r += cols) {
       final row = <Widget>[];
       for (var c = 0; c < cols; c++) {
-        if (c > 0) row.add(SizedBox(width: hGap));
+        if (c > 0 && cellW == null) row.add(SizedBox(width: hGap));
         final i = r + c;
         final cell = Align(
           alignment: Alignment.topCenter,
           child: i < n ? _knob(i, sizeOf?.call(i) ?? kSize, lbl) : null,
         );
+        // The whole grid cell drags, not just the cap. With a fixed cell width
+        // the cell also absorbs half of each neighbouring gap (same layout,
+        // wider target).
+        final left = cellW != null && c > 0 ? hGap / 2 : 0.0;
+        final right = cellW != null && c < cols - 1 ? hGap / 2 : 0.0;
+        final hit = i < n
+            ? KnobDrag(
+                value: _value(i),
+                perPx: 0.5,
+                onChanged: _report(i),
+                child: Padding(
+                  padding: EdgeInsets.only(left: left, right: right),
+                  child: cell,
+                ),
+              )
+            : Padding(
+                padding: EdgeInsets.only(left: left, right: right),
+                child: cell,
+              );
         row.add(
           cellW == null
-              ? Expanded(child: cell)
-              : SizedBox(width: cellW, child: cell),
+              ? Expanded(child: hit)
+              : SizedBox(width: cellW + left + right, child: hit),
         );
       }
       if (r > 0) rows.add(SizedBox(height: vGap));
@@ -182,13 +197,18 @@ class PedalPiece extends StatelessWidget {
   Widget _led() =>
       PaintBox(7, 7, (c, s) => paintLed(c, s.center(Offset.zero), 7, lit));
 
+  // The drawing keeps its place; the box is padded to the 44pt touch target
+  // and the neighbours (_footswitchGrow) give back the extra room.
+  double _hitBox(double s) => math.max(_minHit, s + 12);
+  double _footswitchGrow(double s) => _hitBox(s) - (s + 12);
+
   Widget _footswitch(int i, double s) => GestureDetector(
     key: Key(i == 0 ? 'footswitch' : 'footswitch-$i'),
     behavior: HitTestBehavior.opaque,
     onTap: onSwitch,
     child: PaintBox(
-      s + 12,
-      s + 12,
+      _hitBox(s),
+      _hitBox(s),
       (c, z) => paintFootswitch(c, z.center(Offset.zero), s),
     ),
   );
@@ -335,7 +355,6 @@ class PedalPiece extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               for (var i = 0; i < math.min(nk, 6); i++) ...[
-                if (i > 0) const SizedBox(width: 8),
                 KnobDrag(
                   value: _value(i, _sliderVals),
                   perPx: 100 / 66,
@@ -438,12 +457,12 @@ class PedalPiece extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             for (var i = 0; i < switches.length; i++) ...[
-              if (i > 0) SizedBox(width: swGap),
+              if (i > 0) SizedBox(width: swGap - _footswitchGrow(switches[i])),
               _footswitch(i, switches[i]),
             ],
           ],
         ),
-        SizedBox(height: swBottom),
+        SizedBox(height: swBottom - _footswitchGrow(switches.first) / 2),
       ]);
     }
 
@@ -785,6 +804,7 @@ class _BodyPainter extends CustomPainter {
           rr.deflate(0.5),
           Paint()
             ..style = PaintingStyle.stroke
+            ..strokeWidth = 1
             ..color = const Color(0xFF050505),
         );
         return; // The prototype puts no wear on the tape unit.

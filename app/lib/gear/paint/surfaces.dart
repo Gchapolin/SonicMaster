@@ -6,6 +6,8 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/painting.dart';
 
+import '../gear_specs.dart' show Grille, Tolex;
+
 /// Port of the prototype's `shade(hex, amt)`: amt < 0 darkens towards black,
 /// amt > 0 lightens towards white.
 Color shadeColor(Color c, double amt) {
@@ -36,8 +38,9 @@ void paintHatch(
   double cssDeg,
   Color color,
   double lineW,
-  double period,
-) {
+  double period, {
+  double phase = 0,
+}) {
   if (period <= 0 || !period.isFinite) return;
   canvas.save();
   canvas.clipRect(r);
@@ -47,7 +50,7 @@ void paintHatch(
   final p = Paint()
     ..color = color
     ..strokeWidth = lineW;
-  for (double y = -half; y <= half; y += period) {
+  for (double y = -half + phase; y <= half; y += period) {
     canvas.drawLine(Offset(-half, y), Offset(half, y), p);
   }
   canvas.restore();
@@ -161,11 +164,32 @@ void paintWear(Canvas canvas, Rect r, double amount) {
 
 /// Port of `tol()`: 45 degree vinyl weave in [color], grain dots and a top
 /// light falling to a shaded bottom.
-void paintTolex(Canvas canvas, Rect r, Color color) {
+///
+/// With [kind] the weave is the prototype's TOLEX entry (tweed: three stripes
+/// and an orange cast; blue: grain dots, no stripes); without it, a 45 degree
+/// hatch at [color] shaded 25%.
+void paintTolex(Canvas canvas, Rect r, Color color, {Tolex? kind}) {
   canvas.save();
   canvas.clipRect(r);
   canvas.drawRect(r, Paint()..color = color);
-  paintHatch(canvas, r, 45, shadeColor(color, -0.25), 2, 4);
+  switch (kind) {
+    case null:
+      paintHatch(canvas, r, 45, shadeColor(color, -0.25), 2, 4);
+    case Tolex.black:
+      paintHatch(canvas, r, 45, const Color(0xFF151515), 2, 4, phase: 2);
+    case Tolex.blonde:
+      paintHatch(canvas, r, 45, const Color(0xFFDCCCAA), 2, 4, phase: 2);
+    case Tolex.orange:
+      paintHatch(canvas, r, 45, const Color(0xFFD4661A), 2, 4, phase: 2);
+    case Tolex.grey:
+      paintHatch(canvas, r, 45, const Color(0xFF33363A), 2, 4, phase: 2);
+    case Tolex.tweed:
+      paintHatch(canvas, r, 45, const Color(0xFFA9864C), 2, 6, phase: 2);
+      paintHatch(canvas, r, 45, const Color(0xFFC8A663), 2, 6, phase: 4);
+      canvas.drawRect(r, Paint()..color = const Color(0x38BE781E));
+    case Tolex.blue:
+      _dots(canvas, r, 5, const Offset(1.5, 2), 1, const Color(0x1AFFFFFF));
+  }
   _dots(canvas, r, 3, const Offset(0.75, 0.9), 0.5, const Color(0x0FFFFFFF));
   _dots(canvas, r, 4, const Offset(2.8, 2.8), 0.6, const Color(0x47000000));
   canvas.drawRect(
@@ -215,17 +239,19 @@ void _dots(
 /// texture, a vignette (cloth stretched over the baffle) and a recessed edge.
 /// [lightGrille] for pale cloths (cream, silver, tan): darker threads and a
 /// softer vignette so the weave still reads. [piping]: the cream cord around
-/// the cloth (`clothEdge(true)`).
+/// the cloth (`clothEdge(true)`). [kind] draws the prototype's GRILLE weave
+/// under the common weave and vignette.
 void paintGrille(
   Canvas canvas,
   Rect r,
   Color color, {
   bool lightGrille = false,
   bool piping = false,
+  Grille? kind,
 }) {
   canvas.save();
   canvas.clipRect(r);
-  canvas.drawRect(r, Paint()..color = color);
+  _cloth(canvas, r, color, kind);
   paintHatch(
     canvas,
     r,
@@ -291,3 +317,71 @@ void _ring(Canvas canvas, Rect r, double inset, Color color, {double dy = 0}) =>
         ..addRect(r.deflate(inset).shift(Offset(0, dy))),
       Paint()..color = color,
     );
+
+/// The base of `cloth()`: the GRILLE[name] weave (flat [color] when no kind).
+void _cloth(Canvas canvas, Rect r, Color color, Grille? kind) {
+  Paint flat(Color c) => Paint()..color = c;
+  void stripes(double deg, Color a, Color b, double wa, double wb) {
+    // `repeating-linear-gradient(deg, a 0 wa, b wa wa+wb)`.
+    canvas.drawRect(r, flat(b));
+    paintHatch(canvas, r, deg, a, wa, wa + wb, phase: wa / 2);
+  }
+
+  void vertical(Color top, Color bottom) => canvas.drawRect(
+    r,
+    Paint()
+      ..shader = ui.Gradient.linear(r.topCenter, r.bottomCenter, [top, bottom]),
+  );
+
+  void dots(Color c, double radius, double cell, Offset at) =>
+      _dots(canvas, r, cell, at, radius, c);
+
+  switch (kind) {
+    case null:
+      canvas.drawRect(r, flat(color));
+    case Grille.silver:
+      vertical(const Color(0xFFA9ABAE), const Color(0xFF8E9094));
+      dots(const Color(0xFFD9D9D9), 0.6, 3, const Offset(1.5, 1.5));
+    case Grille.oxblood:
+      stripes(90, const Color(0xFF6A2E24), const Color(0xFF4F2018), 2, 2);
+    case Grille.diamond:
+      canvas.drawRect(r, flat(const Color(0xFF2A1D13)));
+      const gold = Color.fromRGBO(214, 180, 110, 0.55);
+      paintHatch(canvas, r, 45, gold, 1, 11);
+      paintHatch(canvas, r, -45, gold, 1, 11);
+    case Grille.saltpepper:
+      canvas.drawRect(r, flat(const Color(0xFF5C5C5C)));
+      dots(const Color(0xFFA8A8A8), 0.6, 3, const Offset(1.5, 1.5));
+      dots(const Color(0xFF2A2A2A), 0.6, 3, const Offset(3, 3));
+    case Grille.black:
+      stripes(45, const Color(0xFF222222), const Color(0xFF161616), 1, 2);
+    case Grille.jc:
+      stripes(0, const Color(0xFFB9BBBE), const Color(0xFF1E1E1E), 7, 2);
+    case Grille.tan:
+      stripes(0, const Color(0xFFB59B74), const Color(0xFF9E8560), 2, 2);
+    case Grille.cream:
+      stripes(90, const Color(0xFFE3D9C2), const Color(0xFFCFC3A8), 2, 2);
+    case Grille.basket:
+      stripes(0, const Color(0xFFCDB88E), const Color(0xFFB29D73), 3, 3);
+    case Grille.plate:
+      vertical(const Color(0xFFA2A6AC), const Color(0xFF6F747A));
+      const white = Color.fromRGBO(255, 255, 255, 0.35);
+      paintHatch(canvas, r, 60, white, 2, 9);
+      paintHatch(canvas, r, -60, white, 2, 9);
+    case Grille.metal:
+      canvas.drawRect(r, flat(const Color(0xFF2E2F31)));
+      dots(const Color(0xFF0A0A0A), 1.2, 5, const Offset(2.5, 2.5));
+    case Grille.check:
+      // 8px tiles, 4px squares: top-right and bottom-left dark.
+      canvas.drawRect(r, flat(const Color(0xFF33415E)));
+      final dark = Path();
+      for (var y = r.top; y < r.bottom; y += 8) {
+        for (var x = r.left; x < r.right; x += 8) {
+          dark
+            ..addRect(Rect.fromLTWH(x + 4, y, 4, 4))
+            ..addRect(Rect.fromLTWH(x, y + 4, 4, 4));
+        }
+      }
+      canvas.drawPath(dark, flat(const Color(0xFF1E2638)));
+  }
+}
