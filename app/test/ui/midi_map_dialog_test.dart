@@ -177,23 +177,39 @@ void main() {
     expect(find.text('CC 80'), findsOneWidget);
   });
 
+  void expectFormNotTruncated(WidgetTester tester) {
+    for (final d in find.byType(SonicDropdown<int>).evaluate()) {
+      final dropdown = find.byWidget(d.widget);
+      final inForm = find.descendant(
+        of: find.byType(MidiMapDialog),
+        matching: dropdown,
+      );
+
+      if (inForm.evaluate().isNotEmpty) expectNoTruncatedText(tester, dropdown);
+    }
+  }
+
   testWidgets('every form field shows its whole value, Type included', (
     tester,
   ) async {
     await open(tester, const [], size: const Size(1180, 820));
 
-    for (final d in find.byType(SonicDropdown<int>).evaluate()) {
-      final dropdown = find.byWidget(d.widget);
-      if (find
-          .descendant(of: find.byType(MidiMapDialog), matching: dropdown)
-          .evaluate()
-          .isEmpty) {
-        continue;
-      }
-      expectNoTruncatedText(tester, dropdown);
-    }
+    expectFormNotTruncated(tester);
     // The Type dropdown shows the selected value, not an empty box.
     expect(find.text('CC'), findsWidgets);
+  });
+
+  testWidgets('Option and Mode fields show their whole value too', (
+    tester,
+  ) async {
+    await open(tester, const [_bank, _freeze], size: const Size(1180, 820));
+
+    for (final icon in [0, 1]) {
+      await tester.tap(find.byIcon(Icons.edit).at(icon));
+      await tester.pumpAndSettle();
+      expectFormNotTruncated(tester);
+      expect(find.text(icon == 0 ? 'Option' : 'Mode'), findsOneWidget);
+    }
   });
 
   testWidgets('add row form', (tester) async {

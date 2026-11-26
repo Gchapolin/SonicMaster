@@ -150,6 +150,7 @@ class MidiMapDialog extends HookConsumerWidget {
                   child: SonicDropdown<int>(
                     value: d.trigger,
                     width: 76,
+                    fitLabels: true,
                     items: const [
                       (value: MidiMapEntry.cc, label: 'CC'),
                       (value: MidiMapEntry.pc, label: 'PC'),
@@ -186,6 +187,7 @@ class MidiMapDialog extends HookConsumerWidget {
                   child: SonicDropdown<int>(
                     value: d.channel,
                     width: 112,
+                    fitLabels: true,
                     items: [
                       (value: 0, label: 'MIDI CH'),
                       for (var ch = 1; ch <= 16; ch++)
@@ -200,6 +202,7 @@ class MidiMapDialog extends HookConsumerWidget {
                     child: SonicDropdown<int>(
                       value: d.value,
                       width: 100,
+                      fitLabels: true,
                       items: [
                         for (final v in {0, 1, 2, d.value})
                           (value: v, label: MidiMapEntry.valueLabel(v)),
@@ -420,6 +423,7 @@ class _Number extends StatelessWidget {
   Widget build(BuildContext context) => SonicDropdown<int>(
     value: value,
     width: 104,
+    fitLabels: true,
     items: [
       for (var n = min; n <= 127; n++) (value: n, label: '$prefix $n'),
       if (value < min) (value: value, label: '$prefix $value'),

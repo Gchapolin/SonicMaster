@@ -189,7 +189,7 @@ class PedalPiece extends StatelessWidget {
     TextAlign align = TextAlign.center,
   }) => Padding(
     // Side margin: a long name wraps before it touches the body's edges
-    // (the rack's title box is sized to its text and needs none).
+    // (rack, studio and tape size their title box to the text and need none).
     padding: EdgeInsets.symmetric(
       horizontal: switch (spec.family) {
         PedalFamily.rack || PedalFamily.studio || PedalFamily.tape => 0,
