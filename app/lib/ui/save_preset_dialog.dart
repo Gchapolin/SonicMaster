@@ -76,10 +76,8 @@ class SavePresetDialog extends HookConsumerWidget {
     // The two-column list shows all 50 slots without scrolling: the row height
     // follows the window height (the name field and buttons step aside while
     // the list is open).
-    final rowHeight = ((MediaQuery.sizeOf(context).height - 300) / 25).clamp(
-      14.0,
-      32.0,
-    );
+    final rowHeight = ((MediaQuery.sizeOf(context).height - 300) / 25 - 2)
+        .clamp(14.0, 32.0);
 
     String slotName(int n) => names[PresetRef(.user, n)] ?? '';
 
@@ -219,7 +217,7 @@ class SavePresetDialog extends HookConsumerWidget {
                             for (var n = first; n < first + 25; n++)
                               Padding(
                                 padding: const EdgeInsets.only(bottom: 2),
-                                child: slotRow(n, height: rowHeight - 2),
+                                child: slotRow(n, height: rowHeight),
                               ),
                           ],
                         ),
@@ -245,7 +243,8 @@ class SavePresetDialog extends HookConsumerWidget {
                   // keyboard, revealing the Slot picker; saving stays an
                   // explicit tap on Save. A hardware Enter (no inset) and the
                   // regular layout still save at once.
-                  if (isCompact && MediaQuery.viewInsetsOf(context).bottom > 0) {
+                  if (isCompact &&
+                      MediaQuery.viewInsetsOf(context).bottom > 0) {
                     return;
                   }
 
