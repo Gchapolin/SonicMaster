@@ -269,4 +269,53 @@ void main() {
       matchesGoldenFile('goldens/hardware_surfaces.png'),
     );
   });
+
+  // BUG-18/20: every tolex and grille weave of the prototype's tables.
+  testWidgets('tolex and grille kinds golden', (tester) async {
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: Align(
+          alignment: Alignment.topLeft,
+          child: RepaintBoundary(
+            key: const Key('kinds'),
+            child: Container(
+              color: const Color(0xFF202020),
+              padding: const EdgeInsets.all(8),
+              width: 420,
+              child: Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  for (final t in Tolex.values)
+                    _box(
+                      60,
+                      60,
+                      (c, s) =>
+                          paintTolex(c, Offset.zero & s, t.color, kind: t),
+                    ),
+                  for (final g in Grille.values)
+                    _box(
+                      60,
+                      60,
+                      (c, s) => paintGrille(
+                        c,
+                        Offset.zero & s,
+                        g.color,
+                        lightGrille: g.lightAmp,
+                        kind: g,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await expectLater(
+      find.byKey(const Key('kinds')),
+      matchesGoldenFile('goldens/surface_kinds.png'),
+    );
+  });
 }

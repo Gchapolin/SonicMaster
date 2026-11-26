@@ -142,6 +142,46 @@ void main() {
     expect(taps, 1);
   });
 
+  testWidgets('the jewel target is about 44pt and ignores the drawing', (
+    tester,
+  ) async {
+    var taps = 0;
+    await tester.pumpWidget(_host(_amp('Brit 45', onSwitch: () => taps++)));
+    final hit = tester.getRect(find.byKey(const Key('jewel-hit')));
+    expect(hit.width, greaterThanOrEqualTo(37));
+    expect(hit.height, greaterThanOrEqualTo(40));
+    final c = tester.getCenter(find.byKey(const Key('jewel')));
+    // 16px left and 17px above the 13px glass: outside it, inside the target.
+    await tester.tapAt(c + const Offset(-16, -17));
+    expect(taps, 1);
+    expect(tester.getSize(find.byKey(const Key('jewel'))), const Size(13, 13));
+  });
+
+  testWidgets('head toggles are centred on the panel row', (tester) async {
+    await tester.pumpWidget(_host(_amp('Brit 45')));
+    final jewel = tester.getCenter(find.byKey(const Key('jewel'))).dy;
+    final toggles = find.byWidgetPredicate(
+      (w) => w is SizedBox && w.width == 9 && w.height == 9,
+    );
+    expect(toggles, findsNWidgets(2));
+    expect(tester.getCenter(toggles.first).dy, closeTo(jewel, 0.5));
+  });
+
+  test('bass panel labels are light on the blue band', () {
+    expect(AmpPanel.svt.ink.computeLuminance(), greaterThan(0.5));
+  });
+
+  test('tolex and grille kinds come from the prototype tables', () {
+    expect(ampSpecs['TWD Deluxe']!.tolex, Tolex.tweed);
+    expect(ampSpecs['Superb CL']!.tolex, Tolex.blue);
+    expect(ampSpecs['Halen 51']!.grille.lightAmp, false);
+    expect(ampSpecs['Voks 30N']!.grille, Grille.diamond);
+    expect(cabSpecs.values.every((c) => c.tolex.color.a == 1), true);
+    expect(Grille.cream.lightAmp, true);
+    expect(Grille.check.goldBadgeCab, true);
+    expect(Grille.black.goldBadgeCab, false);
+  });
+
   testWidgets('the badge stays readable on a light grille', (tester) async {
     (Color, Color) badge() {
       final box = tester.widget<Container>(find.byKey(const Key('badge')));

@@ -4,20 +4,11 @@
 // chrome corners and the model badge. Sizes are in logical px.
 import 'dart:ui' as ui;
 
+import 'package:flutter/rendering.dart' show OverflowBoxFit;
 import 'package:flutter/widgets.dart';
 
 import 'gear_specs.dart';
 import 'paint/surfaces.dart';
-
-// Cloths that take the black enamel badge with gold lettering in the
-// prototype (silver, saltpepper, jc, tan, check); the rest get chrome.
-const _goldBadgeCloths = [
-  Color(0xFFA9ABAE),
-  Color(0xFF5C5C5C),
-  Color(0xFFB9BBBE),
-  Color(0xFFB59B74),
-  Color(0xFF1E2638),
-];
 
 /// A speaker cabinet for [model], drawn from [spec]. [wear] 0..1 rubs the
 /// tolex (the grille cloth stays clean).
@@ -74,7 +65,7 @@ class CabPiece extends StatelessWidget {
       grid.add(Expanded(child: Row(children: row)));
     }
 
-    final gold = _goldBadgeCloths.contains(spec.grille);
+    final gold = spec.grille.goldBadgeCab;
     return SizedBox(
       width: w,
       height: h,
@@ -97,12 +88,6 @@ class CabPiece extends StatelessWidget {
               ),
             ),
           ),
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 4,
-            child: Center(child: _badge(gold)),
-          ),
           if (spec.corners)
             for (final (i, (x, y)) in const [
               (2.0, 2.0),
@@ -120,6 +105,22 @@ class CabPiece extends StatelessWidget {
                 height: 12,
                 child: const CustomPaint(painter: _CornerPainter()),
               ),
+          // After the corners so a long name is never covered by them. The
+          // plate sizes to its text (`white-space: nowrap`), border outside
+          // the 6px padding.
+          Positioned(
+            key: const Key('cab-badge-pos'),
+            left: 0,
+            right: 0,
+            bottom: 4,
+            child: Center(
+              child: OverflowBox(
+                maxWidth: double.infinity,
+                fit: OverflowBoxFit.deferToChild,
+                child: _badge(gold),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -127,7 +128,9 @@ class CabPiece extends StatelessWidget {
 
   // The model name on a metal plate: chrome on a dark cloth, black enamel
   // with gold lettering on a light one.
-  Widget _badge(bool gold) => DecoratedBox(
+  Widget _badge(bool gold) => Container(
+    key: const Key('cab-badge'),
+    padding: const EdgeInsets.symmetric(horizontal: 6),
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(3),
       border: Border.all(
@@ -163,27 +166,24 @@ class CabPiece extends StatelessWidget {
         ),
       ],
     ),
-    child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 6),
-      child: Text(
-        model.toUpperCase(),
-        maxLines: 1,
-        softWrap: false,
-        style: TextStyle(
-          fontFamily: 'Barlow Condensed',
-          fontFamilyFallback: const ['Oswald'],
-          fontSize: 10,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 1.5,
-          height: 1.2,
-          color: gold ? const Color(0xFFD9B860) : const Color(0xFF1A1A1A),
-          shadows: [
-            Shadow(
-              color: gold ? const Color(0xCC000000) : const Color(0xB3FFFFFF),
-              offset: const Offset(0, 1),
-            ),
-          ],
-        ),
+    child: Text(
+      model.toUpperCase(),
+      maxLines: 1,
+      softWrap: false,
+      style: TextStyle(
+        fontFamily: 'Barlow Condensed',
+        fontFamilyFallback: const ['Oswald'],
+        fontSize: 10,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 1.5,
+        height: 1.2,
+        color: gold ? const Color(0xFFD9B860) : const Color(0xFF1A1A1A),
+        shadows: [
+          Shadow(
+            color: gold ? const Color(0xCC000000) : const Color(0xB3FFFFFF),
+            offset: const Offset(0, 1),
+          ),
+        ],
       ),
     ),
   );
@@ -205,7 +205,7 @@ void _inset(Canvas c, RRect rr, Offset o, double blur, Color color) =>
 /// lit top edge, shaded bottom and sides, 1px near-black border.
 class _BoxPainter extends CustomPainter {
   const _BoxPainter(this.tolex, this.wear);
-  final Color tolex;
+  final Tolex tolex;
   final double wear;
 
   @override
@@ -222,7 +222,7 @@ class _BoxPainter extends CustomPainter {
     }
     canvas.save();
     canvas.clipRRect(rr);
-    paintTolex(canvas, r, tolex);
+    paintTolex(canvas, r, tolex.color, kind: tolex);
     paintWear(canvas, r, wear);
     final inner = rr.deflate(1);
     _inset(canvas, inner, const Offset(0, 2), 1, const Color(0x29FFFFFF));
@@ -234,6 +234,7 @@ class _BoxPainter extends CustomPainter {
       rr.deflate(0.5),
       Paint()
         ..style = PaintingStyle.stroke
+        ..strokeWidth = 1
         ..color = const Color(0xFF050505),
     );
   }
@@ -246,14 +247,20 @@ class _BoxPainter extends CustomPainter {
 /// over the whole rectangle, and the cream piping on top.
 class _GrillePainter extends CustomPainter {
   const _GrillePainter(this.cloth, this.slant, this.piping);
-  final Color cloth;
+  final Grille cloth;
   final bool slant;
   final bool piping;
 
   @override
   void paint(Canvas canvas, Size size) {
     final r = Offset.zero & size;
-    paintGrille(canvas, r, cloth, lightGrille: cloth.computeLuminance() > 0.25);
+    paintGrille(
+      canvas,
+      r,
+      cloth.color,
+      lightGrille: cloth.lightAmp,
+      kind: cloth,
+    );
     if (slant) {
       // The upper baffle leans back: it catches more light above a seam just
       // under the middle (dark line, then a thin highlight).
