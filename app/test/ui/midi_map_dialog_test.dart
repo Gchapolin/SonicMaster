@@ -124,8 +124,48 @@ void main() {
     await open(tester, const [_bank, _freeze]);
 
     expect(find.text('2 / 64 rows'), findsOneWidget);
-    expect(find.text('PC 101–102 → Bank −, Bank +'), findsOneWidget);
-    expect(find.text('CC 80 → Freeze · toggle'), findsOneWidget);
+    expect(find.text('PC 101–102'), findsOneWidget);
+    expect(find.text('Bank − / +'), findsOneWidget);
+    expect(find.text('Bank −, Bank +'), findsOneWidget);
+    expect(find.text('CC 80'), findsOneWidget);
+    expect(find.text('Freeze'), findsOneWidget);
+    expect(find.text('toggle'), findsOneWidget);
+  });
+
+  testWidgets('rows list with remove', (tester) async {
+    await open(tester, const [_bank, _freeze]);
+
+    expect(find.text('SOURCE'), findsOneWidget);
+    expect(find.text('FUNCTION'), findsOneWidget);
+    expect(find.text('OPTION'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.close).first);
+    await tester.pump();
+
+    expect(find.text('PC 101–102'), findsNothing);
+    expect(find.text('CC 80'), findsOneWidget);
+  });
+
+  testWidgets('add row form', (tester) async {
+    await open(tester, const []);
+
+    expect(find.text('NEW ROW'), findsOneWidget);
+
+    await tapText(tester, 'Add row');
+
+    expect(find.text('CC 0'), findsOneWidget);
+    expect(find.text('Tap tempo'), findsWidgets);
+  });
+
+  testWidgets('status shows count of 64 and unsaved', (tester) async {
+    await open(tester, const [_bank]);
+
+    expect(find.text('1 / 64 rows'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.close).first);
+    await tester.pump();
+
+    expect(find.text('0 / 64 rows · Not saved yet'), findsOneWidget);
   });
 
   testWidgets('a new row is sent only on Save to pedal', (tester) async {
@@ -133,7 +173,7 @@ void main() {
 
     await tapText(tester, 'Add row');
 
-    expect(find.text('CC 0 → Tap tempo'), findsOneWidget);
+    expect(find.text('CC 0'), findsOneWidget);
     expect(find.text('1 / 64 rows · Not saved yet'), findsOneWidget);
     expect(pedal.sent, isEmpty);
 
@@ -170,7 +210,7 @@ void main() {
   testWidgets('deleting a row and saving writes the rest', (tester) async {
     final pedal = await open(tester, const [_bank, _freeze]);
 
-    await tester.tap(find.byIcon(Icons.delete).first);
+    await tester.tap(find.byIcon(Icons.close).first);
     await tester.pump();
     await tapText(tester, 'Save to pedal');
     await tester.pump();
@@ -285,8 +325,11 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.text('Mapa MIDI personalizado'), findsOneWidget);
       expect(find.text('2 / 64 linhas'), findsOneWidget);
-      expect(find.text('PC 101–102 → Banco −, Banco +'), findsOneWidget);
-      expect(find.text('CC 80 → Freeze · alterna'), findsOneWidget);
+      expect(find.text('PC 101–102'), findsOneWidget);
+      expect(find.text('Banco −, Banco +'), findsOneWidget);
+      expect(find.text('alterna'), findsOneWidget);
+      expect(find.text('ORIGEM'), findsOneWidget);
+      expect(find.text('NOVA LINHA'), findsOneWidget);
       expect(find.text('Adicionar linha'), findsOneWidget);
       expect(find.text('Salvar na pedaleira'), findsOneWidget);
       expect(find.text('Fechar'), findsOneWidget);

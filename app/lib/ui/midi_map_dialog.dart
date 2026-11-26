@@ -74,46 +74,76 @@ class MidiMapDialog extends HookConsumerWidget {
       status.value = isSaved ? t.saved : t.refused;
     }
 
+    final count = list == null
+        ? null
+        : t.rows(list.length, MidiMapEntry.maxEntries);
+
     return SonicDialog(
-      maxWidth: 620,
+      maxWidth: 760,
       child: Column(
         mainAxisSize: .min,
         crossAxisAlignment: .stretch,
         children: [
-          Text(t.title, style: AppText.dialogTitle),
-          const SizedBox(height: 4),
-          Text(
-            list == null
-                ? (isBusy.value ? t.reading : t.notSent)
-                : '${t.rows(list.length, MidiMapEntry.maxEntries)}'
-                      '${status.value == null ? '' : ' · ${status.value}'}',
-            style: AppText.dialogBody.copyWith(color: Palette.onSurfaceVariant),
-          ),
-          const SizedBox(height: 8),
-          if (list != null)
-            for (final (i, e) in list.indexed)
-              _RowLine(
-                entry: e,
-                isSelected: editing.value == i,
-                onEdit: () {
-                  editing.value = i;
-                  draft.value = e;
-                },
-                onDelete: () {
-                  rows.value = [
-                    for (final (j, x) in list.indexed)
-                      if (j != i) x,
-                  ];
-                  editing.value = null;
-                  status.value = t.notSavedYet;
-                },
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  t.title,
+                  style: AppText.title.copyWith(color: Palette.onSurface),
+                ),
               ),
+              Text(
+                list == null
+                    ? (isBusy.value ? t.reading : t.notSent)
+                    : '$count${status.value == null ? '' : ' · ${status.value}'}',
+                style: AppText.ui.copyWith(color: Palette.onSurfaceVariant),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          if (list != null)
+            Container(
+              padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
+              decoration: BoxDecoration(
+                color: Palette.surfaceContainerLow,
+                border: Border.all(color: Palette.outlineVariant),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Column(
+                crossAxisAlignment: .stretch,
+                children: [
+                  const _RowHead(),
+                  for (final (i, e) in list.indexed)
+                    _RowLine(
+                      entry: e,
+                      isSelected: editing.value == i,
+                      onEdit: () {
+                        editing.value = i;
+                        draft.value = e;
+                      },
+                      onDelete: () {
+                        rows.value = [
+                          for (final (j, x) in list.indexed)
+                            if (j != i) x,
+                        ];
+                        editing.value = null;
+                        status.value = t.notSavedYet;
+                      },
+                    ),
+                ],
+              ),
+            ),
           if (list != null) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: 16),
+            Text(
+              editing.value == null ? t.newRow : t.editRow,
+              style: AppText.section.copyWith(color: Palette.outline),
+            ),
+            const SizedBox(height: 8),
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              crossAxisAlignment: .center,
+              crossAxisAlignment: .end,
               children: [
                 SonicDropdown<int>(
                   value: d.trigger,
@@ -211,7 +241,9 @@ class MidiMapDialog extends HookConsumerWidget {
               ],
             ),
           ],
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
+          Container(height: 1, color: Palette.outlineVariant),
+          const SizedBox(height: 16),
           Row(
             mainAxisAlignment: .end,
             children: [
@@ -237,7 +269,32 @@ class MidiMapDialog extends HookConsumerWidget {
   }
 }
 
-/// One stored row: what it does, with its edit and delete buttons.
+/// The column titles above the rows.
+class _RowHead extends StatelessWidget {
+  const _RowHead();
+
+  @override
+  Widget build(BuildContext context) {
+    final t = MidiMapText.current;
+    final style = AppText.section.copyWith(color: Palette.outline);
+
+    return SizedBox(
+      height: 28,
+      child: Row(
+        children: [
+          const SizedBox(width: 10),
+          SizedBox(width: 96, child: Text(t.colOrigin, style: style)),
+          const SizedBox(width: 12),
+          Expanded(child: Text(t.colFunction, style: style)),
+          SizedBox(width: 200, child: Text(t.colOption, style: style)),
+          const SizedBox(width: 72),
+        ],
+      ),
+    );
+  }
+}
+
+/// One stored row: source, function and option, with edit and remove.
 class _RowLine extends StatelessWidget {
   const _RowLine({
     required this.entry,
@@ -254,32 +311,76 @@ class _RowLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = MidiMapText.current;
-    final extras = [
-      if (entry.channel != 0) 'ch ${entry.channel}',
-      if (entry.value != 0) MidiMapEntry.valueLabel(entry.value),
-      if (entry.hasSwitch)
+    final e = entry;
+    final source =
+        '${e.trigger == MidiMapEntry.pc ? 'PC' : 'CC'} ${e.from}'
+        '${e.to == e.from ? '' : '–${e.to}'}';
+    final name = MidiMapEntry.functions[e.function] ?? t.function(e.function);
+    // describe() is "SRC → NAME[: picked]" or "SRC → picked".
+    final tail = e.describe().split(' → ').last;
+    final picked = tail == name
+        ? null
+        : tail.startsWith('$name: ')
+        ? tail.substring(name.length + 2)
+        : tail;
+    final option = [
+      ?picked,
+      if (e.channel != 0) 'ch ${e.channel}',
+      if (e.value != 0) MidiMapEntry.valueLabel(e.value),
+      if (e.hasSwitch)
         [
           t.onAt64,
           t.toggle.toLowerCase(),
           t.momentary.toLowerCase(),
           t.onAt64,
-        ][entry.switchMode & 3],
-    ];
+        ][e.switchMode & 3],
+    ].join(' · ');
 
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            [entry.describe(), ...extras].join(' · '),
-            overflow: .ellipsis,
-            style: AppText.dialogBody.copyWith(
-              color: isSelected ? Palette.accent : Palette.onSurface,
+    return Container(
+      height: 44,
+      margin: const EdgeInsets.only(top: 4),
+      padding: const EdgeInsets.only(left: 10, right: 4),
+      decoration: BoxDecoration(
+        color: Palette.field,
+        borderRadius: BorderRadius.circular(10),
+        border: isSelected ? Border.all(color: Palette.primary) : null,
+      ),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 96,
+            child: Text(
+              source,
+              style: AppText.mono.copyWith(color: Palette.primary),
             ),
           ),
-        ),
-        SonicIconButton(icon: Icons.edit, size: 18, onPressed: onEdit),
-        SonicIconButton(icon: Icons.delete, size: 18, onPressed: onDelete),
-      ],
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              name,
+              overflow: .ellipsis,
+              style: AppText.ui.copyWith(color: Palette.onSurface),
+            ),
+          ),
+          SizedBox(
+            width: 200,
+            child: Text(
+              option,
+              overflow: .ellipsis,
+              style: AppText.ui.copyWith(color: Palette.onSurfaceVariant),
+            ),
+          ),
+          SonicIconButton(icon: Icons.edit, size: 16, onPressed: onEdit),
+          Semantics(
+            label: t.removeRow(source),
+            child: SonicIconButton(
+              icon: Icons.close,
+              size: 16,
+              onPressed: onDelete,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
