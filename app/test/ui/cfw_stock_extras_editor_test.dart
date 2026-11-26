@@ -29,10 +29,11 @@ void main() {
   ) async {
     await pumpAnalog(tester, isCfw: true);
 
-    expect(find.text('TONE'), findsOneWidget);
-    expect(find.text('Flat'), findsOneWidget); // Tone = 0
-    expect(find.text('DUCK'), findsOneWidget);
-    expect(find.text('TRAILS'), findsOneWidget);
+    // The portrait editor also names the knobs on its piece.
+    expect(find.text('TONE'), findsWidgets);
+    expect(find.text('Flat'), findsWidgets); // Tone = 0
+    expect(find.text('DUCK'), findsWidgets);
+    expect(find.text('TRAILS'), findsWidgets);
     expect(find.text('TRAIL'), findsNothing); // the slot-4 toggle
     expect(tester.takeException(), isNull);
   });

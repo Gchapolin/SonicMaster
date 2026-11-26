@@ -32,6 +32,7 @@ void main() {
     Map<int, num> params = const {},
     bool isCloneMode = false,
     Map<int, String> userNames = const {},
+    Size screen = const Size(800, 600),
   }) async {
     final container = ProviderContainer(
       overrides: [
@@ -59,7 +60,7 @@ void main() {
         child: Directionality(
           textDirection: .ltr,
           child: MediaQuery(
-            data: const MediaQueryData(),
+            data: MediaQueryData(size: screen),
             child: SonicMetricsScope(
               metrics: metrics,
               child: Align(
@@ -299,4 +300,32 @@ void main() {
     await pumpEditor(tester, moduleId: 4, fxId: 421);
     expect(find.text('Load…'), findsNothing);
   });
+
+  for (final width in const [422.0, 634.0]) {
+    testWidgets('compact editor shows the piece fitted to the width $width', (
+      tester,
+    ) async {
+      await pumpEditor(
+        tester,
+        moduleId: 3,
+        fxId: 307,
+        width: width,
+        screen: const Size(820, 1180),
+      );
+
+      expect(find.byType(GearPiece), findsOneWidget);
+      expect(
+        tester
+            .getSize(
+              find.ancestor(
+                of: find.byType(GearPiece),
+                matching: find.byType(FittedBox),
+              ),
+            )
+            .width,
+        lessThanOrEqualTo(width),
+      );
+      expect(tester.takeException(), isNull);
+    });
+  }
 }

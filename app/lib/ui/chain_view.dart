@@ -66,6 +66,9 @@ double chainCardWidth(
   );
 }
 
+/// Height of the compact card's mini piece.
+const double compactPieceHeight = 44;
+
 /// One unit of the signal chain. Regular: the realistic mini piece of
 /// [model] in a fixed box (an empty dashed box without a model) and the module
 /// tag under it; its on/off lives in the block panel. Compact: SVG icon,
@@ -205,16 +208,43 @@ class ModuleCard extends StatelessWidget {
       child: Column(
         mainAxisSize: .min,
         children: [
-          SizedBox(
-            height: metrics.chainIconSize,
-            child: SvgPicture.asset(
-              moduleIconAsset[iconId] ?? moduleIconAsset[0]!,
-              theme: SvgTheme(
-                currentColor: moduleIconColor[iconId] ?? Palette.chainIcon,
+          // The mini piece of the effect (the icon when there is no model).
+          if (model case final model?)
+            SizedBox(
+              key: const Key('compact-piece'),
+              height: compactPieceHeight,
+              child: Center(
+                child: GearPiece(
+                  model: model,
+                  kind: gearKindForModule(iconId),
+                  fit: Size(
+                    (width ?? metrics.chainCardMaxWidth) -
+                        metrics.chainCardPadding.horizontal -
+                        4,
+                    compactPieceHeight,
+                  ),
+                  lit: isOn,
+                ),
               ),
-              fit: .contain,
+            )
+          else
+            // Same slot height as a piece, so cards stay level in the row.
+            SizedBox(
+              height: compactPieceHeight,
+              child: Center(
+                child: SizedBox(
+                  height: metrics.chainIconSize,
+                  child: SvgPicture.asset(
+                    moduleIconAsset[iconId] ?? moduleIconAsset[0]!,
+                    theme: SvgTheme(
+                      currentColor:
+                          moduleIconColor[iconId] ?? Palette.chainIcon,
+                    ),
+                    fit: .contain,
+                  ),
+                ),
+              ),
             ),
-          ),
           SizedBox(height: metrics.chainIconGap),
           Text(
             name,

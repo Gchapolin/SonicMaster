@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sonicmaster/device/device_service.dart';
+import 'package:sonicmaster/gear/gear_piece.dart';
 import 'package:sonicmaster/model/decoded_preset_state.dart';
 import 'package:sonicmaster/state/data_providers.dart';
 import 'package:sonicmaster/state/device_providers.dart';
@@ -95,6 +96,7 @@ void main() {
     required double width,
     bool isCompact = true,
     DecodedPresetState state = loadedPresetState,
+    Map<int, int> selected = const {},
   }) async {
     final context = await pumpSonicHost(
       tester,
@@ -105,6 +107,8 @@ void main() {
           DeviceService(SilentTransport()),
         ),
         currentPresetStateProvider.overrideWith((_) => state),
+        if (selected.isNotEmpty)
+          currentSelectedEffectsProvider.overrideWith((_) => selected),
       ],
       home: Align(
         alignment: Alignment.topLeft,
@@ -218,7 +222,7 @@ void main() {
         metrics.chainCardPadding.vertical +
         10 + // DragGrip: two rows of 5-px dots
         metrics.chainGripGap +
-        metrics.chainIconSize +
+        compactPieceHeight +
         metrics.chainIconGap +
         name.height +
         effect.height +
@@ -236,6 +240,24 @@ void main() {
       tester.getSize(find.byType(ChainConnector).first).width,
       metrics.chainConnectorWidth,
     );
+  });
+
+  testWidgets('compact chain shows mini pieces', (tester) async {
+    await pumpChain(tester, width: 836, selected: {3: 307});
+
+    final pieces = find.byKey(const Key('compact-piece'));
+
+    expect(pieces, findsWidgets);
+    expect(
+      find.descendant(of: pieces.first, matching: find.byType(GearPiece)),
+      findsOneWidget,
+    );
+    // Every piece sits inside its card: no overflow, narrower than the card.
+    for (final e in pieces.evaluate()) {
+      expect(e.size!.width, lessThanOrEqualTo(77));
+      expect(e.size!.height, compactPieceHeight);
+    }
+    expect(tester.takeException(), isNull);
   });
 
   for (final isCompact in const [true, false]) {

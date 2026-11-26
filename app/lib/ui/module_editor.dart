@@ -139,17 +139,17 @@ class ModuleEditor extends ConsumerWidget {
           }
         : const <int, String>{};
 
+    // The effect's knobs live on the piece; a synced Rate / Time holds a
+    // note division, not a position: it stays off the piece and keeps its
+    // division dropdown in the panel.
+    final onPiece = [
+      for (final p in pieceKnobs(def, isCfw: isCfw))
+        if (!p.isSynced(values)) p,
+    ];
+
     // Regular (prototype N_Principal): the header, the big piece and its
     // value line, beside the block panel holding every other control.
     if (!metrics.isCompact) {
-      // The effect's knobs live on the piece; a synced Rate / Time holds a
-      // note division, not a position: it stays off the piece and keeps its
-      // division dropdown in the panel.
-      final onPiece = [
-        for (final p in pieceKnobs(def, isCfw: isCfw))
-          if (!p.isSynced(values)) p,
-      ];
-
       // The header, piece and value line set the height; the panel lives
       // beside them within it and scrolls on its own if ever taller, so the
       // piece never leaves the screen.
@@ -271,6 +271,21 @@ class ModuleEditor extends ConsumerWidget {
             ],
           ),
         ),
+        // iPad portrait: the effect's piece, scaled to the width (its knobs also
+        // stay below). A landscape phone has no height to spare for it.
+        if (MediaQuery.sizeOf(context).height >
+            MediaQuery.sizeOf(context).width)
+          _PieceEditor(
+            key: ValueKey(def.id),
+            model: def.name,
+            kind: gearKindForModule(physId),
+            knobs: onPiece,
+            values: values,
+            isOn: moduleOn,
+            isEnabled: !isLoading,
+            onSet: (p, v) => setParameter(ref, moduleId, p.algId, v),
+            onSwitch: () => toggleModule(ref, physId, !moduleOn),
+          ),
         // Every control — knobs, toggles, dropdowns — flows in ONE horizontal
         // Wrap like a hardware unit's front panel (always a single row that
         // wraps; never separate full-width rows). DLY (module 7) prepends its
