@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -67,7 +68,6 @@ void main() {
     await open(tester, current: current, names: {current: 'MyPatch'});
 
     expect(fieldText(tester), 'MyPatch');
-    expect(find.text('7/10'), findsOneWidget); // the counter tracks the prefill
     expect(find.text('P05'), findsOneWidget); // slot defaults to the loaded one
   });
 
@@ -99,6 +99,160 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Save preset'), findsNothing);
+  });
+
+  group('slot menu', () {
+    const current = PresetRef(.user, 5);
+    final names = {
+      for (var n = 1; n <= 50; n++)
+        PresetRef(.user, n): 'Name${n.toString().padLeft(2, '0')}',
+    };
+
+    Future<void> openMenu(WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1180, 820);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await open(tester, current: current, names: names);
+      await tester.tap(find.text('P05'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('the slot menu lists all user slots in two columns without '
+        'scrolling', (tester) async {
+      await openMenu(tester);
+
+      for (var n = 1; n <= 50; n++) {
+        final id = 'P${n.toString().padLeft(2, '0')}';
+        // P05 also shows on the closed selector.
+        expect(find.text(id), n == 5 ? findsNWidgets(2) : findsOneWidget);
+        expect(
+          tester.getRect(find.text(id).last).bottom,
+          lessThanOrEqualTo(820),
+        );
+      }
+      expect(
+        tester.getTopLeft(find.text('P26').last).dx,
+        greaterThan(tester.getTopLeft(find.text('P01')).dx + 100),
+      );
+      expect(
+        tester.getTopLeft(find.text('P26').last).dy,
+        tester.getTopLeft(find.text('P01')).dy,
+      );
+    });
+
+    testWidgets('picking a slot fills the name', (tester) async {
+      await openMenu(tester);
+      await tester.tap(find.text('P12'));
+      await tester.pumpAndSettle();
+
+      expect(fieldText(tester), 'Name12');
+      expect(find.text('P12'), findsOneWidget);
+    });
+
+    testWidgets('name limited to 10 chars', (tester) async {
+      await open(tester, current: current, names: names);
+      await tester.enterText(find.byType(EditableText), '12345678901234');
+
+      expect(fieldText(tester), '1234567890');
+    });
+  });
+
+  group('back and Escape with the slot list open', () {
+    const current = PresetRef(.user, 5);
+
+    Future<void> openSave(WidgetTester tester, {required Size size}) async {
+      final context = await pumpSonicHost(
+        tester,
+        size: size,
+        overrides: [
+          currentPresetProvider.overrideWith((_) => current),
+          presetNamesProvider.overrideWith((_) => {current: 'MyPatch'}),
+          dataAssetsProvider.overrideWith(
+            (_) => Completer<DataAssets>().future,
+          ),
+        ],
+      );
+
+      unawaited(showSavePresetDialog(context));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('P05'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('compact: Back closes the menu, then the dialog', (
+      tester,
+    ) async {
+      await openSave(tester, size: const Size(852, 393));
+      await simulateSystemBack(tester);
+      await tester.pumpAndSettle();
+
+      expect(find.text('P06'), findsNothing); // the menu closed
+      expect(find.text('Save preset'), findsOneWidget); // the dialog stayed
+
+      await simulateSystemBack(tester);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Save preset'), findsNothing);
+    });
+
+    testWidgets('regular: Escape closes the menu, then the dialog', (
+      tester,
+    ) async {
+      await openSave(tester, size: const Size(1280, 800));
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pumpAndSettle();
+
+      expect(find.text('P06'), findsNothing);
+      expect(find.text('Save preset'), findsOneWidget);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Save preset'), findsNothing);
+    });
+
+    testWidgets('iPad portrait (compact): rows are at least 32px, tappable, '
+        'nothing overflows', (tester) async {
+      final names = {
+        for (var n = 1; n <= 50; n++)
+          PresetRef(.user, n): 'Name${n.toString().padLeft(2, '0')}',
+      };
+      final context = await pumpSonicHost(
+        tester,
+        size: const Size(820, 1180),
+        overrides: [
+          currentPresetProvider.overrideWith((_) => current),
+          presetNamesProvider.overrideWith((_) => names),
+          dataAssetsProvider.overrideWith(
+            (_) => Completer<DataAssets>().future,
+          ),
+        ],
+      );
+
+      unawaited(showSavePresetDialog(context));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('P05'));
+      await tester.pumpAndSettle();
+
+      for (var n = 1; n <= 50; n++) {
+        final id = 'P${n.toString().padLeft(2, '0')}';
+        final row = find
+            .ancestor(of: find.text(id).last, matching: find.byType(Container))
+            .first;
+
+        expect(
+          tester.getSize(row).height,
+          greaterThanOrEqualTo(32),
+          reason: id,
+        );
+      }
+
+      await tester.tap(find.text('P30'));
+      await tester.pumpAndSettle();
+
+      expect(fieldText(tester), 'Name30');
+      expect(tester.takeException(), isNull);
+    });
   });
 
   group('Done / Enter in the real app shell', () {

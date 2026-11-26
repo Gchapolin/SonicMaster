@@ -1,15 +1,12 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sonicmaster/model/data_assets.dart';
-import 'package:sonicmaster/model/preset_ref.dart';
-import 'package:sonicmaster/state/data_providers.dart';
 import 'package:sonicmaster/state/edit_providers.dart';
 import 'package:sonicmaster/state/layout_providers.dart';
-import 'package:sonicmaster/state/names_providers.dart';
-import 'package:sonicmaster/state/preset_providers.dart';
-import 'package:sonicmaster/ui/save_preset_dialog.dart';
+import 'package:sonicmaster/theme/app_text.dart';
 import 'package:sonicmaster/ui/sonic_controls.dart';
 
 import '../support/page_harness.dart';
@@ -94,41 +91,30 @@ void main() {
     });
   });
 
-  group('the Save dialog\'s Slot menu', () {
-    const current = PresetRef(.user, 5);
-
-    Future<void> openSave(
-      WidgetTester tester, {
-      required Size size,
-      double keyboard = 0,
-    }) async {
-      final context = await pumpSonicHost(
+  // The module editor's effect dropdown (FX1 holds COMP 1) as a real
+  // SonicDropdown host; its menu lists COMP 2 among others.
+  group('a SonicDropdown in the module editor', () {
+    Future<void> openEffects(WidgetTester tester, {required Size size}) async {
+      await pumpPage(
         tester,
         size: size,
-        keyboard: keyboard,
-        overrides: [
-          currentPresetProvider.overrideWith((_) => current),
-          presetNamesProvider.overrideWith((_) => {current: 'MyPatch'}),
-          dataAssetsProvider.overrideWith(
-            (_) => Completer<DataAssets>().future,
-          ),
-        ],
+        selectedEffects: const {1: 101},
+        parameters: const {1: {}},
+        overrides: [selectedModuleProvider.overrideWith((_) => 1)],
       );
-
-      unawaited(showSavePresetDialog(context));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('P05'));
+      await tester.tap(_trigger);
       await tester.pumpAndSettle();
     }
 
-    Rect trigger(WidgetTester tester) =>
-        tester.getRect(find.byType(SonicDropdown<int>));
+    Rect trigger(WidgetTester tester) => tester.getRect(_trigger);
 
-    // The menu's plate: the SonicSurface closest around a menu row (the
-    // dialog's plate is an ancestor too: the menu lives in its OverlayPortal).
+    // The menu's plate: the SonicSurface closest around a menu row.
     Rect menu(WidgetTester tester) => tester.getRect(
       find
-          .ancestor(of: find.text('P06'), matching: find.byType(SonicSurface))
+          .ancestor(
+            of: find.text('COMP 2'),
+            matching: find.byType(SonicSurface),
+          )
           .first,
     );
 
@@ -147,74 +133,121 @@ void main() {
     }
 
     testWidgets('568x320: it opens upward, fully on screen', (tester) async {
-      await openSave(tester, size: const Size(568, 320));
+      await openEffects(tester, size: const Size(568, 320));
 
       expect(menu(tester).bottom, lessThanOrEqualTo(trigger(tester).top));
       expectPlaced(tester, const Rect.fromLTWH(0, 0, 568, 320));
     });
 
-    testWidgets('the keyboard closing under it: it stays open and follows', (
+    // The dropdown sits in a SonicDialog, which lifts its plate above the
+    // keyboard (compact): closing the keyboard moves the trigger, so the open
+    // menu must be placed again for the new spot.
+    testWidgets('the keyboard closing under it: it stays open and re-places', (
       tester,
     ) async {
-      await openSave(tester, size: const Size(852, 393), keyboard: 180);
-      expectPlaced(tester, const Rect.fromLTWH(0, 0, 852, 393 - 180));
+      const size = Size(852, 393);
+      final context = await pumpSonicHost(tester, size: size);
 
-      final before = trigger(tester);
-
-      await setKeyboard(tester, 0); // the dialog re-centres: the trigger moves
+      unawaited(
+        showSonicDialog<void>(
+          context: context,
+          builder: (_) => SonicDialog(
+            child: SonicDropdown<int>(
+              value: 1,
+              width: 120,
+              items: [
+                for (var n = 1; n <= 12; n++) (value: n, label: 'Item $n'),
+              ],
+              onChanged: (_) {},
+            ),
+          ),
+        ),
+      );
       await tester.pumpAndSettle();
 
-      expect(trigger(tester), isNot(before));
-      expect(find.text('P06'), findsOneWidget); // still open
-      expectPlaced(tester, const Rect.fromLTWH(0, 0, 852, 393));
+      await setKeyboard(tester, 180);
+      await tester.pumpAndSettle();
+
+      final dropdown = find.byType(SonicDropdown<int>);
+
+      await tester.tap(find.text('Item 1'));
+      await tester.pumpAndSettle();
+
+      final before = tester.getRect(dropdown);
+      final menuRow = find.text('Item 2');
+
+      Rect menu() => tester.getRect(
+        find.ancestor(of: menuRow, matching: find.byType(SonicSurface)).first,
+      );
+
+      await setKeyboard(tester, 0);
+      await tester.pumpAndSettle();
+
+      final trigger = tester.getRect(dropdown);
+
+      expect(trigger, isNot(before)); // the dialog re-centred
+      expect(menuRow, findsOneWidget); // still open
+
+      // The list's natural height, as _listHeight works it out: one row of a
+      // menu-text line plus 20 px per item.
+      final painter = TextPainter(
+        text: const TextSpan(text: 'Ag', style: AppText.menuItem),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      final contentHeight = 12 * (painter.height + 20);
+
+      painter.dispose();
+
+      final expected = placeDropdownMenu(
+        trigger: trigger,
+        screen: size,
+        bottomInset: 0,
+        menuWidth: 120,
+        contentHeight: contentHeight,
+      );
+      final height =
+          math.min(expected.maxHeight, contentHeight) + dropdownMenuChrome;
+      final left = trigger.left + expected.dx;
+      final rect = menu();
+
+      expect(
+        rect,
+        expected.isAbove
+            ? Rect.fromLTWH(
+                left,
+                trigger.top - dropdownMenuGap - height,
+                120,
+                height,
+              )
+            : Rect.fromLTWH(
+                left,
+                trigger.bottom + dropdownMenuGap,
+                120,
+                height,
+              ),
+      );
+      expectWithin(rect, Offset.zero & size, 'the menu');
     });
 
-    // A phone turned to portrait and back while the Slot menu is open: the
-    // menu must land on screen again, attached to the moved trigger, not keep
-    // the placement it had for the portrait screen.
+    // A phone turned to portrait and back while the menu is open: the menu
+    // must land on screen again, attached to the trigger, not keep the
+    // placement it had for the other orientation.
     testWidgets('turning the phone and back: it stays open and on screen', (
       tester,
     ) async {
-      await openSave(tester, size: const Size(852, 393));
+      await openEffects(tester, size: const Size(852, 393));
 
       tester.view.physicalSize = const Size(393, 852);
       await tester.pumpAndSettle();
 
-      expect(find.text('P06'), findsOneWidget);
+      expect(find.text('COMP 2'), findsOneWidget);
       expectPlaced(tester, const Rect.fromLTWH(0, 0, 393, 852));
 
       tester.view.physicalSize = const Size(852, 393);
       await tester.pumpAndSettle();
 
-      expect(find.text('P06'), findsOneWidget);
+      expect(find.text('COMP 2'), findsOneWidget);
       expectPlaced(tester, const Rect.fromLTWH(0, 0, 852, 393));
-    });
-
-    testWidgets('compact: Back closes the menu, then the dialog', (
-      tester,
-    ) async {
-      await openSave(tester, size: const Size(852, 393));
-      await simulateSystemBack(tester);
-      await tester.pumpAndSettle();
-
-      expect(find.text('P06'), findsNothing); // the menu closed
-      expect(find.text('Save preset'), findsOneWidget); // the dialog stayed
-
-      await simulateSystemBack(tester);
-      await tester.pumpAndSettle();
-
-      expect(find.text('Save preset'), findsNothing);
-    });
-
-    testWidgets('regular: Escape still closes the dialog with its menu', (
-      tester,
-    ) async {
-      await openSave(tester, size: const Size(1280, 800));
-      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
-      await tester.pumpAndSettle();
-
-      expect(find.text('P06'), findsNothing);
-      expect(find.text('Save preset'), findsNothing);
     });
   });
 
@@ -265,3 +298,5 @@ void main() {
     expect(calls, isNot(contains('SystemNavigator.pop'))); // the app stays
   });
 }
+
+final _trigger = find.widgetWithText(SonicDropdown<int>, 'COMP 1').first;
