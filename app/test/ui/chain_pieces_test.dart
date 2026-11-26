@@ -155,9 +155,13 @@ void main() {
     expect(tester.widget<Text>(find.text('AMP')).style?.color, Palette.primary);
   });
 
-  // The prototype pedalboard is one row of nine units: at the iPad Pro 11
-  // landscape width and at 1280 every unit top is the same.
-  for (final size in const [Size(1194, 834), Size(1280, 800)]) {
+  // The prototype pedalboard is one row of nine units: at the iPad (A16) and
+  // iPad Pro 11 landscape widths and at 1280 every unit top is the same.
+  for (final size in const [
+    Size(1180, 820),
+    Size(1194, 834),
+    Size(1280, 800),
+  ]) {
     testWidgets('regular ${size.width.toInt()}x${size.height.toInt()}: '
         'the pedalboard is one row', (tester) async {
       await pumpPage(tester, size: size, selectedEffects: fullPresetEffects);

@@ -83,7 +83,7 @@ void main() {
             .first;
 
         // As wide as the rail, inside the plate's 1-px top and bottom edges.
-        expect(tester.getRect(logoZone), const Rect.fromLTRB(0, 1, 244, 59));
+        expect(tester.getRect(logoZone), const Rect.fromLTRB(0, 1, railWidth, 59));
         expect(tester.getRect(find.byType(PresetRail)).left, 0);
         expect(tester.getRect(find.byType(PresetRail)).width, railWidth);
         expect(_inBar(find.text('P01')), findsOneWidget);

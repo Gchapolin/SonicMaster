@@ -13,7 +13,8 @@ import '../support/test_assets.dart';
 /// at the app's MINIMUM width. `PresetBrowserPage` never lays out below
 /// `_minAppWidth` (960) — narrower viewports scroll horizontally instead — so the
 /// tightest real case is that minimum. There the work-area content is
-/// 960 − rail(244) − padding(24) = 692, which the two-panel Row fills. This pins
+/// 960 − rail(210) − padding(24) = 726; the test keeps the old 244-px rail's
+/// 692, a stricter bound, which the two-panel Row fills. This pins
 /// that the FOOT SWITCH bar (None/FS1/FS2) and the module Wrap both fit at that
 /// width (a regression that shrank the min, widened the rail/preset panel, or
 /// grew the bar would resurface an overflow here).

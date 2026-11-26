@@ -210,7 +210,7 @@ void main() {
       expect(tester.getRect(_burger), burger);
       expect(
         tester.getRect(_drawerHeader).left,
-        inExclusiveRange(-railWidth, 0),
+        inExclusiveRange(-drawerWidth, 0),
       );
 
       await tester.pumpAndSettle();
@@ -219,7 +219,7 @@ void main() {
       // The header covers the bar's left part, title-bar tall.
       expect(
         tester.getRect(_drawerHeader),
-        const Rect.fromLTWH(0, 0, railWidth, 48),
+        const Rect.fromLTWH(0, 0, drawerWidth, 48),
       );
       expect(
         tester.getRect(_inDrawer(find.byType(SonicLogo))).left,
@@ -357,7 +357,7 @@ void main() {
         await _openDrawer(tester);
 
         expect(tester.takeException(), isNull);
-        expect(tester.getSize(_drawerHeader), const Size(railWidth, 48));
+        expect(tester.getSize(_drawerHeader), const Size(drawerWidth, 48));
 
         await tester.ensureVisible(find.text('by Skyggedans'));
         await tester.pump();
@@ -646,7 +646,7 @@ void main() {
       expect(container.read(presetDrawerOpenProvider), isTrue);
       expect(
         tester.getRect(_drawerList),
-        const Rect.fromLTRB(0, 48, railWidth, 852),
+        const Rect.fromLTRB(0, 48, drawerWidth, 852),
       );
     });
 

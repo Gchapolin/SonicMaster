@@ -20,7 +20,13 @@ import 'sonic_field.dart';
 import 'sonic_metrics.dart';
 import 'unsaved_changes_dialog.dart';
 
-const railWidth = 244.0;
+/// The regular preset rail (and the bar's logo zone above it): the
+/// prototype's 210-px aside (N_Principal.dc.html), so the nine-unit pedalboard
+/// fits one row from a 1180-px window (iPad A16 landscape).
+const railWidth = 210.0;
+
+/// The compact slide-in preset drawer, unchanged from the old rail width.
+const drawerWidth = 244.0;
 
 TextStyle _railStyle(
   double size, {

@@ -94,7 +94,7 @@ class PresetDrawer extends HookConsumerWidget {
             left: 0,
             top: 0,
             bottom: 0,
-            width: railWidth,
+            width: drawerWidth,
             child: _DrawerPanel(
               isOpen: isOpen,
               scrollController: scrollController,
