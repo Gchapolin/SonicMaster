@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>SonicMaster - celular (novo design)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;family=Barlow+Condensed:wght@500;600;700&amp;family=Share+Tech+Mono&amp;display=swap">
+<style>
+body{margin:0;background:#3E2C28}
+button{font-family:inherit;-webkit-user-select:none;user-select:none}
+button:focus-visible{outline:2px solid #DF9D8E;outline-offset:2px}
+</style>
+</helmet>
+<div style="{{themeVars}} width: 852px; height: 393px; box-sizing: border-box; background: var(--bg); color: var(--text); font-family: Inter, sans-serif; display: flex; flex-direction: column; overflow: hidden">
+
+<header style="height: 48px; flex: none; display: flex; align-items: center; gap: 6px; padding: 0 10px; background: var(--head); border-bottom: 1px solid var(--line)">
+<button type="button" onClick="{{prevPreset}}" aria-label="Preset anterior" style="width: 32px; height: 32px; border: 0; border-radius: 10px; background: var(--ctrl); color: var(--text2); cursor: pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></button>
+<div style="display: flex; align-items: center; gap: 8px; width: 150px; height: 32px; padding: 0 10px; box-sizing: border-box; background: var(--ctrl); border-radius: 10px">
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: {{accent}}">{{presetLabel}}</span>
+<span style="font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{presetName}}</span>
+</div>
+<button type="button" onClick="{{nextPreset}}" aria-label="Próximo preset" style="width: 32px; height: 32px; border: 0; border-radius: 10px; background: var(--ctrl); color: var(--text2); cursor: pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></button>
+<div style="display: flex; align-items: center; gap: 12px; margin-left: 6px; padding-left: 12px; border-left: 1px solid var(--line)">
+<div style="display: flex; flex-direction: column; line-height: 1.1"><span style="font-size: 9px; font-weight: 600; letter-spacing: 1px; color: var(--muted)">VOL</span><span style="font-family: 'JetBrains Mono'; font-size: 13px">44</span></div>
+<div style="display: flex; flex-direction: column; line-height: 1.1"><span style="font-size: 9px; font-weight: 600; letter-spacing: 1px; color: var(--muted)">BPM</span><span style="font-family: 'JetBrains Mono'; font-size: 13px">120</span></div>
+</div>
+<div style="flex: 1"></div>
+<div style="display: flex; flex-direction: column; gap: 3px; width: 64px">
+<span style="font-family: 'Barlow Condensed'; font-size: 10px; letter-spacing: 1px; color: #9A958C">DSP 42%</span>
+<span style="height: 5px; border-radius: 3px; background: #0A0A0B; box-shadow: inset 0 1px 2px #000; overflow: hidden"><span style="display: block; width: 42%; height: 100%; background: linear-gradient(90deg, var(--ok), var(--acc))"></span></span>
+</div>
+<button type="button" aria-label="Afinador" style="width: 34px; height: 34px; border: 0; border-radius: 10px; background: transparent; color: var(--text2); cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 17a8 8 0 1 1 16 0"></path><path d="M12 17l4-6"></path></svg></button>
+<button type="button" aria-label="Presets da comunidade" style="width: 34px; height: 34px; border: 0; border-radius: 10px; background: transparent; color: var(--text2); cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"></path></svg></button>
+<button type="button" aria-label="Ajustes" style="width: 34px; height: 34px; border: 0; border-radius: 10px; background: transparent; color: var(--text2); cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"></path><circle cx="16" cy="6" r="2"></circle><circle cx="10" cy="12" r="2"></circle><circle cx="18" cy="18" r="2"></circle></svg></button>
+<button type="button" style="height: 32px; padding: 0 14px; border: 0; border-radius: 10px; background: {{accent}}; color: var(--onacc); font-size: 13px; font-weight: 600; cursor: pointer">Salvar</button>
+<div style="display: flex; align-items: center; margin-left: 4px; padding-left: 10px; height: 24px; border-left: 1px solid var(--line)">
+<span role="img" aria-label="Conectada: Pocket Master" style="width: 8px; height: 8px; border-radius: 4px; background: var(--ok)"></span>
+</div>
+</header>
+
+<section aria-label="Pedaleira" style="height: 92px; flex: none; position: relative; box-sizing: border-box; padding: 0 10px; background: var(--side); border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: center">
+<div style="position: absolute; left: 16px; right: 16px; top: 38px; height: 2px; background: var(--line)"></div>
+<div style="position: relative; display: flex; align-items: center; gap: 8px">
+<sc-for list="{{units}}" as="u" hint-placeholder-count="9">
+<div style="{{u.wrap}}">
+<span style="{{u.box}}"><dc-import name="Peca" model="{{u.model}}" fit-w="{{u.fitW}}" fit-h="{{u.fitH}}" lit="{{u.on}}" wear="{{wear}}" hint-size="36px,60px"></dc-import></span>
+<span style="font-size: 10px; font-weight: 600; letter-spacing: 1px; color: {{u.tagColor}}; margin-top: 4px">{{u.tag}}</span>
+<button type="button" onClick="{{u.pick}}" aria-label="{{u.aria}}" style="position: absolute; inset: 0; border: 0; padding: 0; border-radius: 10px; background: transparent; cursor: pointer"></button>
+</div>
+</sc-for>
+</div>
+</section>
+
+<section aria-label="Editor do bloco" style="flex: 1; min-height: 0; display: flex; gap: 12px; padding: 12px; box-sizing: border-box">
+
+<div style="width: 250px; flex: none; display: flex; flex-direction: column; gap: 10px; position: relative">
+<div style="display: flex; align-items: center; gap: 6px">
+<span style="font-family: 'Space Grotesk'; font-size: 12px; font-weight: 600; letter-spacing: 1px; color: var(--muted); width: 34px">{{cur.tag}}</span>
+<button type="button" onClick="{{prevModel}}" aria-label="Modelo anterior" style="width: 32px; height: 36px; flex: none; border: 0; border-radius: 10px; background: var(--ctrl); color: var(--text2); cursor: pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></button>
+<button type="button" onClick="{{toggleMenu}}" style="flex: 1; min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 6px; height: 36px; padding: 0 10px 0 12px; border: 0; border-radius: 10px; background: var(--ctrl); color: var(--text); font-size: 14px; font-weight: 600; cursor: pointer"><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{cur.model}}</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2.5" aria-hidden="true" style="flex: none"><path d="M6 9l6 6 6-6"></path></svg></button>
+<button type="button" onClick="{{nextModel}}" aria-label="Próximo modelo" style="width: 32px; height: 36px; flex: none; border: 0; border-radius: 10px; background: var(--ctrl); color: var(--text2); cursor: pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></button>
+</div>
+
+<sc-if value="{{menuOpen}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; top: 42px; left: 40px; z-index: 20; width: 210px; max-height: 190px; overflow-y: auto; background: var(--field); border: 1px solid var(--line2); border-radius: 12px; padding: 6px; box-sizing: border-box; box-shadow: 0 20px 40px rgba(0,0,0,0.5)">
+<sc-for list="{{menuBands}}" as="band" hint-placeholder-count="5">
+<sc-if value="{{band.hasTitle}}" hint-placeholder-val="{{ true }}"><div style="padding: 8px 10px 4px; font-size: 10px; font-weight: 600; letter-spacing: 1.5px; color: var(--muted)">{{band.title}}</div></sc-if>
+<sc-for list="{{band.items}}" as="it" hint-placeholder-count="5"><button type="button" onClick="{{it.pick}}" style="{{it.style}}">{{it.name}}</button></sc-for>
+</sc-for>
+</div>
+</sc-if>
+
+<div style="background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; justify-content: space-between">
+<span style="font-size: 13px; font-weight: 500">Bloco ligado</span>
+<button type="button" onClick="{{toggleOn}}" aria-label="Liga ou desliga o bloco" style="{{power.track}}"><span style="{{power.knob}}"></span></button>
+</div>
+<sc-if value="{{cur.isAmp}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; align-items: center; justify-content: space-between">
+<span style="font-size: 13px; font-weight: 500">Modo Clone</span>
+<button type="button" onClick="{{toggleClone}}" aria-label="Modo Clone" style="{{clone.track}}"><span style="{{clone.knob}}"></span></button>
+</div>
+</sc-if>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 10px; font-weight: 600; letter-spacing: 1px; color: var(--muted)">FOOTSWITCH</span>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px; padding: 3px; background: var(--ctrl); border-radius: 10px">
+<sc-for list="{{fsOptions}}" as="f" hint-placeholder-count="3"><button type="button" onClick="{{f.pick}}" style="{{f.style}}">{{f.label}}</button></sc-for>
+</div>
+</div>
+</div>
+<sc-if value="{{cur.hasBand}}" hint-placeholder-val="{{ true }}"><span style="align-self: flex-start; padding: 4px 10px; border-radius: 20px; background: {{accentSoft}}; color: {{accent}}; font-size: 10px; font-weight: 600; letter-spacing: 1px">{{cur.band}}</span></sc-if>
+</div>
+
+<div style="flex: 1; min-width: 0; position: relative; display: flex; align-items: center; justify-content: center">
+<dc-import name="Peca" model="{{cur.model}}" fit-w="540" fit-h="226" values="{{curVals}}" on-knob="{{bumpKnob}}" on-switch="{{toggleOn}}" lit="{{curOn}}" wear="{{wear}}" hint-size="282px,226px"></dc-import>
+</div>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#DF9D8E","options":["#DF9D8E","#D9AB9A","#9FBF8F","#9FAD9F"]},"wear":{"editor":"range","default":60,"min":0,"max":100,"step":5,"unit":"%"},"$preview":{"width":852,"height":393}}'>
+class Component extends DCLogic {
+  // The app colour chosen in Aparência, shared by every screen (saved in this browser).
+  __listen() {
+    var self = this;
+    try {
+      window.addEventListener('storage', function (e) { if (e.key === 'sm_tema') self.setState({ __tema: e.newValue }); });
+      window.addEventListener('sm_tema', function (e) { self.setState({ __tema: e.detail }); });
+    } catch (e) {}
+  }
+  __theme() {
+    var THEMES = [{id:'vintage',c:['#3E2C28','#45322D','#4A3530','#513A35','#573E39','#5E443E','#694B45','#74534C','#835E56','#F0ECE9','#E1D9D2','#D0C7C3','#9FBF8F','#DF9D8E','#312320','#D0C7C3','#FFFFFF']},{id:'p1',c:['#392F22','#403426','#443828','#4B3D2C','#504230','#574733','#614F39','#6B5840','#796348','#F9F9FB','#F4F3F6','#CEC9C6','#9FBF8F','#D8A86A','#2E251B','#CEC9C6','#FFFFFF']},{id:'p2',c:['#3A2F1A','#41341E','#453820','#4C3D23','#524225','#594728','#63502D','#6D5832','#7B6338','#F3EBE1','#E5D2BC','#D4C7B6','#9FBF8F','#C3AC84','#2F2515','#D4C7B6','#FFFFFF']},{id:'p3',c:['#2F3315','#343917','#383D19','#3D421B','#42471D','#484D21','#50562B','#595E36','#656A45','#FAF5DE','#F5EABD','#CECAAA','#9FBF8F','#FF8C8C','#262911','#CECAAA','#FFFFFF']},{id:'p4',c:['#422A26','#4A2F2B','#4F332D','#573732','#5D3C36','#65413A','#714841','#7D5048','#8D5A51','#F1F4E6','#E4E9CD','#D0CABC','#9FBF8F','#D5A49C','#35221F','#D0CABC','#FFFFFF']},{id:'p5',c:['#4D2521','#552A26','#582E2B','#5D3431','#613A36','#66403D','#6E4946','#755350','#7F5F5C','#FFFDFF','#FEFBFF','#D2C5C6','#9FBF8F','#FFAACF','#3E1D1B','#D2C5C6','#FFFFFF']},{id:'p6',c:['#3E2C28','#45322D','#4A3530','#513A35','#573E39','#5E443E','#694B45','#74534C','#835E56','#F0ECE9','#E1D9D2','#D0C7C3','#9FBF8F','#DF9D8E','#312320','#D0C7C3','#FFFFFF']},{id:'p7',c:['#303126','#36372A','#393B2D','#3F4031','#444635','#494B3A','#525440','#5B5D47','#666950','#F6F7FA','#EDEEF5','#C7C8C7','#9FBF8F','#B8BF80','#26271E','#C7C8C7','#FFFFFF']},{id:'p8',c:['#482727','#502C2C','#543030','#583636','#5D3B3B','#624141','#694B4B','#715454','#7B6060','#EEECEB','#D9D5D1','#CFC6C4','#9FBF8F','#BDA9AC','#3A1F1F','#CFC6C4','#FFFFFF']},{id:'p9',c:['#48272D','#502B32','#562E35','#5E333A','#65373F','#6D3B44','#7A424C','#874954','#95545F','#EFECEC','#D9D2D2','#D3C7C9','#9FBF8F','#D2A1AA','#3A1F24','#D3C7C9','#FFFFFF']},{id:'p10',c:['#353027','#3B362C','#3F392F','#453F33','#4A4337','#50493B','#595242','#635A49','#706653','#F4EBE1','#E6D2BC','#D0C6B9','#9FBF8F','#D9BC9A','#2A261F','#D0C6B9','#FFFFFF']},{id:'p11',c:['#45282D','#4D2D33','#513136','#56373C','#5A3C41','#5F4247','#674B50','#6F5459','#796165','#E9F2F1','#D4E5E3','#C8C9C9','#9FBF8F','#DE9DB2','#372024','#C8C9C9','#FFFFFF']},{id:'p12',c:['#4B2623','#532B27','#592D29','#61322D','#693531','#713A35','#7E403B','#8C4741','#9E5049','#F3EBE2','#E4D2BE','#D7C4BA','#9FBF8F','#EE9898','#3C1F1C','#D7C4BA','#FFFFFF']},{id:'p13',c:['#541E2B','#592532','#5D2A36','#61303C','#663641','#6B3C48','#724651','#7A4F5A','#835C66','#F1F1E8','#E4E3D1','#D1C6C1','#9FBF8F','#C4A8AF','#441823','#D1C6C1','#FFFFFF']},{id:'p14',c:['#432B20','#4B3023','#503326','#573829','#5E3C2C','#664130','#724836','#7E503B','#875D4A','#F0EFEF','#E1DEDF','#CFC5C2','#9FBF8F','#D8B483','#362219','#CFC5C2','#FFFFFF']},{id:'p15',c:['#2F3037','#34363E','#383A42','#3D3F48','#42444E','#474954','#4F525E','#585B68','#636676','#FFFCF2','#FFF9E5','#CCCAC2','#9FBF8F','#EE9872','#25272C','#CCCAC2','#FFFFFF']},{id:'p16',c:['#26323C','#2C3741','#303B45','#36414A','#3B454F','#414B54','#4A545C','#535C65','#5F686F','#F7F7F7','#EFEFEF','#C6C9CB','#9FBF8F','#C6A8A5','#1D2831','#C6C9CB','#FFFFFF']},{id:'p17',c:['#402D16','#483219','#4D351A','#543A1D','#5A3F1F','#624422','#6D4C25','#79542A','#875F30','#FAF9F0','#F5F3E1','#D2C9B7','#9FBF8F','#C9AB89','#332412','#D2C9B7','#FFFFFF']}];
+    var KEYS = ['bg', 'side', 'head', 'card', 'field', 'ctrl', 'line', 'line2', 'sel', 'text', 'text2', 'muted', 'ok', 'acc', 'onacc', 'faint', 'strong'];
+    var saved = null;
+    try { saved = localStorage.getItem('sm_tema'); } catch (e) {}
+    var id = (this.state && this.state.__tema) || this.props.tema || saved || 'vintage';
+    var t = THEMES.filter(function (x) { return x.id === id; })[0] || THEMES[0];
+    return { accent: t.c[13], vars: KEYS.map(function (k, i) { return '--' + k + ': ' + t.c[i] + ';'; }).join(' ') };
+  }
+
+  constructor(props) {
+    super(props);
+    this.__listen();
+    this.state = { mod: 3, menu: false, preset: 0, clone: false, off: {}, pick: {}, vals: {}, fs: {} };
+  }
+
+  renderVals() {
+    var __th = this.__theme();
+    var self = this;
+    var s = this.state;
+    var accent = this.props.accent ?? 'var(--acc)';
+    var n = parseInt(accent.slice(1), 16);
+    var soft = 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',0.14)';
+
+    // Same chain and model lists as N_Principal.
+    var ampBands = [
+      ['CLEAN', ['Jazz 120', 'Dark Twin', 'Calif Star CL', 'Bog SV CL', 'Doctor CL', 'Superb CL']],
+      ['CRUNCH', ['Voks 30N', 'B-Man N', 'TWD Deluxe', 'B-Man B', 'Voks 30TB', 'Brit 45', 'Brit 50', 'Brit 50JP', 'Superb OD', 'Doctor OD']],
+      ['ROCK / LEAD', ['Supero 2 OD', 'Sol 100 OD', 'Brit 800', 'Tanger R100', 'Brit 900', 'Bog XT M', 'Flyman B1', 'Calif IIC+']],
+      ['HIGH GAIN', ['Sol 100 LD', 'Flyman B1+', 'Calif IV LD', 'Bog XT V', 'Calif DualV', 'Calif DualM', 'Halen 51', 'Eng 120', 'Eng Power', 'Dizzy VH', 'Dizzy VH+']],
+      ['BAIXO', ['A BassVT', 'Voks Bass', 'Calif Bass']]
+    ];
+    var defs = [
+      { tag: 'NR', kind: 'pedal', model: 'Gate', list: ['Gate'] },
+      { tag: 'FX1', kind: 'pedal', model: 'COMP 1', list: ['COMP 1', 'COMP 2', 'Touch Wah', 'Auto Wah', 'Boost', 'A-Chorus', 'B-Chorus', 'Flanger', 'Phaser', 'Vibe', 'Vibrato', 'Tremolo'] },
+      { tag: 'DRV', kind: 'pedal', model: 'Scream', list: ['Scream', 'Butter OD', 'JP Dist', 'Shark', 'Dark Mouse', 'Grey Fuzz', 'Red Fuzz', 'Bass Drive'] },
+      { tag: 'AMP', kind: 'amp', model: 'Brit 800', bands: ampBands },
+      { tag: 'IR', kind: 'cab', model: 'BritGN 4x12', list: ['TWD 2x12', 'Double 2x12', 'Jazz 2x12', 'BritGN 2x12', 'BritGN 4x12', 'Bog 4x12', 'Dual 4x12', 'User IR 1'] },
+      { tag: 'EQ', kind: 'eq', model: 'Studio EQ', list: ['GT EQ 1', 'GT EQ 2', 'Bass EQ', 'Studio EQ', 'Cut 24', 'Parametric 3', 'Tilt EQ'] },
+      { tag: 'FX2', kind: 'pedal', model: 'A-Chorus', list: ['A-Chorus', 'B-Chorus', 'Flanger', 'Phaser', 'Octave', 'Pitch', 'Detune'] },
+      { tag: 'DLY', kind: 'pedal', model: 'Studio Delay', list: ['Pure', 'Analog', 'Tape Echo', 'Studio Delay', 'Shimmer Delay', 'Swell Delay', 'Ping Pong'] },
+      { tag: 'RVB', kind: 'pedal', model: 'Plate 1', list: ['Room', 'Hall', 'Plate 1', 'Spring', 'Studio Verb', 'Ambient', 'Freeze'] }
+    ];
+    defs.forEach(function (d, i) { if (s.pick[i]) d.model = s.pick[i]; });
+    var cur = defs[s.mod];
+    var isOn = function (i) { return !s.off[i]; };
+    var allModels = function (d) { return d.bands ? [].concat.apply([], d.bands.map(function (b) { return b[1]; })) : d.list; };
+    var setModel = function (name) { var pk = Object.assign({}, s.pick); pk[s.mod] = name; self.setState({ pick: pk, menu: false }); };
+    var step = function (dir) { var list = allModels(cur); var i = list.indexOf(cur.model); setModel(list[(i + dir + list.length) % list.length]); };
+    var bandOf = function (name) { var b = (cur.bands || []).filter(function (x) { return x[1].indexOf(name) >= 0; })[0]; return b ? b[0] : ''; };
+
+    var units = defs.map(function (d, i) {
+      var sel = i === s.mod;
+      var w = d.kind === 'amp' ? 70 : d.kind === 'cab' ? 50 : d.kind === 'eq' ? 60 : 36;
+      return {
+        tag: d.tag,
+        model: d.model,
+        aria: d.tag + ': ' + d.model,
+        fitW: w,
+        fitH: d.kind === 'amp' ? 52 : d.kind === 'cab' ? 54 : 60,
+        box: 'display: flex; align-items: center; justify-content: center; height: 60px; width: ' + w + 'px;',
+        on: isOn(i),
+        tagColor: sel ? accent : '#A4A698',
+        wrap: 'position: relative; display: flex; flex-direction: column; align-items: center; padding: 4px; border-radius: 10px; flex: none; transition: background 200ms, box-shadow 200ms; background: ' + (sel ? 'rgba(255,255,255,0.05)' : 'transparent') + '; box-shadow: ' + (sel ? 'inset 0 0 0 1.5px ' + accent : 'none') + ';',
+        pick: function () { self.setState({ mod: i, menu: false }); }
+      };
+    });
+
+    var menuBands = (cur.bands || [['', cur.list]]).map(function (b) {
+      return {
+        title: b[0],
+        hasTitle: b[0] !== '',
+        items: b[1].map(function (name) {
+          var on = name === cur.model;
+          return {
+            name: name,
+            pick: function () { setModel(name); },
+            style: 'display: block; width: 100%; text-align: left; border: 0; border-radius: 8px; padding: 8px 10px; font-size: 13px; cursor: pointer; background: ' + (on ? soft : 'transparent') + '; color: ' + (on ? accent : '#EEE8E2') + ';'
+          };
+        })
+      };
+    });
+
+    var names = ['Clean', 'CLNGilmour', 'Lead 800', 'Tropicana', 'Djent Bass', 'Dotted08', 'DodgeBlues', 'Queen', 'JMLeadTone', 'AcousticSD', 'Slap Bass', 'Space Bass', 'MB-Thall-C', 'UniDirtDLY'];
+    var p = s.preset;
+    var goPreset = function (dir) { self.setState({ preset: (p + dir + names.length) % names.length }); };
+
+    var seg = function (on) {
+      return 'height: 30px; border: 0; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; background: ' + (on ? '#39413E' : 'transparent') + '; color: ' + (on ? '#FFFFFF' : '#A4A698') + ';';
+    };
+    var sw = function (on) {
+      return {
+        track: 'width: 44px; height: 26px; border-radius: 13px; border: 0; padding: 0 3px; box-sizing: border-box; display: flex; align-items: center; cursor: pointer; transition: background 200ms; justify-content: ' + (on ? 'flex-end' : 'flex-start') + '; background: ' + (on ? accent : '#39413E') + ';',
+        knob: 'width: 20px; height: 20px; border-radius: 10px; background: #FFFFFF;'
+      };
+    };
+    var fsSel = s.fs[s.mod] || 0;
+    var fsOptions = ['Nenhum', 'FS1', 'FS2'].map(function (label, i) {
+      return {
+        label: label,
+        pick: function () { var fs = Object.assign({}, s.fs); fs[s.mod] = i; self.setState({ fs: fs }); },
+        style: seg(i === fsSel)
+      };
+    });
+
+    return { themeVars: __th.vars,
+      accent: accent,
+      accentSoft: soft,
+      wear: this.props.wear ?? 60,
+      presetLabel: 'P' + (p < 9 ? '0' : '') + (p + 1),
+      presetName: names[p],
+      prevPreset: function () { goPreset(-1); },
+      nextPreset: function () { goPreset(1); },
+      units: units,
+      cur: { tag: cur.tag, model: cur.model, band: bandOf(cur.model), hasBand: cur.kind === 'amp', isAmp: cur.kind === 'amp' },
+      curOn: isOn(s.mod),
+      curVals: (function () { var o = s.vals[s.mod] || {}; var a = []; for (var j = 0; j < 8; j++) a.push(o[j] != null ? o[j] : null); return a; })(),
+      bumpKnob: function (j) {
+        var pattern = [62, 45, 70, 38, 55, 66, 48, 58];
+        var all = Object.assign({}, s.vals);
+        var m = Object.assign({}, all[s.mod] || {});
+        var now = m[j] != null ? m[j] : pattern[j % pattern.length];
+        m[j] = now + 10 > 100 ? 0 : now + 10;
+        all[s.mod] = m;
+        self.setState({ vals: all });
+      },
+      menuOpen: s.menu,
+      menuBands: menuBands,
+      toggleMenu: function () { self.setState({ menu: !s.menu }); },
+      prevModel: function () { step(-1); },
+      nextModel: function () { step(1); },
+      toggleOn: function () { var off = Object.assign({}, s.off); off[s.mod] = !off[s.mod]; self.setState({ off: off }); },
+      power: sw(isOn(s.mod)),
+      clone: sw(s.clone),
+      toggleClone: function () { self.setState({ clone: !s.clone }); },
+      fsOptions: fsOptions
+    };
+  }
+}
+</script>
+</body>
+</html>

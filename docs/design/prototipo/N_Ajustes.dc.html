@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>SonicMaster - Ajustes (novo design)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0;background:#3E2C28}
+button{font-family:inherit;-webkit-user-select:none;user-select:none}
+button:focus-visible,input:focus-visible{outline:2px solid #DF9D8E;outline-offset:2px}
+</style>
+</helmet>
+<div style="{{themeVars}} position: relative; width: 1180px; height: 820px; overflow: hidden; background: var(--bg); color: var(--text); font-family: Inter, sans-serif">
+<div style="position: absolute; inset: 0"><dc-import name="N_Principal" accent="{{accent}}" hint-size="1180px,820px"></dc-import></div>
+<div style="position: absolute; inset: 0; background: rgba(0,0,0,0.6)"></div>
+<div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center">
+
+<div role="dialog" aria-modal="true" aria-labelledby="aj-title" style="width: 1100px; box-sizing: border-box; padding: 24px; background: var(--card); border: 1px solid var(--line2); border-radius: 20px; box-shadow: 0 24px 60px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 16px">
+
+<div style="display: flex; align-items: center; gap: 12px; height: 36px">
+<span style="width: 36px; height: 36px; border-radius: 10px; background: var(--ctrl); color: {{accent}}; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"></path><circle cx="16" cy="6" r="2"></circle><circle cx="10" cy="12" r="2"></circle><circle cx="18" cy="18" r="2"></circle></svg></span>
+<h2 id="aj-title" style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 600">Ajustes</h2>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text2); border: 1px solid var(--sel); border-radius: 20px; padding: 3px 10px">CFW 1.0.3</span>
+<div style="flex: 1"></div>
+<span style="width: 8px; height: 8px; border-radius: 4px; background: var(--ok)"></span>
+<span style="font-size: 13px; color: var(--text2)">Pocket Master</span>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; align-items: start">
+<sc-for list="{{columns}}" as="col" hint-placeholder-count="3">
+<div style="display: flex; flex-direction: column; gap: 12px">
+<sc-for list="{{col.sections}}" as="sec" hint-placeholder-count="3">
+<section aria-label="{{sec.title}}" style="background: var(--head); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px">
+<h3 style="margin: 0 0 4px; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--muted)">{{sec.title}}</h3>
+<sc-for list="{{sec.rows}}" as="r" hint-placeholder-count="3">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 36px">
+<label for="{{r.id}}" style="font-size: 13px; color: var(--text2); min-width: 0">{{r.label}}</label>
+
+<sc-if value="{{r.isSel}}" hint-placeholder-val="{{ true }}">
+<span style="position: relative; display: flex; align-items: center; gap: 6px; flex: none">
+<button type="button" onClick="{{r.toggleMenu}}" aria-haspopup="listbox" aria-expanded="{{r.openStr}}" aria-label="{{r.aria}}" style="{{r.selStyle}}"><span style="min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis">{{r.value}}</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2.5" aria-hidden="true" style="flex: none"><path d="M6 9l6 6 6-6"></path></svg></button>
+<sc-if value="{{r.hasAct}}" hint-placeholder-val="{{ false }}"><button type="button" style="{{btn}}">{{r.act}}</button></sc-if>
+<sc-if value="{{r.open}}" hint-placeholder-val="{{ false }}">
+<div role="listbox" aria-label="{{r.label}}" style="{{r.menuStyle}}">
+<sc-for list="{{r.opts}}" as="o" hint-placeholder-count="4"><button type="button" role="option" aria-selected="{{o.selStr}}" onClick="{{o.pick}}" style="{{o.style}}">{{o.label}}</button></sc-for>
+</div>
+</sc-if>
+</span>
+</sc-if>
+
+<sc-if value="{{r.isSw}}" hint-placeholder-val="{{ false }}">
+<button type="button" id="{{r.id}}" role="switch" aria-checked="{{r.checked}}" onClick="{{r.toggle}}" style="{{r.track}}"><span style="{{r.knob}}"></span></button>
+</sc-if>
+
+<sc-if value="{{r.isSeg}}" hint-placeholder-val="{{ false }}">
+<div role="group" aria-label="{{r.label}}" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px; width: 170px; flex: none; padding: 3px; box-sizing: border-box; background: var(--ctrl); border-radius: 10px">
+<sc-for list="{{r.segs}}" as="g" hint-placeholder-count="2"><button type="button" aria-pressed="{{g.pressed}}" onClick="{{g.pick}}" style="{{g.style}}">{{g.label}}</button></sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{r.isRange}}" hint-placeholder-val="{{ false }}">
+<span style="display: flex; align-items: center; gap: 10px; flex: none">
+<input type="range" id="{{r.id}}" min="0" max="100" value="{{r.value}}" style="width: 124px; margin: 0; accent-color: {{accent}}">
+</span>
+</sc-if>
+
+<sc-if value="{{r.isBtn}}" hint-placeholder-val="{{ false }}">
+<button type="button" id="{{r.id}}" style="{{r.btnStyle}}">{{r.value}}</button>
+</sc-if>
+</div>
+</sc-for>
+</section>
+</sc-for>
+</div>
+</sc-for>
+</div>
+
+<div style="display: flex; align-items: center; justify-content: flex-end; height: 44px">
+<button type="button" style="height: 44px; min-width: 110px; padding: 0 20px; border: 0; border-radius: 10px; background: var(--ctrl); color: var(--text); font-size: 14px; font-weight: 600; cursor: pointer">Fechar</button>
+</div>
+
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#DF9D8E","options":["#DF9D8E","#D9AB9A","#9FBF8F","#9FAD9F"]},"$preview":{"width":1180,"height":820}}'>
+class Component extends DCLogic {
+  // The app colour chosen in Aparência, shared by every screen (saved in this browser).
+  __listen() {
+    var self = this;
+    try {
+      window.addEventListener('storage', function (e) { if (e.key === 'sm_tema') self.setState({ __tema: e.newValue }); });
+      window.addEventListener('sm_tema', function (e) { self.setState({ __tema: e.detail }); });
+    } catch (e) {}
+  }
+  __theme() {
+    var THEMES = [{id:'vintage',c:['#3E2C28','#45322D','#4A3530','#513A35','#573E39','#5E443E','#694B45','#74534C','#835E56','#F0ECE9','#E1D9D2','#D0C7C3','#9FBF8F','#DF9D8E','#312320','#D0C7C3','#FFFFFF']},{id:'p1',c:['#392F22','#403426','#443828','#4B3D2C','#504230','#574733','#614F39','#6B5840','#796348','#F9F9FB','#F4F3F6','#CEC9C6','#9FBF8F','#D8A86A','#2E251B','#CEC9C6','#FFFFFF']},{id:'p2',c:['#3A2F1A','#41341E','#453820','#4C3D23','#524225','#594728','#63502D','#6D5832','#7B6338','#F3EBE1','#E5D2BC','#D4C7B6','#9FBF8F','#C3AC84','#2F2515','#D4C7B6','#FFFFFF']},{id:'p3',c:['#2F3315','#343917','#383D19','#3D421B','#42471D','#484D21','#50562B','#595E36','#656A45','#FAF5DE','#F5EABD','#CECAAA','#9FBF8F','#FF8C8C','#262911','#CECAAA','#FFFFFF']},{id:'p4',c:['#422A26','#4A2F2B','#4F332D','#573732','#5D3C36','#65413A','#714841','#7D5048','#8D5A51','#F1F4E6','#E4E9CD','#D0CABC','#9FBF8F','#D5A49C','#35221F','#D0CABC','#FFFFFF']},{id:'p5',c:['#4D2521','#552A26','#582E2B','#5D3431','#613A36','#66403D','#6E4946','#755350','#7F5F5C','#FFFDFF','#FEFBFF','#D2C5C6','#9FBF8F','#FFAACF','#3E1D1B','#D2C5C6','#FFFFFF']},{id:'p6',c:['#3E2C28','#45322D','#4A3530','#513A35','#573E39','#5E443E','#694B45','#74534C','#835E56','#F0ECE9','#E1D9D2','#D0C7C3','#9FBF8F','#DF9D8E','#312320','#D0C7C3','#FFFFFF']},{id:'p7',c:['#303126','#36372A','#393B2D','#3F4031','#444635','#494B3A','#525440','#5B5D47','#666950','#F6F7FA','#EDEEF5','#C7C8C7','#9FBF8F','#B8BF80','#26271E','#C7C8C7','#FFFFFF']},{id:'p8',c:['#482727','#502C2C','#543030','#583636','#5D3B3B','#624141','#694B4B','#715454','#7B6060','#EEECEB','#D9D5D1','#CFC6C4','#9FBF8F','#BDA9AC','#3A1F1F','#CFC6C4','#FFFFFF']},{id:'p9',c:['#48272D','#502B32','#562E35','#5E333A','#65373F','#6D3B44','#7A424C','#874954','#95545F','#EFECEC','#D9D2D2','#D3C7C9','#9FBF8F','#D2A1AA','#3A1F24','#D3C7C9','#FFFFFF']},{id:'p10',c:['#353027','#3B362C','#3F392F','#453F33','#4A4337','#50493B','#595242','#635A49','#706653','#F4EBE1','#E6D2BC','#D0C6B9','#9FBF8F','#D9BC9A','#2A261F','#D0C6B9','#FFFFFF']},{id:'p11',c:['#45282D','#4D2D33','#513136','#56373C','#5A3C41','#5F4247','#674B50','#6F5459','#796165','#E9F2F1','#D4E5E3','#C8C9C9','#9FBF8F','#DE9DB2','#372024','#C8C9C9','#FFFFFF']},{id:'p12',c:['#4B2623','#532B27','#592D29','#61322D','#693531','#713A35','#7E403B','#8C4741','#9E5049','#F3EBE2','#E4D2BE','#D7C4BA','#9FBF8F','#EE9898','#3C1F1C','#D7C4BA','#FFFFFF']},{id:'p13',c:['#541E2B','#592532','#5D2A36','#61303C','#663641','#6B3C48','#724651','#7A4F5A','#835C66','#F1F1E8','#E4E3D1','#D1C6C1','#9FBF8F','#C4A8AF','#441823','#D1C6C1','#FFFFFF']},{id:'p14',c:['#432B20','#4B3023','#503326','#573829','#5E3C2C','#664130','#724836','#7E503B','#875D4A','#F0EFEF','#E1DEDF','#CFC5C2','#9FBF8F','#D8B483','#362219','#CFC5C2','#FFFFFF']},{id:'p15',c:['#2F3037','#34363E','#383A42','#3D3F48','#42444E','#474954','#4F525E','#585B68','#636676','#FFFCF2','#FFF9E5','#CCCAC2','#9FBF8F','#EE9872','#25272C','#CCCAC2','#FFFFFF']},{id:'p16',c:['#26323C','#2C3741','#303B45','#36414A','#3B454F','#414B54','#4A545C','#535C65','#5F686F','#F7F7F7','#EFEFEF','#C6C9CB','#9FBF8F','#C6A8A5','#1D2831','#C6C9CB','#FFFFFF']},{id:'p17',c:['#402D16','#483219','#4D351A','#543A1D','#5A3F1F','#624422','#6D4C25','#79542A','#875F30','#FAF9F0','#F5F3E1','#D2C9B7','#9FBF8F','#C9AB89','#332412','#D2C9B7','#FFFFFF']}];
+    var KEYS = ['bg', 'side', 'head', 'card', 'field', 'ctrl', 'line', 'line2', 'sel', 'text', 'text2', 'muted', 'ok', 'acc', 'onacc', 'faint', 'strong'];
+    var saved = null;
+    try { saved = localStorage.getItem('sm_tema'); } catch (e) {}
+    var id = (this.state && this.state.__tema) || this.props.tema || saved || 'vintage';
+    var t = THEMES.filter(function (x) { return x.id === id; })[0] || THEMES[0];
+    return { accent: t.c[13], vars: KEYS.map(function (k, i) { return '--' + k + ': ' + t.c[i] + ';'; }).join(' ') };
+  }
+
+  constructor(props) {
+    super(props);
+    this.__listen();
+    this.state = { on: { monitor: false, same: false, batt: false, confirm: true }, seg: { modo: 1 }, val: {}, open: null };
+  }
+
+  renderVals() {
+    var __th = this.__theme();
+    var self = this;
+    var s = this.state;
+    var accent = this.props.accent ?? 'var(--acc)';
+    var btn = 'height: 34px; padding: 0 14px; border: 0; border-radius: 10px; background: #262C2A; color: #EEE8E2; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap;';
+    var base = { isSel: false, isSw: false, isSeg: false, isRange: false, isBtn: false, hasAct: false };
+    var mk = function (o) { return Object.assign({}, base, o); };
+
+    var sel = function (id, label, def, opts, w, act) {
+      var value = s.val[id] || def;
+      var open = s.open === id;
+      var cols = Math.ceil(opts.length / 7);
+      return mk({
+        id: 'aj-' + id, label: label, value: value, aria: label + ': ' + value, isSel: true,
+        hasAct: !!act, act: act || '',
+        open: open, openStr: open ? 'true' : 'false',
+        toggleMenu: function () { self.setState({ open: open ? null : id }); },
+        menuStyle: 'position: absolute; top: 40px; right: 0; z-index: 30; width: ' + (cols * 150) + 'px; display: grid; grid-template-columns: repeat(' + cols + ', minmax(0, 1fr)); gap: 2px; background: #212726; border: 1px solid #323A37; border-radius: 12px; padding: 6px; box-sizing: border-box; box-shadow: 0 20px 40px rgba(0,0,0,0.5);',
+        opts: opts.map(function (o) {
+          var on = o === value;
+          return {
+            label: o, selStr: on ? 'true' : 'false',
+            pick: function () { var v = Object.assign({}, s.val); v[id] = o; self.setState({ val: v, open: null }); },
+            style: 'height: 30px; padding: 0 10px; border: 0; border-radius: 8px; text-align: left; font-size: 13px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: ' + (on ? '#FFFFFF' : '#D9D0C7') + '; background: ' + (on ? '#39413E' : 'transparent') + ';'
+          };
+        }),
+        selStyle: 'display: flex; align-items: center; justify-content: space-between; gap: 8px; width: ' + (w || 170) + 'px; height: 34px; padding: 0 10px 0 12px; box-sizing: border-box; border: 0; border-radius: 10px; background: #262C2A; color: #EEE8E2; font-size: 13px; font-weight: 500; text-align: left; cursor: pointer;'
+      });
+    };
+    var sw = function (id, label) {
+      var on = !!s.on[id];
+      return mk({
+        id: 'aj-' + id, label: label, isSw: true, checked: on ? 'true' : 'false',
+        toggle: function () { var o = Object.assign({}, s.on); o[id] = !on; self.setState({ on: o }); },
+        track: 'width: 44px; height: 26px; flex: none; border-radius: 13px; border: 0; padding: 0 3px; box-sizing: border-box; display: flex; align-items: center; cursor: pointer; transition: background 200ms; justify-content: ' + (on ? 'flex-end' : 'flex-start') + '; background: ' + (on ? accent : '#39413E') + ';',
+        knob: 'width: 20px; height: 20px; border-radius: 10px; background: #FFFFFF;'
+      });
+    };
+    var seg = function (id, label, opts) {
+      var cur = s.seg[id];
+      return mk({
+        id: 'aj-' + id, label: label, isSeg: true,
+        segs: opts.map(function (o, i) {
+          return {
+            label: o, pressed: i === cur ? 'true' : 'false',
+            pick: function () { var g = Object.assign({}, s.seg); g[id] = i; self.setState({ seg: g }); },
+            style: 'height: 28px; border: 0; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; background: ' + (i === cur ? '#39413E' : 'transparent') + '; color: ' + (i === cur ? '#FFFFFF' : '#A4A698') + ';'
+          };
+        })
+      });
+    };
+    var range = function (id, label, v) { return mk({ id: 'aj-' + id, label: label, value: String(v), isRange: true }); };
+    var button = function (id, label, value, style) { return mk({ id: 'aj-' + id, label: label, value: value, isBtn: true, btnStyle: style || btn }); };
+    var danger = 'height: 34px; padding: 0 14px; border: 1px solid #39413E; border-radius: 10px; background: transparent; color: ' + accent + '; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap;';
+    var primary = 'height: 34px; padding: 0 14px; border: 0; border-radius: 10px; background: ' + accent + '; color: #2A140F; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap;';
+
+    var P = []; for (var i = 1; i <= 14; i++) P.push('P' + (i < 10 ? '0' : '') + i);
+    var FS = ['Preset-', 'Preset+', 'Tap Tempo', 'NR', 'FX1', 'DRV', 'AMP', 'IR', 'EQ', 'FX2', 'DLY', 'RVB', 'CTRL 1', 'CTRL 2', 'Drum', 'REC/Play', 'Loop Stop', 'Afinador'];
+    var CH = ['Todos os canais']; for (var c = 1; c <= 16; c++) CH.push('Canal ' + c);
+    return { themeVars: __th.vars,
+      accent: accent,
+      btn: btn,
+      columns: [
+        { sections: [
+          { title: 'Níveis', rows: [range('entrada', 'Entrada', 60), seg('modo', 'Modo', ['Dry', 'Wet']), sw('monitor', 'Monitor direto')] },
+          { title: 'EQ global', rows: [sel('eqmodelo', 'Modelo', 'Studio EQ', ['Studio EQ', 'GT EQ 1', 'GT EQ 2', 'Bass EQ', 'Cut 24', 'Parametric 3', 'Tilt EQ']), sel('eqtipo', 'Tipo', 'Ligado', ['Desligado', 'Ligado'])] },
+          { title: 'Tela', rows: [sel('tema', 'Tema', 'Padrão', ['Padrão', 'Amber CRT', 'Tube Amp', 'Synthwave', 'Stage Hi-Contrast', 'Game Boy']), range('luz', 'Luz', 70), range('brilho', 'Brilho', 80)] }
+        ] },
+        { sections: [
+          { title: 'Footswitches', rows: [sel('fsmodo', 'Modo da pedaleira', 'Preset', ['Preset', 'Stomp', 'Cena']), sel('fs1', 'Função 1', 'Afinador', FS), sel('fs2', 'Função 2', 'Tap Tempo', FS)] },
+          { title: 'MIDI', rows: [sel('mapa', 'Mapa MIDI', 'Personalizado', ['Original', 'MIDI genérico', 'Personalizado']), button('editar', 'Linhas do mapa personalizado', 'Editar mapa'), sel('canal', 'Canal MIDI', 'Todos os canais', CH), sw('same', 'Mesmo preset de novo')] },
+          { title: 'Energia', rows: [sw('batt', 'Só bateria'), sw('confirm', 'Confirmar')] }
+        ] },
+        { sections: [
+          { title: 'Ordem dos presets', rows: [sel('mover', 'Mover preset', 'P05', P, 96), sel('posicao', 'Para a posição', 'P02', P, 96, 'Mover')] },
+          { title: 'Pedaleira inteira', rows: [button('backup', 'Backup', 'Fazer backup agora', primary), button('restaurar', 'Restaurar', 'Restaurar…')] },
+          { title: 'Redefinir', rows: [button('fabrica', 'Padrão de fábrica', 'Redefinir', danger)] }
+        ] }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

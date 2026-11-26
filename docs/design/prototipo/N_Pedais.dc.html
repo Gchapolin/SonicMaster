@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Catálogo de pedais</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@600&amp;family=Barlow+Condensed:wght@500;600;700&amp;family=Share+Tech+Mono&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="{{themeVars}} width: 2352px; height: 3400px; box-sizing: border-box; padding: 32px 40px; background: var(--bg); color: var(--text); font-family: Inter, sans-serif; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; align-items: baseline; gap: 16px">
+<h1 style="margin: 0; font-family: 'Space Grotesk'; font-size: 30px; font-weight: 600">Pedais</h1>
+<span style="font-size: 15px; color: var(--muted)">Formato e cor de cada pedal original, sem marcas. Os knobs são os parâmetros do app.</span>
+</div>
+<sc-for list="{{sections}}" as="sec" hint-placeholder-count="6">
+<h2 style="margin: 10px 0 0; font-family: 'Space Grotesk'; font-size: 20px; font-weight: 600; color: var(--text2)">{{sec.title}}</h2>
+<div style="display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 16px">
+<sc-for list="{{sec.items}}" as="it" hint-placeholder-count="8">
+<div style="height: 230px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; display: flex; flex-direction: column; align-items: center; padding: 10px 8px; box-sizing: border-box">
+<div style="flex: 1; display: flex; align-items: center; justify-content: center">
+<dc-import name="Peca" model="{{it.model}}" wear="{{wear}}" hint-size="112px,190px"></dc-import>
+</div>
+<span style="font-size: 13px; font-weight: 600">{{it.model}}</span>
+</div>
+</sc-for>
+</div>
+</sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"wear":{"editor":"range","default":50,"min":0,"max":100,"step":5,"unit":"%"},"$preview":{"width":2352,"height":3400}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.__listen();
+  }
+  // The app colour chosen in Aparência, shared by every screen (saved in this browser).
+  __listen() {
+    var self = this;
+    try {
+      window.addEventListener('storage', function (e) { if (e.key === 'sm_tema') self.setState({ __tema: e.newValue }); });
+      window.addEventListener('sm_tema', function (e) { self.setState({ __tema: e.detail }); });
+    } catch (e) {}
+  }
+  __theme() {
+    var THEMES = [{id:'vintage',c:['#3E2C28','#45322D','#4A3530','#513A35','#573E39','#5E443E','#694B45','#74534C','#835E56','#F0ECE9','#E1D9D2','#D0C7C3','#9FBF8F','#DF9D8E','#312320','#D0C7C3','#FFFFFF']},{id:'p1',c:['#392F22','#403426','#443828','#4B3D2C','#504230','#574733','#614F39','#6B5840','#796348','#F9F9FB','#F4F3F6','#CEC9C6','#9FBF8F','#D8A86A','#2E251B','#CEC9C6','#FFFFFF']},{id:'p2',c:['#3A2F1A','#41341E','#453820','#4C3D23','#524225','#594728','#63502D','#6D5832','#7B6338','#F3EBE1','#E5D2BC','#D4C7B6','#9FBF8F','#C3AC84','#2F2515','#D4C7B6','#FFFFFF']},{id:'p3',c:['#2F3315','#343917','#383D19','#3D421B','#42471D','#484D21','#50562B','#595E36','#656A45','#FAF5DE','#F5EABD','#CECAAA','#9FBF8F','#FF8C8C','#262911','#CECAAA','#FFFFFF']},{id:'p4',c:['#422A26','#4A2F2B','#4F332D','#573732','#5D3C36','#65413A','#714841','#7D5048','#8D5A51','#F1F4E6','#E4E9CD','#D0CABC','#9FBF8F','#D5A49C','#35221F','#D0CABC','#FFFFFF']},{id:'p5',c:['#4D2521','#552A26','#582E2B','#5D3431','#613A36','#66403D','#6E4946','#755350','#7F5F5C','#FFFDFF','#FEFBFF','#D2C5C6','#9FBF8F','#FFAACF','#3E1D1B','#D2C5C6','#FFFFFF']},{id:'p6',c:['#3E2C28','#45322D','#4A3530','#513A35','#573E39','#5E443E','#694B45','#74534C','#835E56','#F0ECE9','#E1D9D2','#D0C7C3','#9FBF8F','#DF9D8E','#312320','#D0C7C3','#FFFFFF']},{id:'p7',c:['#303126','#36372A','#393B2D','#3F4031','#444635','#494B3A','#525440','#5B5D47','#666950','#F6F7FA','#EDEEF5','#C7C8C7','#9FBF8F','#B8BF80','#26271E','#C7C8C7','#FFFFFF']},{id:'p8',c:['#482727','#502C2C','#543030','#583636','#5D3B3B','#624141','#694B4B','#715454','#7B6060','#EEECEB','#D9D5D1','#CFC6C4','#9FBF8F','#BDA9AC','#3A1F1F','#CFC6C4','#FFFFFF']},{id:'p9',c:['#48272D','#502B32','#562E35','#5E333A','#65373F','#6D3B44','#7A424C','#874954','#95545F','#EFECEC','#D9D2D2','#D3C7C9','#9FBF8F','#D2A1AA','#3A1F24','#D3C7C9','#FFFFFF']},{id:'p10',c:['#353027','#3B362C','#3F392F','#453F33','#4A4337','#50493B','#595242','#635A49','#706653','#F4EBE1','#E6D2BC','#D0C6B9','#9FBF8F','#D9BC9A','#2A261F','#D0C6B9','#FFFFFF']},{id:'p11',c:['#45282D','#4D2D33','#513136','#56373C','#5A3C41','#5F4247','#674B50','#6F5459','#796165','#E9F2F1','#D4E5E3','#C8C9C9','#9FBF8F','#DE9DB2','#372024','#C8C9C9','#FFFFFF']},{id:'p12',c:['#4B2623','#532B27','#592D29','#61322D','#693531','#713A35','#7E403B','#8C4741','#9E5049','#F3EBE2','#E4D2BE','#D7C4BA','#9FBF8F','#EE9898','#3C1F1C','#D7C4BA','#FFFFFF']},{id:'p13',c:['#541E2B','#592532','#5D2A36','#61303C','#663641','#6B3C48','#724651','#7A4F5A','#835C66','#F1F1E8','#E4E3D1','#D1C6C1','#9FBF8F','#C4A8AF','#441823','#D1C6C1','#FFFFFF']},{id:'p14',c:['#432B20','#4B3023','#503326','#573829','#5E3C2C','#664130','#724836','#7E503B','#875D4A','#F0EFEF','#E1DEDF','#CFC5C2','#9FBF8F','#D8B483','#362219','#CFC5C2','#FFFFFF']},{id:'p15',c:['#2F3037','#34363E','#383A42','#3D3F48','#42444E','#474954','#4F525E','#585B68','#636676','#FFFCF2','#FFF9E5','#CCCAC2','#9FBF8F','#EE9872','#25272C','#CCCAC2','#FFFFFF']},{id:'p16',c:['#26323C','#2C3741','#303B45','#36414A','#3B454F','#414B54','#4A545C','#535C65','#5F686F','#F7F7F7','#EFEFEF','#C6C9CB','#9FBF8F','#C6A8A5','#1D2831','#C6C9CB','#FFFFFF']},{id:'p17',c:['#402D16','#483219','#4D351A','#543A1D','#5A3F1F','#624422','#6D4C25','#79542A','#875F30','#FAF9F0','#F5F3E1','#D2C9B7','#9FBF8F','#C9AB89','#332412','#D2C9B7','#FFFFFF']}];
+    var KEYS = ['bg', 'side', 'head', 'card', 'field', 'ctrl', 'line', 'line2', 'sel', 'text', 'text2', 'muted', 'ok', 'acc', 'onacc', 'faint', 'strong'];
+    var saved = null;
+    try { saved = localStorage.getItem('sm_tema'); } catch (e) {}
+    var id = (this.state && this.state.__tema) || this.props.tema || saved || 'vintage';
+    var t = THEMES.filter(function (x) { return x.id === id; })[0] || THEMES[0];
+    return { accent: t.c[13], vars: KEYS.map(function (k, i) { return '--' + k + ': ' + t.c[i] + ';'; }).join(' ') };
+  }
+
+  renderVals() {
+    var __th = this.__theme();
+    var S = [
+      ['Noise gate (NR)', ['Gate']],
+      ['Efeitos (FX1 e FX2)', ['COMP 1', 'COMP 2', 'Touch Wah', 'Auto Wah', 'Boost', 'A-Chorus', 'B-Chorus', 'Flanger', 'Phaser', 'Vibe', 'Vibrato', 'Tremolo', 'Sine Trem', 'Bias Trem', 'AC G', 'Octave', 'Pitch', 'Detune', 'Fullchor', 'Phaser ST', 'Crystal Chorus', 'C-Wah', 'Whirlcho', 'Jet', 'Flanser', 'Phaser M', 'Vibrato ST', 'BBD Phaser', 'Lofi Vibrato', 'Flanger ST']],
+      ['Drive (DRV)', ['Scream', 'Butter OD', 'JP Dist', 'Shark', 'Dark Mouse', 'Grey Fuzz', 'Red Fuzz', 'Bass Drive']],
+      ['Equalizador (EQ)', ['GT EQ 1', 'GT EQ 2', 'Bass EQ', 'Studio EQ', 'Cut 24', 'Parametric 3', 'Tilt EQ']],
+      ['Delay (DLY)', ['Pure', 'Slap', 'Warm', 'Mag', 'Tube', 'Reverse', 'Analog', 'Sweep', 'Ping Pong', 'Flash', 'Damage', 'Flutter', 'Glost', 'Dark', 'Shiny', 'Echo', 'Float', 'Shake', 'Studio Delay', 'Tape Echo', 'Dual Delay', 'Shimmer Delay', 'Swell Delay', 'Lo-Fi Delay']],
+      ['Reverb (RVB)', ['Air', 'Room', 'Hall', 'Church', 'Plate 1', 'Plate 2', 'Spring', 'Light', 'Ocean', 'Dream', 'Studio Verb', 'Ambient', 'Freeze', 'Duck Verb', 'Gated']]
+    ];
+    return { themeVars: __th.vars,
+      wear: this.props.wear ?? 50,
+      sections: S.map(function (s) { return { title: s[0], items: s[1].map(function (m) { return { model: m }; }) }; })
+    };
+  }
+}
+</script>
+</body>
+</html>

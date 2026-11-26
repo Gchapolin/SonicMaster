@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>SonicMaster - novo design</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;family=Barlow+Condensed:wght@500;600;700&amp;family=Share+Tech+Mono&amp;display=swap">
+<style>
+body{margin:0;background:#3E2C28}
+button{font-family:inherit;-webkit-user-select:none;user-select:none}
+button:focus-visible{outline:2px solid #DF9D8E;outline-offset:2px}
+</style>
+</helmet>
+<div style="{{themeVars}} position: relative; width: 1180px; height: 820px; box-sizing: border-box; background: var(--bg); color: var(--text); font-family: Inter, sans-serif; display: flex; flex-direction: column; overflow: hidden">
+
+<header style="height: 56px; flex: none; display: flex; align-items: center; gap: 10px; padding: 0 16px; background: var(--head); border-bottom: 1px solid var(--line)">
+<div style="font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 700; letter-spacing: 0.5px; margin-right: 10px">sonic<span style="color: {{accent}}">master</span></div>
+<button type="button" aria-label="Preset anterior" style="width: 36px; height: 36px; border: 0; border-radius: 10px; background: var(--ctrl); color: var(--text2); cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></button>
+<div style="display: flex; align-items: center; gap: 10px; width: 230px; height: 36px; padding: 0 12px; box-sizing: border-box; background: var(--ctrl); border-radius: 10px">
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: {{accent}}">{{presetLabel}}</span>
+<span style="font-size: 15px; font-weight: 600">{{presetName}}</span>
+</div>
+<button type="button" aria-label="Próximo preset" style="width: 36px; height: 36px; border: 0; border-radius: 10px; background: var(--ctrl); color: var(--text2); cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></button>
+<div style="display: flex; align-items: center; gap: 14px; margin-left: 10px; padding-left: 14px; border-left: 1px solid var(--line)">
+<div style="display: flex; flex-direction: column; line-height: 1.1"><span style="font-size: 10px; font-weight: 600; letter-spacing: 1px; color: var(--muted)">VOL</span><span style="font-family: 'JetBrains Mono'; font-size: 15px">44</span></div>
+<div style="display: flex; flex-direction: column; line-height: 1.1"><span style="font-size: 10px; font-weight: 600; letter-spacing: 1px; color: var(--muted)">BPM</span><span style="font-family: 'JetBrains Mono'; font-size: 15px">120</span></div>
+<button type="button" style="height: 32px; padding: 0 12px; border: 1px solid var(--sel); border-radius: 8px; background: transparent; color: var(--text); font-size: 12px; font-weight: 600; letter-spacing: 1px; cursor: pointer">TAP</button>
+</div>
+<div style="flex: 1"></div>
+<div style="display: flex; flex-direction: column; gap: 3px; width: 86px">
+<span style="font-family: 'Barlow Condensed'; font-size: 10px; letter-spacing: 1px; color: #9A958C">DSP 42%</span>
+<span style="height: 6px; border-radius: 3px; background: #0A0A0B; box-shadow: inset 0 1px 2px #000; overflow: hidden"><span style="display: block; width: 42%; height: 100%; background: linear-gradient(90deg, var(--ok), var(--acc))"></span></span>
+</div>
+<svg width="24" height="12" viewBox="0 0 24 12" role="img" aria-label="Bateria: 3 de 4" style="margin-left: 6px"><rect x="0.75" y="0.75" width="20" height="10.5" rx="2.5" fill="none" style="stroke: var(--muted)" stroke-width="1.5"></rect><rect x="21.5" y="4" width="2" height="4" rx="1" style="fill: var(--muted)"></rect><rect x="3" y="3" width="11.5" height="6" rx="1" style="fill: var(--ok)"></rect></svg>
+<button type="button" aria-label="Afinador" style="width: 40px; height: 40px; border: 0; border-radius: 10px; background: transparent; color: var(--text2); cursor: pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 17a8 8 0 1 1 16 0"></path><path d="M12 17l4-6"></path></svg></button>
+<button type="button" aria-label="Presets da comunidade" style="width: 40px; height: 40px; border: 0; border-radius: 10px; background: transparent; color: var(--text2); cursor: pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"></path></svg></button>
+<button type="button" onClick="{{openAparencia}}" aria-label="Aparência" style="width: 40px; height: 40px; border: 0; border-radius: 10px; background: transparent; color: var(--text2); cursor: pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.7-.9 1.4-1.8-.3-.9.2-1.9 1.2-1.9H17a4 4 0 0 0 4-4c0-5-4-10.3-9-10.3z"></path><circle cx="7.5" cy="11" r="1.2"></circle><circle cx="10.5" cy="7" r="1.2"></circle><circle cx="15.5" cy="8" r="1.2"></circle></svg></button>
+<button type="button" aria-label="Ajustes" style="width: 40px; height: 40px; border: 0; border-radius: 10px; background: transparent; color: var(--text2); cursor: pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"></path><circle cx="16" cy="6" r="2"></circle><circle cx="10" cy="12" r="2"></circle><circle cx="18" cy="18" r="2"></circle></svg></button>
+<button type="button" style="height: 36px; padding: 0 18px; border: 0; border-radius: 10px; background: {{accent}}; color: var(--onacc); font-size: 13px; font-weight: 600; cursor: pointer">Salvar</button>
+<div style="display: flex; align-items: center; gap: 8px; margin-left: 6px; padding-left: 12px; border-left: 1px solid var(--line)">
+<span style="width: 8px; height: 8px; border-radius: 4px; background: var(--ok)"></span>
+<span style="font-size: 13px; color: var(--text2)">Pocket Master</span>
+</div>
+</header>
+
+<div style="flex: 1; display: flex; min-height: 0">
+
+<aside style="width: 210px; flex: none; display: flex; flex-direction: column; background: var(--side); border-right: 1px solid var(--line)">
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px; margin: 12px 12px 10px; padding: 3px; background: var(--ctrl); border-radius: 10px">
+<button type="button" onClick="{{pickFactory}}" style="{{factoryStyle}}">Fábrica</button>
+<button type="button" onClick="{{pickUser}}" style="{{userStyle}}">Usuário</button>
+</div>
+<label style="margin: 0 12px 8px; display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 10px; background: var(--field); border-radius: 10px; color: var(--muted)">
+<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
+<input type="text" placeholder="Buscar presets" aria-label="Buscar presets" style="flex: 1; min-width: 0; border: 0; background: transparent; color: var(--text); font-family: Inter, sans-serif; font-size: 13px; outline: none">
+</label>
+<div style="flex: 1; min-height: 0; overflow-y: auto; padding: 0 8px 8px; display: flex; flex-direction: column; gap: 1px">
+<sc-for list="{{presets}}" as="p" hint-placeholder-count="14">
+<button type="button" onClick="{{p.pick}}" style="{{p.style}}"><span style="font-family: 'JetBrains Mono'; font-size: 12px; color: {{p.numColor}}; width: 30px">{{p.label}}</span><span style="font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{p.name}}</span></button>
+</sc-for>
+</div>
+<div style="padding: 12px; border-top: 1px solid var(--line); display: flex; align-items: center; gap: 12px">
+<svg width="44" height="44" viewBox="0 0 64 64" aria-hidden="true"><path d="{{master.track}}" fill="none" style="stroke: var(--line2)" stroke-width="6" stroke-linecap="round"></path><path d="{{master.arc}}" fill="none" stroke="{{accent}}" stroke-width="6" stroke-linecap="round"></path></svg>
+<div style="display: flex; flex-direction: column"><span style="font-size: 11px; font-weight: 600; letter-spacing: 1px; color: var(--muted)">VOLUME GERAL</span><span style="font-family: 'JetBrains Mono'; font-size: 15px">75</span></div>
+</div>
+</aside>
+
+<main style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+
+<section aria-label="Pedaleira" style="height: 210px; flex: none; position: relative; box-sizing: border-box; padding: 0 14px; background: var(--side); border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: center">
+<div style="position: absolute; left: 24px; right: 24px; top: 92px; height: 2px; background: var(--line)"></div>
+<div style="position: relative; display: flex; align-items: center; gap: 12px">
+<sc-for list="{{units}}" as="u" hint-placeholder-count="9">
+<div style="{{u.wrap}}">
+<span style="{{u.box}}"><dc-import name="Peca" model="{{u.model}}" fit-w="{{u.fitW}}" fit-h="{{u.fitH}}" lit="{{u.on}}" wear="{{wear}}" hint-size="66px,114px"></dc-import></span>
+<span style="font-size: 11px; font-weight: 600; letter-spacing: 1px; color: {{u.tagColor}}; margin-top: 8px">{{u.tag}}</span>
+<button type="button" onClick="{{u.pick}}" aria-label="{{u.aria}}" style="position: absolute; inset: 0; border: 0; padding: 0; border-radius: 14px; background: transparent; cursor: pointer"></button>
+</div>
+</sc-for>
+</div>
+</section>
+
+<section aria-label="Editor do bloco" style="flex: 1; min-height: 0; display: flex; gap: 16px; padding: 16px; box-sizing: border-box">
+
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 12px; position: relative">
+<div style="display: flex; align-items: center; gap: 8px">
+<span style="font-family: 'Space Grotesk'; font-size: 13px; font-weight: 600; letter-spacing: 1px; color: var(--muted); width: 40px">{{cur.tag}}</span>
+<button type="button" onClick="{{prevModel}}" aria-label="Modelo anterior" style="width: 36px; height: 36px; border: 0; border-radius: 10px; background: var(--ctrl); color: var(--text2); cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></button>
+<button type="button" onClick="{{toggleMenu}}" style="display: flex; align-items: center; justify-content: space-between; gap: 10px; min-width: 220px; height: 36px; padding: 0 12px 0 14px; border: 0; border-radius: 10px; background: var(--ctrl); color: var(--text); font-size: 15px; font-weight: 600; cursor: pointer">{{cur.model}}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="stroke: var(--muted)" stroke-width="2.5" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button>
+<button type="button" onClick="{{nextModel}}" aria-label="Próximo modelo" style="width: 36px; height: 36px; border: 0; border-radius: 10px; background: var(--ctrl); color: var(--text2); cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></button>
+<sc-if value="{{cur.hasBand}}" hint-placeholder-val="{{ true }}"><span style="margin-left: 6px; padding: 4px 10px; border-radius: 20px; background: color-mix(in srgb, var(--acc) 14%, transparent); color: {{accent}}; font-size: 11px; font-weight: 600; letter-spacing: 1px">{{cur.band}}</span></sc-if>
+</div>
+
+<sc-if value="{{menuOpen}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; top: 44px; left: 92px; z-index: 20; width: 240px; max-height: 420px; overflow-y: auto; background: var(--field); border: 1px solid var(--line2); border-radius: 12px; padding: 6px; box-shadow: 0 20px 40px rgba(0,0,0,0.5)">
+<sc-for list="{{menuBands}}" as="band" hint-placeholder-count="5">
+<sc-if value="{{band.hasTitle}}" hint-placeholder-val="{{ true }}"><div style="padding: 10px 10px 4px; font-size: 11px; font-weight: 600; letter-spacing: 1.5px; color: var(--muted)">{{band.title}}</div></sc-if>
+<sc-for list="{{band.items}}" as="it" hint-placeholder-count="5"><button type="button" onClick="{{it.pick}}" style="{{it.style}}">{{it.name}}</button></sc-for>
+</sc-for>
+</div>
+</sc-if>
+
+<div style="flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center">
+
+<dc-import name="Peca" model="{{cur.model}}" fit-w="660" fit-h="440" values="{{curVals}}" on-knob="{{bumpKnob}}" on-switch="{{toggleOn}}" lit="{{curOn}}" wear="{{wear}}" hint-size="260px,440px"></dc-import>
+
+
+</div>
+</div>
+
+<aside aria-label="Controles do bloco" style="width: 236px; flex: none; display: flex; flex-direction: column; gap: 12px">
+<div style="background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; align-items: center; justify-content: space-between">
+<span style="font-size: 13px; font-weight: 500">Bloco ligado</span>
+<button type="button" onClick="{{toggleOn}}" aria-label="Liga ou desliga o bloco" style="{{power.track}}"><span style="{{power.knob}}"></span></button>
+</div>
+<sc-if value="{{cur.isAmp}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; align-items: center; justify-content: space-between">
+<span style="font-size: 13px; font-weight: 500">Modo Clone</span>
+<button type="button" onClick="{{toggleClone}}" aria-label="Modo Clone" style="{{clone.track}}"><span style="{{clone.knob}}"></span></button>
+</div>
+</sc-if>
+<sc-if value="{{cur.isCab}}" hint-placeholder-val="{{ false }}">
+<button type="button" style="height: 34px; border: 0; border-radius: 8px; background: var(--ctrl); color: var(--text); font-size: 13px; font-weight: 500; cursor: pointer">Slots do usuário</button>
+</sc-if>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 11px; font-weight: 600; letter-spacing: 1px; color: var(--muted)">FOOTSWITCH</span>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px; padding: 3px; background: var(--ctrl); border-radius: 10px">
+<sc-for list="{{fsOptions}}" as="f" hint-placeholder-count="3"><button type="button" onClick="{{f.pick}}" style="{{f.style}}">{{f.label}}</button></sc-for>
+</div>
+</div>
+<div style="display: flex; align-items: center; justify-content: space-between">
+<span style="font-size: 13px; font-weight: 500">Cenas</span>
+<button type="button" onClick="{{toggleScenes}}" aria-label="Cenas" style="{{scenes.track}}"><span style="{{scenes.knob}}"></span></button>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 11px; font-weight: 600; letter-spacing: 1px; color: var(--muted)">PEDAL DE EXPRESSÃO</span>
+<div style="display: flex; gap: 6px">
+<button type="button" style="height: 34px; width: 44px; border: 0; border-radius: 8px; background: var(--ctrl); color: var(--text); font-size: 13px; font-weight: 600; cursor: pointer">A</button>
+<button type="button" style="flex: 1; height: 34px; border: 0; border-radius: 8px; background: var(--ctrl); color: var(--text2); font-size: 13px; cursor: pointer">Nenhum</button>
+</div>
+</div>
+</div>
+<div style="flex: 1; min-height: 0; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px; font-size: 13px; line-height: 1.55; color: #A9ADB5">{{cur.desc}}</div>
+</aside>
+</section>
+</main>
+</div>
+<sc-if value="{{aparenciaOpen}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; inset: 0; z-index: 50; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center">
+<div role="dialog" aria-modal="true" aria-labelledby="ap-title" style="width: 760px; box-sizing: border-box; padding: 24px; background: var(--card); border: 1px solid var(--line2); border-radius: 20px; box-shadow: 0 24px 60px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 18px; color: var(--text)">
+<h2 id="ap-title" style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 600">Aparência</h2>
+<section style="display: flex; flex-direction: column; gap: 10px">
+<div><h3 style="margin: 0; font-size: 11px; font-weight: 600; letter-spacing: 1px; color: var(--muted)">COR DO APP</h3><p style="margin: 4px 0 0; font-size: 12px; color: var(--text2)">Paletas do Adobe Color (Neutral Vintage). Muda a interface do editor; os amps, gabinetes e pedais mantêm as cores deles. Fica salva neste aparelho.</p></div>
+<div role="group" aria-label="Cor do app" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+<sc-for list="{{themeChips}}" as="t" hint-placeholder-count="18"><button type="button" aria-pressed="{{t.pressed}}" onClick="{{t.pick}}" style="{{t.style}}"><span aria-hidden="true" style="display: flex; width: 40px; height: 16px; flex: none; border-radius: 4px; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.2)"><sc-for list="{{t.sw}}" as="w" hint-placeholder-count="5"><span style="{{w.style}}"></span></sc-for></span><span style="min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis">{{t.name}}</span></button></sc-for>
+</div>
+</section>
+<div style="display: flex; align-items: center; justify-content: space-between; margin-top: 4px">
+<span style="font-size: 13px; color: var(--text2)">{{aparenciaResumo}}</span>
+<button type="button" onClick="{{closeAparencia}}" style="height: 40px; min-width: 100px; padding: 0 18px; border: 0; border-radius: 10px; background: {{accent}}; color: var(--onacc); font-size: 14px; font-weight: 600; cursor: pointer">Fechar</button>
+</div>
+</div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#DF9D8E","options":["#DF9D8E","#D9AB9A","#9FBF8F","#9FAD9F"]},"tema":{"editor":"select","default":"vintage","options":["vintage", "p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9", "p10", "p11", "p12", "p13", "p14", "p15", "p16", "p17"]},"aparencia":{"editor":"boolean","default":false},"wear":{"editor":"range","default":60,"min":0,"max":100,"step":5,"unit":"%"},"$preview":{"width":1180,"height":820}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    var saved = null;
+    try { saved = localStorage.getItem('sm_tema'); } catch (e) {}
+    var self = this;
+    try {
+      window.addEventListener('storage', function (e) { if (e.key === 'sm_tema') self.setState({ tema: e.newValue }); });
+      window.addEventListener('sm_tema', function (e) { if (e.detail !== self.state.tema) self.setState({ tema: e.detail }); });
+    } catch (e) {}
+    this.state = { tema: props.tema || saved || 'vintage', telaTema: 0, aparencia: props.aparencia === true || props.aparencia === 'true', mod: 3, menu: false, bank: 'user', preset: 0, scenes: false, clone: false, off: {}, pick: {}, vals: {}, fs: {} };
+  }
+
+  // An arc on a 64x64 knob: 270 degrees from bottom-left, v in 0..100.
+  arc(v) {
+    var r = 26, c = 32, a0 = 135, sweep = 270 * Math.max(0, Math.min(1, v / 100));
+    if (sweep <= 0) return '';
+    var p = function (a) { var t = a * Math.PI / 180; return (c + r * Math.cos(t)).toFixed(2) + ' ' + (c + r * Math.sin(t)).toFixed(2); };
+    return 'M ' + p(a0) + ' A ' + r + ' ' + r + ' 0 ' + (sweep > 180 ? 1 : 0) + ' 1 ' + p(a0 + Math.min(sweep, 269.99));
+  }
+
+  // The pedals keep the earlier, realistic look (the rest of the UI is flat).
+  shade(hex, amt) {
+    var n = parseInt(hex.slice(1), 16);
+    var r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+    var f = function (c) { return Math.max(0, Math.min(255, Math.round(amt < 0 ? c * (1 + amt) : c + (255 - c) * amt))); };
+    return 'rgb(' + f(r) + ',' + f(g) + ',' + f(b) + ')';
+  }
+
+  knobCap(size, cream) {
+    return 'position: relative; display: block; width: ' + size + 'px; height: ' + size + 'px; border-radius: 50%; ' +
+      (cream
+        ? 'background: radial-gradient(circle at 50% 35%, #F7EEDC, #E4D5B2 60%, #CDB98A 100%); box-shadow: 0 1px 2px rgba(0,0,0,0.35), 0 3px 6px rgba(0,0,0,0.18), inset 0 -1px 0 rgba(0,0,0,0.15);'
+        : 'background: radial-gradient(circle at 50% 35%, #45484E, #2C2E32 60%, #222327 100%); box-shadow: 0 1px 2px rgba(0,0,0,0.5), 0 3px 6px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.10);');
+  }
+
+  knobRot(v) {
+    return 'position: absolute; inset: 0; transform: rotate(' + (-135 + 2.7 * v) + 'deg);';
+  }
+
+  // Worn paint, as background layers over the enclosure's paint (under its
+  // knobs and text): a grey veil that dulls the colour, lighter rubbed corners
+  // and a scuffed spot where the foot lands, fine scratches. w: 0..1.
+  wearLayers(w) {
+    var a = function (x) { return (x * w).toFixed(3); };
+    var g = 'rgba(205,205,200,';
+    return 'radial-gradient(ellipse 34% 20% at 0% 0%, ' + g + a(0.55) + '), transparent 70%), ' +
+      'radial-gradient(ellipse 34% 20% at 100% 0%, ' + g + a(0.5) + '), transparent 70%), ' +
+      'radial-gradient(ellipse 34% 18% at 0% 100%, ' + g + a(0.5) + '), transparent 70%), ' +
+      'radial-gradient(ellipse 34% 18% at 100% 100%, ' + g + a(0.55) + '), transparent 70%), ' +
+      'radial-gradient(ellipse 30% 14% at 50% 84%, ' + g + a(0.45) + '), transparent 75%), ' +
+      'repeating-linear-gradient(112deg, rgba(255,255,255,' + a(0.06) + ') 0 1px, transparent 1px 9px), ' +
+      'repeating-linear-gradient(23deg, rgba(0,0,0,' + a(0.07) + ') 0 1px, transparent 1px 13px), ' +
+      'linear-gradient(' + g + a(0.2) + '), ' + g + a(0.2) + ')), ';
+  }
+
+  renderVals() {
+    var self = this;
+    var s = this.state;
+    // App colours, like the web app's "Pedal colour": the whole editor UI
+    // follows it; the amps, cabs and pedals keep their own colours.
+    var THEMES = [
+      { id: 'vintage', name: 'Vintage Neutral - Muted', sw: ['#6A736F','#A4A698','#D9D0C7','#D9AB9A','#D98977'], c: ['#3E2C28','#45322D','#4A3530','#513A35','#573E39','#5E443E','#694B45','#74534C','#835E56','#F0ECE9','#E1D9D2','#D0C7C3','#9FBF8F','#DF9D8E','#312320','#D0C7C3','#FFFFFF'] },
+      { id: 'p1', name: 'Vintage Vinyl Neutrals', sw: ['#D6A261','#EFCA98','#A5794D','#40322A','#F1F0F4'], c: ['#392F22','#403426','#443828','#4B3D2C','#504230','#574733','#614F39','#6B5840','#796348','#F9F9FB','#F4F3F6','#CEC9C6','#9FBF8F','#D8A86A','#2E251B','#CEC9C6','#FFFFFF'] },
+      { id: 'p2', name: 'Forgotten Promise', sw: ['#966F29','#B59269','#CCA97D','#292019','#944B3A'], c: ['#3A2F1A','#41341E','#453820','#4C3D23','#524225','#594728','#63502D','#6D5832','#7B6338','#F3EBE1','#E5D2BC','#D4C7B6','#9FBF8F','#C3AC84','#2F2515','#D4C7B6','#FFFFFF'] },
+      { id: 'p3', name: 'Gorilla Warefare', sw: ['#868C5B','#454D0D','#F2E5AC','#B39357','#FF0D0D'], c: ['#2F3315','#343917','#383D19','#3D421B','#42471D','#484D21','#50562B','#595E36','#656A45','#FAF5DE','#F5EABD','#CECAAA','#9FBF8F','#FF8C8C','#262911','#CECAAA','#FFFFFF'] },
+      { id: 'p4', name: 'Nautical Neapolitan', sw: ['#B56152','#749A96','#DDE3C0','#948466','#343434'], c: ['#422A26','#4A2F2B','#4F332D','#573732','#5D3C36','#65413A','#714841','#7D5048','#8D5A51','#F1F4E6','#E4E9CD','#D0CABC','#9FBF8F','#D5A49C','#35221F','#D0CABC','#FFFFFF'] },
+      { id: 'p5', name: 'Beverly Hills', sw: ['#EFD98C','#5E201B','#2E2A3F','#FFAACF','#FEFAFF'], c: ['#4D2521','#552A26','#582E2B','#5D3431','#613A36','#66403D','#6E4946','#755350','#7F5F5C','#FFFDFF','#FEFBFF','#D2C5C6','#9FBF8F','#FFAACF','#3E1D1B','#D2C5C6','#FFFFFF'] },
+      { id: 'p6', name: 'Vintage Neutral - Muted 2', sw: ['#62736F','#9FAD9F','#D9D0C7','#D9AB9A','#D98977'], c: ['#3E2C28','#45322D','#4A3530','#513A35','#573E39','#5E443E','#694B45','#74534C','#835E56','#F0ECE9','#E1D9D2','#D0C7C3','#9FBF8F','#DF9D8E','#312320','#D0C7C3','#FFFFFF'] },
+      { id: 'p7', name: 'Happily Ever After', sw: ['#D9BAC0','#E9EAF2','#B8BF80','#70735F','#BFBC95'], c: ['#303126','#36372A','#393B2D','#3F4031','#444635','#494B3A','#525440','#5B5D47','#666950','#F6F7FA','#EDEEF5','#C7C8C7','#9FBF8F','#B8BF80','#26271E','#C7C8C7','#FFFFFF'] },
+      { id: 'p8', name: 'Vintage Neutrals 2', sw: ['#59252E','#8C7482','#BFB7B0','#A69C98','#592525'], c: ['#482727','#502C2C','#543030','#583636','#5D3B3B','#624141','#694B4B','#715454','#7B6060','#EEECEB','#D9D5D1','#CFC6C4','#9FBF8F','#BDA9AC','#3A1F1F','#CFC6C4','#FFFFFF'] },
+      { id: 'p9', name: 'Vintage Neutrals 4', sw: ['#A64657','#59393F','#8C4659','#A6726D','#A69797'], c: ['#48272D','#502B32','#562E35','#5E333A','#65373F','#6D3B44','#7A424C','#874954','#95545F','#EFECEC','#D9D2D2','#D3C7C9','#9FBF8F','#D2A1AA','#3A1F24','#D3C7C9','#FFFFFF'] },
+      { id: 'p10', name: 'Days Gone By', sw: ['#8C7B5A','#595143','#403C35','#BF9969','#D9BC9A'], c: ['#353027','#3B362C','#3F392F','#453F33','#4A4337','#50493B','#595242','#635A49','#706653','#F4EBE1','#E6D2BC','#D0C6B9','#9FBF8F','#D9BC9A','#2A261F','#D0C6B9','#FFFFFF'] },
+      { id: 'p11', name: 'Theatre Seats', sw: ['#C1B751','#684E41','#572931','#AB063D','#C9DFDC'], c: ['#45282D','#4D2D33','#513136','#56373C','#5A3C41','#5F4247','#674B50','#6F5459','#796165','#E9F2F1','#D4E5E3','#C8C9C9','#9FBF8F','#DE9DB2','#372024','#C8C9C9','#FFFFFF'] },
+      { id: 'p12', name: 'Watermelon Mint', sw: ['#8AA696','#D9C0A3','#D97E6A','#D95448','#D91818'], c: ['#4B2623','#532B27','#592D29','#61322D','#693531','#713A35','#7E403B','#8C4741','#9E5049','#F3EBE2','#E4D2BE','#D7C4BA','#9FBF8F','#EE9898','#3C1F1C','#D7C4BA','#FFFFFF'] },
+      { id: 'p13', name: 'Bogart', sw: ['#DDDCC5','#958976','#611427','#1D2326','#6A6A61'], c: ['#541E2B','#592532','#5D2A36','#61303C','#663641','#6B3C48','#724651','#7A4F5A','#835C66','#F1F1E8','#E4E3D1','#D1C6C1','#9FBF8F','#C4A8AF','#441823','#D1C6C1','#FFFFFF'] },
+      { id: 'p14', name: 'Vintage Dresser', sw: ['#D9D6D7','#74878B','#D8B483','#8C4B2D','#463334'], c: ['#432B20','#4B3023','#503326','#573829','#5E3C2C','#664130','#724836','#7E503B','#875D4A','#F0EFEF','#E1DEDF','#CFC5C2','#9FBF8F','#D8B483','#362219','#CFC5C2','#FFFFFF'] },
+      { id: 'p15', name: 'Copper Pots 2', sw: ['#FFF7DE','#EBD4BC','#E97B4A','#B2BBE3','#A39896'], c: ['#2F3037','#34363E','#383A42','#3D3F48','#42444E','#474954','#4F525E','#585B68','#636676','#FFFCF2','#FFF9E5','#CCCAC2','#9FBF8F','#EE9872','#25272C','#CCCAC2','#FFFFFF'] },
+      { id: 'p16', name: '59 Bel Air 2', sw: ['#EBEBEB','#BDA562','#3D3C32','#1B2C3B','#66140E'], c: ['#26323C','#2C3741','#303B45','#36414A','#3B454F','#414B54','#4A545C','#535C65','#5F686F','#F7F7F7','#EFEFEF','#C6C9CB','#9FBF8F','#C6A8A5','#1D2831','#C6C9CB','#FFFFFF'] },
+      { id: 'p17', name: 'Mayflower', sw: ['#3F5869','#F3F0D9','#612512','#945916','#FFF096'], c: ['#402D16','#483219','#4D351A','#543A1D','#5A3F1F','#624422','#6D4C25','#79542A','#875F30','#FAF9F0','#F5F3E1','#D2C9B7','#9FBF8F','#C9AB89','#332412','#D2C9B7','#FFFFFF'] }
+    ];
+    var KEYS = ['bg','side','head','card','field','ctrl','line','line2','sel','text','text2','muted','ok','acc','onacc','faint','strong'];
+    var theme = THEMES.filter(function (t) { return t.id === s.tema; })[0] || THEMES[0];
+    var accent = theme.id === 'vintage' ? (this.props.accent && this.props.accent !== '#DF9D8E' ? this.props.accent : theme.c[13]) : theme.c[13];
+    var themeVars = KEYS.map(function (k, i) { return '--' + k + ': ' + (k === 'acc' ? accent : theme.c[i]) + ';'; }).join(' ');
+    var SCREENS = ['Padrão', 'Amber CRT', 'Tube Amp', 'Synthwave', 'Stage Hi-Contrast', 'Game Boy'];
+    var chip = function (on) { return 'display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 12px 0 8px; border-radius: 18px; cursor: pointer; min-width: 0; font-size: 13px; font-weight: 600; color: var(--text); background: ' + (on ? 'var(--sel)' : 'var(--ctrl)') + '; border: 2px solid ' + (on ? accent : 'transparent') + ';'; };
+    var wear = this.wearLayers((this.props.wear ?? 60) / 100);
+
+    var ampBands = [
+      ['CLEAN', ['Jazz 120', 'Dark Twin', 'Calif Star CL', 'Bog SV CL', 'Doctor CL', 'Superb CL']],
+      ['CRUNCH', ['Voks 30N', 'B-Man N', 'TWD Deluxe', 'B-Man B', 'Voks 30TB', 'Brit 45', 'Brit 50', 'Brit 50JP', 'Superb OD', 'Doctor OD']],
+      ['ROCK / LEAD', ['Supero 2 OD', 'Sol 100 OD', 'Brit 800', 'Tanger R100', 'Brit 900', 'Bog XT M', 'Flyman B1', 'Calif IIC+']],
+      ['HIGH GAIN', ['Sol 100 LD', 'Flyman B1+', 'Calif IV LD', 'Bog XT V', 'Calif DualV', 'Calif DualM', 'Halen 51', 'Eng 120', 'Eng Power', 'Dizzy VH', 'Dizzy VH+']],
+      ['BAIXO', ['A BassVT', 'Voks Bass', 'Calif Bass']]
+    ];
+
+    // Every model's description, from the app's data (effect_library.json and the CFW models).
+    var DESC = {"Gate":"Based on the ISP® Decimator™* noise gate.","COMP 1":"Based on the Ross® Compressor*.","COMP 2":"Based on the Keeley® Compressor* (4-knob).","Touch Wah":"Wide-range envelope filter (touch wah) that follows your picking.","Auto Wah":"Auto-wah with a continuous sweep, for guitar or bass.","Boost":"Based on the Xotic® EP Booster*.","A-Chorus":"Based on the Arion® SCH-1 Stereo Chorus*.","B-Chorus":"Vintage ensemble chorus voiced for bass.","Flanger":"Classic flanger with a rich, swirling sweep.","Phaser":"Based on the MXR® Phase 90* (M101).","Vibe":"Based on the Voodoo Lab® Micro Vibe*.","Vibrato":"Based on the Boss® VB-2 Vibrato*.","Tremolo":"Based on the Demeter® TRM-1 Tremulator*.","Sine Trem":"Sine-wave tremolo with a wide rate and depth range.","Bias Trem":"Bias-modulated tremolo with a wide rate and depth range.","AC G":"Electric-to-acoustic guitar simulator.","Octave":"Polyphonic octave with sub and upper voices.","Pitch":"Polyphonic pitch-shifter and harmonizer.","Detune":"Light detune that thickens the tone like a chorus.","Scream":"Based on the Ibanez® TS-808 Tube Screamer®*.","Butter OD":"Smooth 2-knob 'yellow box' overdrive.","JP Dist":"Punchy orange-box 3-knob distortion.","Shark":"Based on the MI Audio® Crunch Box®*.","Dark Mouse":"Based on the ProCo® RAT™* distortion.","Grey Fuzz":"Based on the Sola Sound® Tone Bender Mk II®* fuzz.","Red Fuzz":"Based on the Dallas-Arbiter® Fuzz Face®* fuzz.","Bass Drive":"Overdrive voiced for bass.","TWD Deluxe":"Based on Fender® Tweed Deluxe*.","B-Man N":"Based on Fender® '59 Bassman®* (normal channel).","Dark Twin":"Based on Fender® '65 Twin Reverb®*.","Voks 30N":"Based on VOX® AC30HW* (normal channel).","Jazz 120":"Based on Roland® Jazz Chorus* (JC-120).","Brit 45":"Based on Marshall® JTM45* (normal channel).","Brit 50JP":"Based on Marshall® JTM50* (jumped channels).","Brit 800":"Based on Marshall® JCM800*.","B-Man B":"Based on Fender® '59 Bassman®* (bright channel).","Voks 30TB":"Based on VOX® AC30HW* (Top Boost channel).","Sol 100 OD":"Based on Soldano® SLO-100* (crunch tone).","Dizzy VH":"Based on Diezel® VH4* (channel 3).","Eng 120":"Based on ENGL® Savage 120*.","Halen 51":"Based on Peavey® 5150®* (lead channel).","Sol 100 LD":"Based on Soldano® SLO-100* (overdrive channel).","Calif DualV":"Based on Mesa/Boogie® Dual Rectifier®* (vintage mode).","Calif DualM":"Based on Mesa/Boogie® Dual Rectifier®* (modern mode).","Eng Power":"Based on ENGL® Powerball II* (lead channel).","Flyman B1+":"Based on Friedman® BE-100* ('Brown Eye', HBE channel).","Bog XT V":"Based on Bogner® Ecstasy* (red / high-gain channel).","A BassVT":"Based on Ampeg® SVT* bass amp.","Voks Bass":"Based on VOX® AC100* bass amp.","TWD 1x8":"1x8\" cabinet voiced after the Fender® Champ*.","TWD-P 1x10":"1x10\" cabinet voiced after the Fender® Princeton*.","Viblux 1x12":"1x12\" cabinet voiced after the Fender® Vibrolux*.","Voks 1x12":"1x12\" cabinet voiced after the VOX® AC15*.","TWD 2x12":"2x12\" cabinet voiced after a custom Fender® Tweed*.","Double 2x12":"2x12\" cabinet voiced after the Fender® '65 Twin Reverb*.","Star 2x12":"2x12\" cabinet voiced after the Mesa/Boogie® Lone Star*.","Jazz 2x12":"2x12\" cabinet voiced after the Roland® Jazz Chorus*.","BritGN 2x12":"2x12\" Marshall®-style cabinet with Celestion® Greenback®* speakers.","BritGN 4x12":"4x12\" Marshall®-style cabinet with Celestion® Greenback®* speakers.","Bog 4x12":"4x12\" cabinet voiced after a Bogner®* cab.","Dizzy 4x12":"4x12\" cabinet voiced after a Diezel®* cab.","Halen 4x12":"4x12\" cabinet voiced after the Peavey® 6505*.","Sol 4x12":"4x12\" cabinet voiced after a Soldano®* cab.","Dual 4x12":"4x12\" cabinet voiced after the Mesa/Boogie® Rectifier®*.","User IR 1":"User-loaded cabinet impulse response.","User IR 2":"User-loaded cabinet impulse response.","User IR 3":"User-loaded cabinet impulse response.","User IR 4":"User-loaded cabinet impulse response.","User IR 5":"User-loaded cabinet impulse response.","GT EQ 1":"5-band graphic EQ for guitar.","GT EQ 2":"5-band graphic EQ for guitar.","Bass EQ":"5-band graphic EQ for bass.","Pure":"Clean digital delay with clear, uncolored repeats.","Slap":"Short slapback echo for vintage bounce.","Warm":"Warm analog-voiced delay with darkening repeats.","Mag":"Solid-state tape-echo emulation.","Tube":"Tube tape-echo emulation with saturated repeats.","Reverse":"Reverse delay for backwards, swelling trails.","Analog":"Reproduces the sound of a vintage 1980's rack-mount delay machine. Based on the Roland® SDE-3000*.","Sweep":"Delay with a filter sweeping across the repeats.","Ping Pong":"Stereo delay that bounces repeats left to right.","Air":"Airy ambience with an open, natural tail.","Room":"Tight room reverb with a short decay.","Hall":"Concert-hall reverb with a long, smooth tail.","Church":"Cathedral reverb with a long, resonant decay.","Plate 1":"Dense, bright studio plate reverb.","Plate 2":"Warmer, grainier vintage plate reverb.","Spring":"Amp-style spring reverb with a lively drip.","Light":"Bright, lush reverb with a shimmering top.","Ocean":"Huge, deep reverb with a cavernous decay.","Dream":"Modulated reverb with a lush, swirling tail.","User Profile 1":"Your own captured amp profile with a 3-band EQ.","User Profile 2":"Your own captured amp profile with a 3-band EQ.","User Profile 3":"Your own captured amp profile with a 3-band EQ.","User Profile 4":"Your own captured amp profile with a 3-band EQ.","User Profile 5":"Your own captured amp profile with a 3-band EQ.","Fullchor":"Based on the Boss® CE-1 Chorus Ensemble*.","Flash":"Fast, bright delay voicing.","Doctor CL":"Based on a Dr. Z® amp* (clean channel).","Flyman B1":"Based on Friedman® BE-100* ('Brown Eye', BE channel).","Phaser ST":"Based on the MXR® Phase 90* (stereo).","Damage":"Lo-fi, broken-up delay voicing.","Calif IIC+":"Based on Mesa/Boogie® Mark IIC+*.","Supero 2 OD":"Based on the Boss® SD-2 Dual OverDrive*. Two cascaded gain stages, each with its own tone control.","Bog SV CL":"Based on Bogner® Shiva* (clean channel).","Bog XT M":"Based on Bogner® Ecstasy* (blue / mid-gain channel).","Superb CL":"Based on a Supro® amp* (clean channel).","Brit 900":"Based on Marshall® JCM900*.","Calif Star CL":"Based on Mesa/Boogie® Lone Star* (clean channel).","Dizzy VH+":"Based on Diezel® VH4* (channel 4, high-gain lead).","Calif Bass":"Based on Mesa/Boogie® Bass 400+* bass amp.","Flutter":"Wobbly tape-flutter delay voicing.","Glost":"Ghostly ambient delay voicing.","Dark":"Dark, filtered delay voicing.","Shiny":"Bright, shimmering delay voicing.","Echo":"Based on the Maestro® Echoplex® EP-3* tape echo.","Bass 4x10":"Based on an Ampeg® SVT-410* 4x10\" bass cabinet.","Crystal Chorus":"Based on the Boss® CH-1 Super Chorus*.","BBD Phaser":"Based on the Electro-Harmonix® Small Stone®* phaser.","Lofi Vibrato":"Based on the Boss® VB-2 Vibrato* (lo-fi).","Flanger ST":"Based on the Boss® BF-2 Flanger* (stereo).","Calif IV LD":"Based on Mesa/Boogie® Mark IV* (lead channel).","Tanger R100":"Based on Orange® Rockerverb 100*.","Brit 50":"Based on Marshall® JTM50*.","Superb OD":"Based on a Supro® amp* (overdrive channel).","Doctor OD":"Based on a Dr. Z® amp* (overdrive channel).","C-Wah":"Based on the Dunlop® Cry Baby®* wah.","Whirlcho":"Based on a rotary speaker / Leslie®* simulation.","Jet":"Based on the A/DA® Flanger* (jet sweep).","Flanser":"Based on the Boss® BF-2 Flanger*.","Phaser M":"Based on the MXR® Phase 45*.","Vibrato ST":"Based on the Boss® VB-2 Vibrato* (stereo).","User IR 6":"User-loaded cabinet impulse response.","User IR 7":"User-loaded cabinet impulse response.","User IR 8":"User-loaded cabinet impulse response.","User IR 9":"User-loaded cabinet impulse response.","User IR 10":"User-loaded cabinet impulse response.","User Profile 6":"Your own captured amp profile with a 3-band EQ.","User Profile 7":"Your own captured amp profile with a 3-band EQ.","User Profile 8":"Your own captured amp profile with a 3-band EQ.","User Profile 9":"Your own captured amp profile with a 3-band EQ.","User Profile 10":"Your own captured amp profile with a 3-band EQ.","Float":"Smart Box delay voicing (firmware V1.0.6 model \"Float\").","Shake":"Smart Box delay voicing (firmware V1.0.6 model \"Shake\").","Mark 2x10":"2x10\" bass cabinet (Amphonix 2 factory cab \"Mark210\").","Ampg 4x10":"4x10\" bass cabinet (Amphonix 2 factory cab \"Ampg410\").","Studio Delay":"Clean digital delay with low / high cut on the repeats, modulation, ducking and trails.","Tape Echo":"Tape echo: every repeat darker and a little saturated, with wow and flutter.","Dual Delay":"Two taps: Time (follows the tap tempo) and a second tap at 1/4 .. 3/4 of it, for rhythmic patterns.","Shimmer Delay":"Every repeat an octave higher: shimmering trails (try it before a long reverb).","Swell Delay":"Each note fades in (volume swell), then repeats: ambient pads from single notes.","Lo-Fi Delay":"Dirty, filtered repeats up to 2 seconds (half sample rate, bit crush).","Studio Verb":"Every control of the reverb engine: decay up to 20 s, damping, low / high cut, modulation, trails.","Ambient":"Long, modulated washes: decay 2 to 30 seconds.","Freeze":"Freeze On holds the tail for a long time, like a pad you play over (it fades slowly); Off = a long reverb.","Duck Verb":"The reverb steps back while you play and blooms in the pauses.","Gated":"80s gated reverb: open while you play, cut after the Gate time.","Studio EQ":"Studio EQ: low cut, bass shelf (100 Hz), sweepable mid with Q, treble shelf (4 kHz), high cut.","Cut 24":"Low cut and high cut, 24 dB/oct (or 12 dB/oct with 24dB off).","Parametric 3":"Three sweepable bands with one shared Q.","Tilt EQ":"Tilts the tone darker or brighter around the pivot, with low and high cut."};
+    var defs = [
+      { tag: 'NR', kind: 'pedal', color: '#8E949C', model: 'Gate', list: ['Gate'], knobs: [['THRE', 50]], desc: 'Based on the ISP® Decimator™* noise gate.' },
+      { tag: 'FX1', kind: 'pedal', color: '#2F6FDB', model: 'COMP 1', list: ['COMP 1', 'COMP 2', 'Touch Wah', 'Auto Wah', 'Boost', 'A-Chorus', 'B-Chorus', 'Flanger', 'Phaser', 'Vibe', 'Vibrato', 'Tremolo'], knobs: [['SUSTAIN', 60], ['ATTACK', 40], ['VOL', 50]], desc: 'Based on the Ross® Compressor*.' },
+      { tag: 'DRV', kind: 'pedal', color: '#2E9B4E', model: 'Scream', list: ['Scream', 'Butter OD', 'JP Dist', 'Shark', 'Dark Mouse', 'Grey Fuzz', 'Red Fuzz', 'Bass Drive'], knobs: [['GAIN', 35], ['TONE', 55], ['VOL', 60]], desc: 'Based on the Ibanez® TS-808 Tube Screamer®*.' },
+      { tag: 'AMP', kind: 'amp', model: 'Brit 800', bands: ampBands, knobs: [['GAIN', 50], ['PRES', 50], ['VOL', 50], ['BASS', 50], ['MIDDLE', 50], ['TREBLE', 50]], desc: 'Based on Marshall® JCM800*.' },
+      { tag: 'IR', kind: 'cab', model: 'BritGN 4x12', list: ['TWD 2x12', 'Double 2x12', 'Jazz 2x12', 'BritGN 2x12', 'BritGN 4x12', 'Bog 4x12', 'Dual 4x12', 'User IR 1'], knobs: [['VOL', 50]], desc: '4x12" Marshall®-style cabinet with Celestion® Greenback®* speakers.' },
+      { tag: 'EQ', kind: 'eq', color: '#6E9E2B', model: 'Studio EQ', list: ['GT EQ 1', 'GT EQ 2', 'Bass EQ', 'Studio EQ', 'Cut 24', 'Parametric 3', 'Tilt EQ'], knobs: [['LOW CUT', 12], ['BASS', 52], ['MID FREQ', 54], ['MID', 43], ['Q', 50], ['TREBLE', 35], ['HIGH CUT', 100], ['VOL', 75]], desc: 'Studio EQ: low cut, bass shelf (100 Hz), sweepable mid with Q, treble shelf (4 kHz), high cut.' },
+      { tag: 'FX2', kind: 'pedal', color: '#17A2B8', model: 'A-Chorus', list: ['A-Chorus', 'B-Chorus', 'Flanger', 'Phaser', 'Octave', 'Pitch', 'Detune'], knobs: [['DEPTH', 50], ['RATE', 30], ['TONE', 50]], desc: 'Based on the Arion® SCH-1 Stereo Chorus*.' },
+      { tag: 'DLY', kind: 'pedal', color: '#1C5F94', model: 'Studio Delay', list: ['Pure', 'Analog', 'Tape Echo', 'Studio Delay', 'Shimmer Delay', 'Swell Delay', 'Ping Pong'], knobs: [['MIX', 30], ['TIME', 50], ['F.BACK', 35], ['LOW CUT', 0], ['HIGH CUT', 100], ['MOD', 0], ['DUCK', 0]], desc: 'Clean digital delay with low / high cut on the repeats, modulation, ducking and trails.' },
+      { tag: 'RVB', kind: 'pedal', color: '#6B3FB5', model: 'Plate 1', list: ['Room', 'Hall', 'Plate 1', 'Spring', 'Studio Verb', 'Ambient', 'Freeze'], knobs: [['MIX', 35], ['DECAY', 50], ['HIGH CUT', 80], ['LOW CUT', 10]], desc: 'Dense, bright studio plate reverb.' }
+    ];
+
+    defs.forEach(function (d, i) { if (s.pick[i]) d.model = s.pick[i]; });
+    var cur = defs[s.mod];
+    var isOn = function (i) { return !s.off[i]; };
+    var allModels = function (d) { return d.bands ? [].concat.apply([], d.bands.map(function (b) { return b[1]; })) : d.list; };
+    var setModel = function (name) { var pk = Object.assign({}, s.pick); pk[s.mod] = name; self.setState({ pick: pk, menu: false }); };
+    var step = function (dir) { var list = allModels(cur); var i = list.indexOf(cur.model); setModel(list[(i + dir + list.length) % list.length]); };
+    var bandOf = function (name) { var b = (cur.bands || []).filter(function (x) { return x[1].indexOf(name) >= 0; })[0]; return b ? b[0] : ''; };
+
+    var led = function (on, size) {
+      return 'display: block; width: ' + size + 'px; height: ' + size + 'px; border-radius: 50%; margin: 6px auto; background: ' + (on ? 'radial-gradient(circle at 45% 40%, #FF8A80, #F0382C 70%)' : '#3A1512') + '; box-shadow: ' + (on ? '0 0 5px rgba(255,59,48,0.65)' : 'inset 0 1px 1px rgba(0,0,0,0.8)') + ';';
+    };
+    var paint = function (color) {
+      return 'background: ' + wear + 'linear-gradient(180deg, ' + self.shade(color, 0.07) + ' 0%, ' + color + ' 55%, ' + self.shade(color, -0.12) + ' 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -1px 0 rgba(0,0,0,0.25), 0 1px 3px rgba(0,0,0,0.45), 0 10px 22px rgba(0,0,0,0.26);';
+    };
+
+    var units = defs.map(function (d, i) {
+      var sel = i === s.mod;
+      var body;
+      if (d.kind === 'pedal' || d.kind === 'eq') {
+        body = 'display: flex; flex-direction: column; align-items: center; width: 66px; height: 114px; border-radius: 9px; ' + paint(d.color);
+      } else if (d.kind === 'amp') {
+        body = 'display: flex; flex-direction: column; width: 118px; height: 72px; border-radius: 6px; overflow: hidden; background: #171717; border: 1px solid #050505; box-shadow: 0 1px 2px rgba(0,0,0,0.45), 0 6px 12px rgba(0,0,0,0.22);';
+      } else {
+        body = 'display: flex; flex-direction: column; width: 88px; height: 88px; border-radius: 6px; background: #171717; border: 1px solid #050505; box-shadow: 0 1px 2px rgba(0,0,0,0.45), 0 6px 12px rgba(0,0,0,0.22);';
+      }
+      return {
+        tag: d.tag,
+        model: d.model,
+        aria: d.tag + ': ' + d.model,
+        isPedal: d.kind === 'pedal' || d.kind === 'eq',
+        isAmp: d.kind === 'amp',
+        isCab: d.kind === 'cab',
+        body: body,
+        led: d.kind === 'amp' ? 'width: 8px; height: 8px; border-radius: 50%; margin-left: 3px; background: ' + (isOn(i) ? '#FF3B30' : '#3A1512') + '; box-shadow: ' + (isOn(i) ? '0 0 5px rgba(255,59,48,0.6)' : 'none') + ';' : led(isOn(i), 7),
+        ampPanel: 'height: 18px; display: flex; align-items: center; justify-content: center; gap: 5px; background: ' + wear + 'linear-gradient(180deg, #D8C08A, #CBB079);',
+        tagColor: sel ? accent : 'var(--faint)',
+        wrap: 'position: relative; display: flex; flex-direction: column; align-items: center; padding: 6px; border-radius: 14px; flex: none; transition: background 200ms, box-shadow 200ms; background: ' + (sel ? 'rgba(255,255,255,0.05)' : 'transparent') + '; box-shadow: ' + (sel ? 'inset 0 0 0 1.5px ' + accent : 'none') + ';',
+        // Each block's own piece, fitted to its slot on the board.
+        fitW: d.kind === 'amp' ? 118 : d.kind === 'cab' ? 88 : 66,
+        fitH: d.kind === 'amp' ? 76 : d.kind === 'cab' ? 92 : 114,
+        box: 'display: flex; align-items: center; justify-content: center; height: 114px; width: ' + (d.kind === 'amp' ? 118 : d.kind === 'cab' ? 88 : 66) + 'px;',
+        on: isOn(i),
+        pick: function () { self.setState({ mod: i, menu: false }); }
+      };
+    });
+
+    var isWide = cur.knobs.length > 4;
+    var vals = s.vals[s.mod] || {};
+    var knobSize = cur.kind === 'amp' ? 66 : cur.kind === 'cab' ? 72 : isWide ? 54 : 62;
+    var knobs = cur.knobs.map(function (k, j) {
+      var v = vals[j] != null ? vals[j] : k[1];
+      return {
+        name: k[0],
+        text: String(v),
+        aria: k[0] + ': ' + v,
+        size: knobSize,
+        track: self.arc(100),
+        arc: self.arc(v),
+        capStyle: self.knobCap(cur.kind === 'amp' ? 50 : cur.kind === 'cab' ? 54 : isWide ? 44 : 50, cur.kind === 'amp'),
+        rotStyle: self.knobRot(v),
+        metalThumb: 'position: absolute; left: -9px; width: 28px; height: 14px; border-radius: 3px; bottom: calc(' + v + '% - 7px); background: linear-gradient(180deg, var(--text), #A9A9A9); box-shadow: 0 1px 2px rgba(0,0,0,0.5), 0 3px 6px rgba(0,0,0,0.2);',
+        bump: function () {
+          var all = Object.assign({}, s.vals);
+          var m = Object.assign({}, all[s.mod] || {});
+          m[j] = (v + 10) > 100 ? 0 : v + 10;
+          all[s.mod] = m;
+          self.setState({ vals: all });
+        }
+      };
+    });
+
+    var bigBody = cur.kind === 'eq'
+      ? 'position: relative; display: flex; flex-direction: column; align-items: center; width: 600px; height: 340px; border-radius: 12px; ' + paint(cur.color || '#444')
+      : isWide
+      ? 'position: relative; display: flex; flex-direction: column; align-items: center; width: 400px; height: 420px; border-radius: 14px; ' + paint(cur.color || '#444')
+      : 'position: relative; display: flex; flex-direction: column; align-items: center; width: 250px; height: 430px; border-radius: 14px; ' + paint(cur.color || '#444');
+    var cols = isWide ? 4 : cur.knobs.length === 4 ? 2 : Math.min(cur.knobs.length, 3);
+    var knobWrap = 'display: grid; grid-template-columns: repeat(' + cols + ', minmax(0, 1fr)); justify-items: center; gap: 12px ' + (isWide ? 18 : 16) + 'px; padding: 24px ' + (isWide ? 26 : 18) + 'px 0;';
+
+    var menuBands = (cur.bands || [['', cur.list]]).map(function (b) {
+      return {
+        title: b[0],
+        hasTitle: b[0] !== '',
+        items: b[1].map(function (name) {
+          var on = name === cur.model;
+          return {
+            name: name,
+            pick: function () { setModel(name); },
+            style: 'display: block; width: 100%; text-align: left; border: 0; border-radius: 8px; padding: 9px 10px; font-size: 14px; cursor: pointer; background: ' + (on ? 'color-mix(in srgb, var(--acc) 16%, transparent)' : 'transparent') + '; color: ' + (on ? accent : 'var(--text)') + ';'
+          };
+        })
+      };
+    });
+
+    var names = s.bank === 'user'
+      ? ['Clean', 'CLNGilmour', 'Lead 800', 'Tropicana', 'Djent Bass', 'Dotted08', 'DodgeBlues', 'Queen', 'JMLeadTone', 'AcousticSD', 'Slap Bass', 'Space Bass', 'MB-Thall-C', 'UniDirtDLY']
+      : ['Pure Clean', 'Brit Crunch', 'Modern Hi', 'Ambient Sky', 'Blues Break', 'Funk Wah', 'Metal Rhythm', 'Shimmer Pad', 'Bass Drive', 'Acoustic', 'Lead Solo', 'Surf Spring', 'Tape Echo', 'Fuzz Face'];
+    var prefix = s.bank === 'user' ? 'P' : 'F';
+    var presets = names.map(function (n, i) {
+      var sel = i === s.preset;
+      return {
+        label: prefix + (i < 9 ? '0' : '') + (i + 1),
+        name: n,
+        numColor: sel ? accent : 'var(--faint)',
+        pick: function () { self.setState({ preset: i }); },
+        style: 'display: flex; align-items: center; gap: 8px; height: 36px; flex: none; padding: 0 10px; border: 0; border-radius: 8px; text-align: left; cursor: pointer; color: ' + (sel ? 'var(--strong)' : 'var(--text2)') + '; background: ' + (sel ? 'var(--ctrl)' : 'transparent') + ';'
+      };
+    });
+
+    var seg = function (on) {
+      return 'height: 30px; border: 0; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; background: ' + (on ? 'var(--sel)' : 'transparent') + '; color: ' + (on ? 'var(--strong)' : 'var(--muted)') + ';';
+    };
+    var sw = function (on) {
+      return {
+        track: 'width: 44px; height: 26px; border-radius: 13px; border: 0; padding: 0 3px; box-sizing: border-box; display: flex; align-items: center; cursor: pointer; transition: background 200ms; justify-content: ' + (on ? 'flex-end' : 'flex-start') + '; background: ' + (on ? accent : 'var(--sel)') + ';',
+        knob: 'width: 20px; height: 20px; border-radius: 10px; background: #FFFFFF;'
+      };
+    };
+    var fsSel = s.fs[s.mod] || 0;
+    var fsOptions = ['Nenhum', 'FS1', 'FS2'].map(function (label, i) {
+      return {
+        label: label,
+        pick: function () { var fs = Object.assign({}, s.fs); fs[s.mod] = i; self.setState({ fs: fs }); },
+        style: seg(i === fsSel)
+      };
+    });
+
+    return {
+      accent: accent,
+      themeVars: themeVars,
+      aparenciaOpen: s.aparencia,
+      openAparencia: function () { self.setState({ aparencia: true, menu: false }); },
+      closeAparencia: function () { self.setState({ aparencia: false }); },
+      themeChips: THEMES.map(function (t) { var on = t.id === theme.id; return { name: t.name, pressed: on ? 'true' : 'false', style: chip(on), sw: t.sw.map(function (h) { return { style: 'flex: 1; height: 100%; background: ' + h + ';' }; }), pick: function () { self.setState({ tema: t.id }); try { localStorage.setItem('sm_tema', t.id); window.dispatchEvent(new CustomEvent('sm_tema', { detail: t.id })); } catch (e) {} } }; }),
+      aparenciaResumo: theme.name,
+      presetLabel: presets[s.preset].label,
+      presetName: names[s.preset],
+      factoryStyle: seg(s.bank === 'factory'),
+      userStyle: seg(s.bank === 'user'),
+      pickFactory: function () { self.setState({ bank: 'factory', preset: 0 }); },
+      pickUser: function () { self.setState({ bank: 'user', preset: 0 }); },
+      presets: presets,
+      master: { track: this.arc(100), arc: this.arc(75) },
+      units: units,
+      cur: {
+        tag: cur.tag,
+        model: cur.model,
+        band: bandOf(cur.model),
+        hasBand: cur.kind === 'amp',
+        desc: DESC[cur.model] || cur.desc,
+        isPedal: cur.kind === 'pedal',
+        isAmp: cur.kind === 'amp',
+        isCab: cur.kind === 'cab',
+        isEq: cur.kind === 'eq',
+        bigBody: bigBody,
+        knobWrap: knobWrap,
+        bigLed: led(isOn(s.mod), 14),
+        ampPanel: 'display: flex; align-items: center; gap: 16px; padding: 18px 22px 14px; background: ' + wear + 'linear-gradient(180deg, #D8C08A 0%, #CBB079 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 0 rgba(0,0,0,0.15);',
+        jewel: 'display: block; width: 24px; height: 24px; border-radius: 50%; background: ' + (isOn(s.mod) ? 'radial-gradient(circle at 50% 40%, #FF9A90, #E3271C 70%)' : 'radial-gradient(circle at 50% 40%, #5A3532, #2A0D0B)') + '; box-shadow: ' + (isOn(s.mod) ? '0 0 6px rgba(255,59,48,0.6), ' : '') + '0 1px 2px rgba(0,0,0,0.4);'
+      },
+      knobs: knobs,
+      wear: this.props.wear ?? 60,
+      curOn: isOn(s.mod),
+      // The piece's knob values (the piece keeps its own defaults where none).
+      curVals: (function () { var o = s.vals[s.mod] || {}; var a = []; for (var j = 0; j < 8; j++) a.push(o[j] != null ? o[j] : null); return a; })(),
+      bumpKnob: function (j) {
+        var pattern = [62, 45, 70, 38, 55, 66, 48, 58];
+        var all = Object.assign({}, s.vals);
+        var m = Object.assign({}, all[s.mod] || {});
+        var now = m[j] != null ? m[j] : pattern[j % pattern.length];
+        m[j] = now + 10 > 100 ? 0 : now + 10;
+        all[s.mod] = m;
+        self.setState({ vals: all });
+      },
+      menuOpen: s.menu,
+      menuBands: menuBands,
+      toggleMenu: function () { self.setState({ menu: !s.menu }); },
+      prevModel: function () { step(-1); },
+      nextModel: function () { step(1); },
+      toggleOn: function () { var off = Object.assign({}, s.off); off[s.mod] = !off[s.mod]; self.setState({ off: off }); },
+      power: sw(isOn(s.mod)),
+      scenes: sw(s.scenes),
+      clone: sw(s.clone),
+      toggleScenes: function () { self.setState({ scenes: !s.scenes }); },
+      fsOptions: fsOptions,
+      cloneSwitch: 'position: relative; display: block; width: 18px; height: 34px; border-radius: 4px; background: linear-gradient(180deg, #2A2A2A, #111); box-shadow: inset 0 1px 2px #000;',
+      cloneLever: 'position: absolute; left: 3px; width: 12px; height: 14px; border-radius: 3px; background: linear-gradient(180deg, #F2F2F2, #9A9A9A); ' + (s.clone ? 'top: 3px;' : 'bottom: 3px;'),
+      toggleClone: function () { self.setState({ clone: !s.clone }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

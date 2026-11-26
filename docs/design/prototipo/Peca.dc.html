@@ -1,0 +1,650 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Peça (pedal, amp ou gabinete)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&amp;family=Share+Tech+Mono&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="{{v.frame}}">
+<div style="{{v.outer}}">
+
+<sc-if value="{{v.isPedal}}" hint-placeholder-val="{{ true }}">
+<div style="{{v.body}}">
+<span style="{{v.led}}"></span>
+<sc-if value="{{v.hasScreen}}" hint-placeholder-val="{{ false }}"><span style="{{v.screen}}">{{v.screenText}}</span></sc-if>
+<div style="{{v.knobGrid}}">
+<sc-for list="{{v.knobs}}" as="k" hint-placeholder-count="3">
+<button type="button" onClick="{{k.click}}" tabIndex="{{k.tab}}" aria-label="{{k.aria}}" style="{{k.wrap}}"><span style="{{k.cap}}"><span style="{{k.rot}}"><span style="{{k.ptr}}"></span></span></span><span style="{{k.lbl}}">{{k.name}}</span></button>
+</sc-for>
+</div>
+<sc-if value="{{v.hasSliders}}" hint-placeholder-val="{{ false }}">
+<div style="{{v.sliderRow}}">
+<sc-for list="{{v.sliders}}" as="s" hint-placeholder-count="6"><span style="{{s.track}}"><span style="{{s.thumb}}"></span></span></sc-for>
+</div>
+</sc-if>
+<span style="{{v.title}}">{{v.titleText}}</span>
+<sc-if value="{{v.hasPlate}}" hint-placeholder-val="{{ false }}"><span style="{{v.plate}}"></span></sc-if>
+<sc-if value="{{v.hasPad}}" hint-placeholder-val="{{ false }}"><span style="{{v.pad}}"></span></sc-if>
+<sc-if value="{{v.hasSwitches}}" hint-placeholder-val="{{ true }}">
+<span style="{{v.switchRow}}"><sc-for list="{{v.switches}}" as="sw" hint-placeholder-count="1"><button type="button" onClick="{{v.switchClick}}" tabIndex="{{v.tab}}" aria-label="Footswitch" style="{{sw.washer}}"><span style="{{sw.nut}}"><span style="{{sw.cap}}"></span></span></button></sc-for></span>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{v.isWah}}" hint-placeholder-val="{{ false }}">
+<div style="{{v.body}}">
+<span style="{{v.treadle}}"></span>
+<span style="{{v.title}}">{{v.titleText}}</span>
+<span style="{{v.heel}}"></span>
+</div>
+</sc-if>
+
+<sc-if value="{{v.isRack}}" hint-placeholder-val="{{ false }}">
+<div style="{{v.body}}">
+<span style="{{v.ear}}"></span>
+<span style="{{v.title}}">{{v.titleText}}</span>
+<sc-if value="{{v.hasScreen}}" hint-placeholder-val="{{ false }}"><span style="{{v.screen}}">{{v.screenText}}</span></sc-if>
+<div style="{{v.knobGrid}}">
+<sc-for list="{{v.knobs}}" as="k" hint-placeholder-count="4">
+<button type="button" onClick="{{k.click}}" tabIndex="{{k.tab}}" aria-label="{{k.aria}}" style="{{k.wrap}}"><span style="{{k.cap}}"><span style="{{k.rot}}"><span style="{{k.ptr}}"></span></span></span><span style="{{k.lbl}}">{{k.name}}</span></button>
+</sc-for>
+</div>
+<span style="{{v.led}}"></span>
+<span style="{{v.ear}}"></span>
+</div>
+</sc-if>
+
+<sc-if value="{{v.isTape}}" hint-placeholder-val="{{ false }}">
+<div style="{{v.body}}">
+<span style="{{v.tapeWindow}}"><span style="{{v.reel}}"></span><span style="{{v.tapeLine}}"></span><span style="{{v.reel}}"></span></span>
+<span style="display: flex; flex-direction: column; align-items: center; gap: 6px">
+<span style="{{v.title}}">{{v.titleText}}</span>
+<span style="{{v.knobGrid}}">
+<sc-for list="{{v.knobs}}" as="k" hint-placeholder-count="3">
+<button type="button" onClick="{{k.click}}" tabIndex="{{k.tab}}" aria-label="{{k.aria}}" style="{{k.wrap}}"><span style="{{k.cap}}"><span style="{{k.rot}}"><span style="{{k.ptr}}"></span></span></span><span style="{{k.lbl}}">{{k.name}}</span></button>
+</sc-for>
+</span>
+<span style="{{v.led}}"></span>
+</span>
+</div>
+</sc-if>
+
+<sc-if value="{{v.isHead}}" hint-placeholder-val="{{ false }}">
+<div style="{{v.body}}">
+<span style="{{v.tolexBand}}"><span style="{{v.handle}}"></span></span>
+<span style="{{v.grille}}"><span style="{{v.badge}}">{{v.titleText}}</span></span>
+<span style="{{v.panel}}">
+<sc-for list="{{v.jacks}}" as="j" hint-placeholder-count="2"><span style="{{j.style}}"></span></sc-for>
+<sc-for list="{{v.knobs}}" as="k" hint-placeholder-count="6">
+<button type="button" onClick="{{k.click}}" tabIndex="{{k.tab}}" aria-label="{{k.aria}}" style="{{k.wrap}}"><span style="{{k.cap}}"><span style="{{k.rot}}"><span style="{{k.ptr}}"></span></span></span><span style="{{k.lbl}}">{{k.name}}</span></button>
+</sc-for>
+<sc-for list="{{v.toggles}}" as="t" hint-placeholder-count="2"><span style="{{t.base}}"><span style="{{t.bat}}"></span></span></sc-for>
+<span style="{{v.jewel}}"></span>
+</span>
+<span style="{{v.tolexFoot}}"></span>
+</div>
+</sc-if>
+
+<sc-if value="{{v.isCombo}}" hint-placeholder-val="{{ false }}">
+<div style="{{v.body}}">
+<span style="{{v.handleTop}}"></span>
+<span style="{{v.panel}}">
+<sc-for list="{{v.jacks}}" as="j" hint-placeholder-count="2"><span style="{{j.style}}"></span></sc-for>
+<sc-for list="{{v.knobs}}" as="k" hint-placeholder-count="6">
+<button type="button" onClick="{{k.click}}" tabIndex="{{k.tab}}" aria-label="{{k.aria}}" style="{{k.wrap}}"><span style="{{k.cap}}"><span style="{{k.rot}}"><span style="{{k.ptr}}"></span></span></span><span style="{{k.lbl}}">{{k.name}}</span></button>
+</sc-for>
+<span style="{{v.jewel}}"></span>
+</span>
+<span style="{{v.grille}}">
+<sc-for list="{{v.speakers}}" as="sp" hint-placeholder-count="2"><span style="{{sp.style}}"></span></sc-for>
+<span style="{{v.badge}}">{{v.titleText}}</span>
+</span>
+</div>
+</sc-if>
+
+<sc-if value="{{v.isCab}}" hint-placeholder-val="{{ false }}">
+<div style="{{v.body}}">
+<span style="{{v.grille}}">
+<sc-for list="{{v.speakers}}" as="sp" hint-placeholder-count="4"><span style="{{sp.style}}"></span></sc-for>
+</span>
+<span style="{{v.badge}}">{{v.titleText}}</span>
+<sc-for list="{{v.corners}}" as="c" hint-placeholder-count="4"><span style="{{c.style}}"></span></sc-for>
+</div>
+</sc-if>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"model":{"editor":"text","default":"Brit 800"},"wear":{"editor":"range","default":50,"min":0,"max":100,"step":5,"unit":"%"},"lit":{"editor":"boolean","default":true},"fitW":{"editor":null},"fitH":{"editor":null},"values":{"editor":null},"onKnob":{"editor":null},"onSwitch":{"editor":null},"$preview":{"width":260,"height":220}}'>
+class Component extends DCLogic {
+  shade(hex, amt) {
+    var n = parseInt(hex.slice(1), 16);
+    var r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+    var f = function (c) { return Math.max(0, Math.min(255, Math.round(amt < 0 ? c * (1 + amt) : c + (255 - c) * amt))); };
+    return 'rgb(' + f(r) + ',' + f(g) + ',' + f(b) + ')';
+  }
+
+  wearLayers(w) {
+    var a = function (x) { return (x * w).toFixed(3); };
+    var g = 'rgba(205,205,200,';
+    return 'radial-gradient(ellipse 34% 20% at 0% 0%, ' + g + a(0.55) + '), transparent 70%), ' +
+      'radial-gradient(ellipse 34% 20% at 100% 0%, ' + g + a(0.5) + '), transparent 70%), ' +
+      'radial-gradient(ellipse 34% 18% at 0% 100%, ' + g + a(0.5) + '), transparent 70%), ' +
+      'radial-gradient(ellipse 34% 18% at 100% 100%, ' + g + a(0.55) + '), transparent 70%), ' +
+      'repeating-linear-gradient(112deg, rgba(255,255,255,' + a(0.06) + ') 0 1px, transparent 1px 9px), ' +
+      'repeating-linear-gradient(23deg, rgba(0,0,0,' + a(0.07) + ') 0 1px, transparent 1px 13px), ' +
+      'linear-gradient(' + g + a(0.18) + '), ' + g + a(0.18) + ')), ';
+  }
+
+  // Knob caps by style: [cap background, pointer colour].
+  knobLook(style) {
+    var L = {
+      boss: ['radial-gradient(circle at 50% 40%, #E4E4E4 0 28%, #2A2A2A 31% 100%)', '#FFFFFF'],
+      black: ['radial-gradient(circle at 50% 35%, #45484E, #1C1D20 75%)', '#F3EDE2'],
+      mxr: ['radial-gradient(circle at 50% 35%, #3C3C3C, #121212 75%)', '#FFFFFF'],
+      chickenBlack: ['radial-gradient(circle at 50% 35%, #3A3A3A, #111111 75%)', '#F2F2F2'],
+      chickenCream: ['radial-gradient(circle at 50% 35%, #F7EEDC, #DCCB9F 75%)', '#2A1E0A'],
+      chickenBrown: ['radial-gradient(circle at 50% 35%, #7A5233, #4A2F1B 75%)', '#F1E3C4'],
+      skirt: ['radial-gradient(circle, #1A1A1A 0 52%, #D6D6D6 55% 100%)', '#FFFFFF'],
+      goldcap: ['radial-gradient(circle, #DCB75E 0 38%, #151515 42% 100%)', '#151515'],
+      chrome: ['radial-gradient(circle at 42% 35%, #FFFFFF, #B9B9B9 45%, #6F6F6F 100%)', '#1E1E1E'],
+      blackFlat: ['radial-gradient(circle at 50% 40%, #2A2A2A, #151515 80%)', '#FFFFFF'],
+      silvercap: ['radial-gradient(circle, #D2D2D2 0 34%, #1A1A1A 37% 100%)', '#FFFFFF'],
+      cream: ['radial-gradient(circle at 50% 35%, #F7EEDC, #E1D1AA 75%)', '#2A2A2A'],
+      alu: ['radial-gradient(circle, #EDEDED 0 52%, #C9C9C9 55%, #9E9E9E 100%)', '#E0302A'],
+      white: ['radial-gradient(circle at 50% 35%, #FFFFFF, #D9D9D9 80%)', '#222222']
+    };
+    return L[style] || L.black;
+  }
+
+  knob(name, i, size, style, lblColor, lblSize) {
+    var look = this.knobLook(style);
+    var vals = [62, 45, 70, 38, 55, 66, 48, 58];
+    var given = this.props.values;
+    var v = given && given[i] != null ? given[i] : vals[i % vals.length];
+    var chicken = style.indexOf('chicken') === 0;
+    var onKnob = this.props.onKnob;
+    return {
+      name: name,
+      aria: name + ': ' + v,
+      tab: onKnob ? 0 : -1,
+      click: function () { if (onKnob) onKnob(i); },
+      wrap: 'display: flex; flex-direction: column; align-items: center; gap: 2px; border: 0; padding: 0; background: transparent; font: inherit; cursor: ' + (onKnob ? 'pointer' : 'default') + ';',
+      // A knob with height: a gloss spot on its top, a dark ring at its base,
+      // a short firm shadow and a soft longer one.
+      cap: 'position: relative; display: block; width: ' + size + 'px; height: ' + size + 'px; border-radius: 50%; background: radial-gradient(circle at 36% 28%, rgba(255,255,255,0.55), rgba(255,255,255,0) 32%), ' + look[0] + '; box-shadow: 0 0 0 1px rgba(0,0,0,0.45), 0 2px 2px rgba(0,0,0,0.45), 0 4px 8px rgba(0,0,0,0.25), inset 0 -2px 3px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.35);',
+      rot: 'position: absolute; inset: 0; transform: rotate(' + (-135 + 2.7 * v) + 'deg);',
+      ptr: chicken
+        ? 'position: absolute; left: 50%; top: -' + Math.round(size * 0.18) + 'px; width: ' + Math.max(3, Math.round(size * 0.22)) + 'px; height: ' + Math.round(size * 0.62) + 'px; margin-left: -' + Math.max(1.5, size * 0.11) + 'px; border-radius: 40% 40% 20% 20%; background: ' + look[0].replace('circle at 50% 35%', 'circle at 50% 20%') + '; box-shadow: 0 1px 1px rgba(0,0,0,0.4); border-top: 2px solid ' + look[1] + ';'
+        : 'position: absolute; left: 50%; top: ' + Math.max(2, Math.round(size * 0.1)) + 'px; width: ' + Math.max(2, Math.round(size * 0.1)) + 'px; height: ' + Math.round(size * 0.36) + 'px; margin-left: -' + Math.max(1, size * 0.05) + 'px; border-radius: 1px; background: ' + look[1] + ';',
+      lbl: 'font-family: \'Barlow Condensed\'; font-size: ' + lblSize + 'px; font-weight: 700; letter-spacing: 0.5px; color: ' + lblColor + '; text-transform: uppercase; white-space: nowrap;'
+    };
+  }
+
+  renderVals() {
+    var self = this;
+    var model = this.props.model ?? 'Brit 800';
+    var wear = this.wearLayers((this.props.wear ?? 50) / 100);
+
+    var KN = {"Gate":["THRE"],"COMP 1":["Sustain","Vol"],"COMP 2":["Sustain","Attack","Vol","Clip"],"Touch Wah":["Sense","Range","Q","Mix"],"Auto Wah":["Depth","Rate","Vol","Low","Q","High"],"Boost":["Gain"],"A-Chorus":["Depth","Rate","Tone"],"B-Chorus":["Depth","Rate","Vol"],"Flanger":["Depth","Rate","P.Delay","F.Back"],"Phaser":["Rate"],"Vibe":["Depth","Rate"],"Vibrato":["Depth","Rate"],"Tremolo":["Depth","Rate"],"Sine Trem":["Depth","Rate","Vol"],"Bias Trem":["Depth","Rate","Vol","Bias"],"AC G":["Body","Top","Vol"],"Octave":["Low","High","Dry"],"Pitch":["High","Low Pitch","Dry","H-Vol","L-Vol"],"Detune":["Detune","Wet","Dry"],"Scream":["Gain","Tone","Vol"],"Butter OD":["Gain","Vol"],"JP Dist":["Gain","Tone","Vol"],"Shark":["Gain","Tone","Vol"],"Dark Mouse":["Gain","Filter","Vol"],"Grey Fuzz":["Fuzz","Vol"],"Red Fuzz":["Fuzz","Vol"],"Bass Drive":["Gain","Blend","Vol","Bass","Treble"],"GT EQ 1":["125Hz","400Hz","800Hz","1.6kHz","4kHz","Vol"],"GT EQ 2":["100Hz","500Hz","1kHz","3kHz","6kHz","Vol"],"Bass EQ":["50Hz","120Hz","400Hz","800Hz","4.5kHz","Vol"],"Pure":["Mix","Time","F.Back"],"Slap":["Mix","Time","F.Back"],"Warm":["Mix","Time","F.Back"],"Mag":["Mix","Time","F.Back"],"Tube":["Mix","Time","F.Back"],"Reverse":["Mix","Time","F.Back"],"Analog":["Mix","Time","F.Back"],"Sweep":["Mix","Time","F.Back","S-Depth","S-Rate"],"Ping Pong":["Mix","Time","F.Back"],"Air":["Mix","Decay","Damp"],"Room":["Mix","Decay"],"Hall":["Mix","Decay"],"Church":["Mix","Decay"],"Plate 1":["Mix","Decay"],"Plate 2":["Mix","Decay","Damp"],"Spring":["Mix","Decay"],"Light":["Mix","Decay"],"Ocean":["Mix","Decay"],"Dream":["Mix","Decay","Damp","Mod"],"Fullchor":["Depth","Rate"],"Flash":["Mix","Time","F.Back"],"Phaser ST":["Depth","Rate"],"Damage":["Mix","Time","F.Back"],"Flutter":["Mix","Time","F.Back"],"Glost":["Mix","Time","F.Back"],"Dark":["Mix","Time","F.Back"],"Shiny":["Mix","Time","F.Back"],"Echo":["Mix","Time","F.Back"],"Crystal Chorus":["Depth","Rate"],"BBD Phaser":["Depth","Rate"],"Lofi Vibrato":["Depth","Rate"],"Flanger ST":["Depth","Rate","P.Delay","F.Back","Vol"],"C-Wah":["Range","Q","Vol"],"Whirlcho":["Depth","Rate"],"Jet":["Depth","Rate","F.Back"],"Flanser":["Rate","F-Depth","P-Depth"],"Phaser M":["Depth","Rate","F.Back"],"Vibrato ST":["Depth","Rate"],"Float":["Mix","Time","F.Back"],"Shake":["Mix","Time","F.Back"],"Studio Delay":["Mix","Time","F.Back","Low Cut","High Cut","Mod","Duck"],"Tape Echo":["Mix","Time","F.Back","Age","Wow","Tone","Duck"],"Dual Delay":["Mix","Time","F.Back","Tap 2","Balance","Tone","Duck"],"Shimmer Delay":["Mix","Time","F.Back","Shimmer","Mod","Tone","Duck"],"Swell Delay":["Mix","Time","F.Back","Swell","Mod","Tone","Duck"],"Lo-Fi Delay":["Mix","Time","F.Back","Crush","Mod","Tone","Duck"],"Studio Verb":["Mix","Mod","Decay","High Cut","Damp","Low Cut"],"Ambient":["Mix","Mod","Decay","Tone","Damp","Low Cut"],"Freeze":["Mix","Decay","Tone","Damp","Low Cut"],"Duck Verb":["Mix","Duck","Decay","High Cut","Damp","Sens","Release"],"Gated":["Mix","Sens","Decay","High Cut","Damp","Gate","Low Cut"],"Studio EQ":["Low Cut","Bass","Mid Freq","Mid","Q","Treble","High Cut","Vol"],"Cut 24":["Low Cut","High Cut","Vol"],"Parametric 3":["Low F","Low","Mid F","Mid","High F","High","Q","Vol"],"Tilt EQ":["Tilt","Pivot","Low Cut","High Cut","Vol"]};
+
+    // Pedals: [family, colour, label colour, knob style]. Colours and shapes
+    // evoke the real units the models are based on; no logos or brand names.
+    var P = {
+      'Gate': ['std', '#2B2D31', '#E9E9E9', 'black'],
+      'COMP 1': ['std', '#9AA0A6', '#1E1E1E', 'black'],
+      'COMP 2': ['std', '#2E4A7A', '#F2F2F2', 'black'],
+      'Touch Wah': ['std', '#7A3E9D', '#FFFFFF', 'black'],
+      'Auto Wah': ['std', '#C7452F', '#FFFFFF', 'alu'],
+      'Boost': ['mxr', '#E9E1CF', '#2A2A2A', 'black'],
+      'A-Chorus': ['compact', '#A9B4BE', '#1E2A36', 'boss'],
+      'B-Chorus': ['std', '#2F8F95', '#FFFFFF', 'black'],
+      'Flanger': ['std', '#5C4A8E', '#FFFFFF', 'black'],
+      'Phaser': ['mxr', '#F05A28', '#2A1306', 'mxr'],
+      'Vibe': ['std', '#2E5E3E', '#F1E7C8', 'chickenBlack'],
+      'Vibrato': ['compact', '#3C3A8C', '#FFFFFF', 'boss'],
+      'Tremolo': ['std', '#21385F', '#E8E8E8', 'chrome'],
+      'Sine Trem': ['std', '#E07A1F', '#1E1406', 'alu'],
+      'Bias Trem': ['std', '#7E2430', '#F5E6C8', 'cream'],
+      'AC G': ['std', '#B88A55', '#2A1A08', 'black'],
+      'Octave': ['std', '#C9C9C2', '#1E1E1E', 'black'],
+      'Pitch': ['std', '#D9B92E', '#1E1E1E', 'black'],
+      'Detune': ['std', '#4E7FA8', '#FFFFFF', 'black'],
+      'Fullchor': ['wide', '#2F5D9B', '#FFFFFF', 'black'],
+      'Phaser ST': ['mxr', '#F05A28', '#2A1306', 'mxr'],
+      'Crystal Chorus': ['compact', '#5BB8E8', '#10324A', 'boss'],
+      'C-Wah': ['wah', '#1A1A1A', '#D9D9D9', 'black'],
+      'Whirlcho': ['std', '#6B3B26', '#F1E3C4', 'chickenCream'],
+      'Jet': ['wide', '#B8BCC2', '#1C1C1C', 'black'],
+      'Flanser': ['compact', '#7B4FA0', '#FFFFFF', 'boss'],
+      'Phaser M': ['mxr', '#F37A21', '#2A1306', 'mxr'],
+      'Vibrato ST': ['compact', '#3C3A8C', '#FFFFFF', 'boss'],
+      'BBD Phaser': ['wide', '#C8CBCE', '#1C1C1C', 'black'],
+      'Lofi Vibrato': ['compact', '#4A4799', '#FFFFFF', 'boss'],
+      'Flanger ST': ['compact', '#7B4FA0', '#FFFFFF', 'boss'],
+      'Scream': ['ts', '#3E8E4A', '#F0F0F0', 'black'],
+      'Butter OD': ['mxr', '#F2C230', '#2A1E06', 'mxr'],
+      'JP Dist': ['compact', '#F07A1E', '#1E1E1E', 'boss'],
+      'Shark': ['std', '#8E1F24', '#F2F2F2', 'alu'],
+      'Dark Mouse': ['rat', '#151515', '#F4F4F4', 'blackFlat'],
+      'Grey Fuzz': ['wedge', '#8E9196', '#1E1E1E', 'chickenBlack'],
+      'Red Fuzz': ['round', '#C8282A', '#FFFFFF', 'black'],
+      'Bass Drive': ['std', '#3A3F46', '#E9E9E9', 'alu'],
+      'GT EQ 1': ['graphic', '#ECEAE3', '#1E1E1E', 'boss'],
+      'GT EQ 2': ['graphic', '#D8DCDF', '#1E1E1E', 'boss'],
+      'Bass EQ': ['graphic', '#2B4F86', '#FFFFFF', 'boss'],
+      'Studio EQ': ['studio', '#2A2C30', '#D8D8D8', 'silvercap'],
+      'Cut 24': ['studio', '#3A3D42', '#D8D8D8', 'silvercap'],
+      'Parametric 3': ['studio', '#22262C', '#D8D8D8', 'silvercap'],
+      'Tilt EQ': ['studio', '#4A4D52', '#E8E8E8', 'silvercap'],
+      'Pure': ['compact', '#EDEDED', '#1E1E1E', 'boss'],
+      'Slap': ['std', '#E2D6B8', '#2A2416', 'black'],
+      'Warm': ['std', '#2F5A3A', '#E9E2C9', 'black'],
+      'Mag': ['std', '#5E6064', '#EDEDED', 'chrome'],
+      'Tube': ['std', '#6E2A2A', '#F2E0C4', 'chickenCream'],
+      'Reverse': ['std', '#1D1F24', '#E85A4F', 'black'],
+      'Analog': ['rack', '#C9C9C4', '#2A2A2A', 'black'],
+      'Sweep': ['std', '#2B5FA8', '#FFFFFF', 'alu'],
+      'Ping Pong': ['std', '#E7E7E7', '#1E1E1E', 'black'],
+      'Flash': ['std', '#E4E9EE', '#1E3A5A', 'black'],
+      'Damage': ['std', '#3F3F3F', '#F2C230', 'black'],
+      'Flutter': ['std', '#8A6A4A', '#F5EBD8', 'cream'],
+      'Glost': ['std', '#8FA3B8', '#122233', 'white'],
+      'Dark': ['std', '#141517', '#9AA0A6', 'black'],
+      'Shiny': ['std', '#D3D7DB', '#1E1E1E', 'chrome'],
+      'Echo': ['tape', '#5A5D60', '#EDEDED', 'chickenBlack'],
+      'Float': ['std', '#9FC7D9', '#10324A', 'black'],
+      'Shake': ['std', '#B23A48', '#FFFFFF', 'black'],
+      'Studio Delay': ['modern', '#1C5F94', '#FFFFFF', 'black'],
+      'Tape Echo': ['modern', '#8A6B47', '#FFF4E0', 'cream'],
+      'Dual Delay': ['modern', '#1F8A8A', '#FFFFFF', 'black'],
+      'Shimmer Delay': ['modern', '#9C8CD9', '#1C1640', 'white'],
+      'Swell Delay': ['modern', '#C76B98', '#FFFFFF', 'black'],
+      'Lo-Fi Delay': ['modern', '#6E7340', '#F2EFD9', 'black'],
+      'Air': ['std', '#D9E6EE', '#1E3A5A', 'black'],
+      'Room': ['std', '#6B6E73', '#FFFFFF', 'alu'],
+      'Hall': ['std', '#23345C', '#E8E8E8', 'black'],
+      'Church': ['std', '#4A2E6B', '#E8DDF5', 'black'],
+      'Plate 1': ['std', '#6B3FB5', '#FFFFFF', 'black'],
+      'Plate 2': ['std', '#5A4632', '#F1E3C4', 'chickenCream'],
+      'Spring': ['std', '#B9BCC0', '#8E1F24', 'chrome'],
+      'Light': ['std', '#F1E9C9', '#2A2416', 'black'],
+      'Ocean': ['std', '#155E75', '#DFF6FF', 'black'],
+      'Dream': ['std', '#C8A2D8', '#2A1440', 'white'],
+      'Studio Verb': ['modern', '#7A2430', '#FFFFFF', 'black'],
+      'Ambient': ['modern', '#1E5E66', '#E8FBFF', 'black'],
+      'Freeze': ['modern', '#BFD9EA', '#10324A', 'white'],
+      'Duck Verb': ['modern', '#C98A2B', '#1E1406', 'black'],
+      'Gated': ['modern', '#4A4D52', '#F2F2F2', 'black'],
+      'Supero 2 OD': ['compact', '#3B5BA5', '#FFFFFF', 'boss']
+    };
+
+    // Amps: [combo|head, tolex, grille, panel, knob style, piping].
+    var A = {
+      'TWD Deluxe': ['combo', 'tweed', 'oxblood', 'chrome', 'chickenBrown', false],
+      'B-Man N': ['combo', 'tweed', 'oxblood', 'chrome', 'chickenBrown', false],
+      'B-Man B': ['combo', 'tweed', 'oxblood', 'chrome', 'chickenBrown', false],
+      'Dark Twin': ['combo', 'black', 'silver', 'blackface', 'skirt', true],
+      'Voks 30N': ['combo', 'black', 'diamond', 'copper', 'chickenCream', true],
+      'Voks 30TB': ['combo', 'black', 'diamond', 'copper', 'chickenCream', true],
+      'Jazz 120': ['combo', 'black', 'jc', 'silver', 'blackFlat', false],
+      'Calif Star CL': ['combo', 'black', 'tan', 'blackface', 'chrome', false],
+      'Calif IIC+': ['combo', 'black', 'black', 'blackface', 'chrome', false],
+      'Calif IV LD': ['combo', 'black', 'black', 'blackface', 'chrome', false],
+      'Superb CL': ['combo', 'blue', 'cream', 'chrome', 'cream', false],
+      'Superb OD': ['combo', 'blue', 'cream', 'chrome', 'cream', false],
+      'Doctor CL': ['combo', 'blonde', 'oxblood', 'chrome', 'chickenBlack', false],
+      'Doctor OD': ['combo', 'blonde', 'oxblood', 'chrome', 'chickenBlack', false],
+      'Brit 45': ['head', 'black', 'saltpepper', 'gold', 'goldcap', true],
+      'Brit 50': ['head', 'black', 'saltpepper', 'gold', 'goldcap', true],
+      'Brit 50JP': ['head', 'black', 'saltpepper', 'gold', 'goldcap', true],
+      'Brit 800': ['head', 'black', 'black', 'gold', 'goldcap', true],
+      'Brit 900': ['head', 'black', 'black', 'gold', 'goldcap', true],
+      'Sol 100 OD': ['head', 'black', 'black', 'chrome', 'blackFlat', false],
+      'Sol 100 LD': ['head', 'black', 'black', 'chrome', 'blackFlat', false],
+      'Dizzy VH': ['head', 'black', 'black', 'alu', 'blackFlat', false],
+      'Dizzy VH+': ['head', 'black', 'black', 'alu', 'blackFlat', false],
+      'Eng 120': ['head', 'black', 'black', 'black', 'silvercap', false],
+      'Eng Power': ['head', 'black', 'black', 'black', 'silvercap', false],
+      'Halen 51': ['head', 'black', 'black', 'black', 'blackFlat', false],
+      'Calif DualV': ['head', 'black', 'plate', 'black', 'chrome', false],
+      'Calif DualM': ['head', 'black', 'plate', 'black', 'chrome', false],
+      'Flyman B1': ['head', 'black', 'black', 'brass', 'goldcap', true],
+      'Flyman B1+': ['head', 'black', 'black', 'brass', 'goldcap', true],
+      'Bog XT V': ['head', 'black', 'black', 'chrome', 'blackFlat', false],
+      'Bog XT M': ['head', 'black', 'black', 'chrome', 'blackFlat', false],
+      'Bog SV CL': ['head', 'black', 'black', 'silver', 'blackFlat', false],
+      'Tanger R100': ['head', 'orange', 'basket', 'white', 'blackFlat', false],
+      'A BassVT': ['head', 'black', 'black', 'svt', 'blackFlat', false],
+      'Voks Bass': ['head', 'black', 'diamond', 'copper', 'chickenCream', true],
+      'Calif Bass': ['head', 'black', 'black', 'blackface', 'chrome', false]
+    };
+    var AK = {
+      'TWD Deluxe': ['Gain', 'Tone', 'Vol'], 'B-Man N': ['Gain', 'Pres', 'Vol', 'Bass', 'Middle', 'Treble'], 'B-Man B': ['Gain', 'Pres', 'Vol', 'Bass', 'Middle', 'Treble'],
+      'Dark Twin': ['Gain', 'Vol', 'Bass', 'Middle', 'Treble'], 'Voks 30N': ['Gain', 'Cut', 'Vol'], 'Voks 30TB': ['Gain', 'Cut', 'Vol', 'Bass', 'Treble'],
+      'Jazz 120': ['Vol', 'Bass', 'Middle', 'Treble'], 'Supero 2 OD': ['Gain1', 'Tone1', 'Gain2', 'Tone2', 'Vol'], 'A BassVT': ['Gain', 'Bass', 'Middle', 'Treble', 'Vol'],
+      'Voks Bass': ['Vol', 'Bass', 'Treble'], 'Tanger R100': ['Gain', 'Vol', 'Bass', 'Middle', 'Treble'], 'Calif Bass': ['Gain', 'Vol', 'Bass', 'Middle', 'Treble']
+    };
+
+    // Cabinets: [speakers, size, tolex, grille, slant, piping, corners].
+    var C = {
+      'TWD 1x8': [1, 8, 'tweed', 'oxblood', false, false, false],
+      'TWD-P 1x10': [1, 10, 'black', 'silver', false, true, false],
+      'Viblux 1x12': [1, 12, 'black', 'silver', false, true, false],
+      'Voks 1x12': [1, 12, 'black', 'diamond', false, true, false],
+      'TWD 2x12': [2, 12, 'tweed', 'oxblood', false, false, false],
+      'Double 2x12': [2, 12, 'black', 'silver', false, true, false],
+      'Star 2x12': [2, 12, 'black', 'tan', false, false, true],
+      'Jazz 2x12': [2, 12, 'black', 'jc', false, false, false],
+      'BritGN 2x12': [2, 12, 'black', 'saltpepper', false, true, true],
+      'BritGN 4x12': [4, 12, 'black', 'saltpepper', true, true, true],
+      'Bog 4x12': [4, 12, 'black', 'black', false, false, true],
+      'Dizzy 4x12': [4, 12, 'black', 'black', false, false, true],
+      'Halen 4x12': [4, 12, 'black', 'black', true, false, true],
+      'Sol 4x12': [4, 12, 'black', 'black', false, false, true],
+      'Dual 4x12': [4, 12, 'black', 'metal', false, false, true],
+      'Bass 4x10': [4, 10, 'black', 'check', false, false, true],
+      'Mark 2x10': [2, 10, 'black', 'black', false, false, true],
+      'Ampg 4x10': [4, 10, 'black', 'check', false, false, true]
+    };
+
+    var TOLEX = {
+      black: 'repeating-linear-gradient(45deg, #1C1C1C 0 2px, #151515 2px 4px)',
+      tweed: 'linear-gradient(rgba(190,120,30,0.22), rgba(190,120,30,0.22)), repeating-linear-gradient(45deg, #D2B47A 0 2px, #A9864C 2px 4px, #C8A663 4px 6px)',
+      blonde: 'repeating-linear-gradient(45deg, #E9DCC0 0 2px, #DCCCAA 2px 4px)',
+      orange: 'repeating-linear-gradient(45deg, #E8761E 0 2px, #D4661A 2px 4px)',
+      blue: 'radial-gradient(circle at 30% 40%, rgba(255,255,255,0.10) 0 1px, transparent 2px) 0 0/5px 5px, #2F5D8A',
+      grey: 'repeating-linear-gradient(45deg, #3A3D42 0 2px, #33363A 2px 4px)'
+    };
+    var GRILLE = {
+      silver: 'radial-gradient(circle, #D9D9D9 0 0.6px, transparent 0.9px) 0 0/3px 3px, linear-gradient(180deg, #A9ABAE, #8E9094)',
+      oxblood: 'repeating-linear-gradient(90deg, #6A2E24 0 2px, #4F2018 2px 4px), #5A261D',
+      diamond: 'repeating-linear-gradient(45deg, rgba(214,180,110,0.55) 0 1px, transparent 1px 11px), repeating-linear-gradient(-45deg, rgba(214,180,110,0.55) 0 1px, transparent 1px 11px), #2A1D13',
+      saltpepper: 'radial-gradient(circle, #A8A8A8 0 0.6px, transparent 0.9px) 0 0/3px 3px, radial-gradient(circle, #2A2A2A 0 0.6px, transparent 0.9px) 1.5px 1.5px/3px 3px, #5C5C5C',
+      black: 'repeating-linear-gradient(45deg, #222 0 1px, #161616 1px 3px)',
+      jc: 'repeating-linear-gradient(0deg, #B9BBBE 0 7px, #1E1E1E 7px 9px)',
+      tan: 'repeating-linear-gradient(0deg, #B59B74 0 2px, #9E8560 2px 4px)',
+      cream: 'repeating-linear-gradient(90deg, #E3D9C2 0 2px, #CFC3A8 2px 4px)',
+      basket: 'repeating-linear-gradient(0deg, #CDB88E 0 3px, #B29D73 3px 6px), #C1AC82',
+      plate: 'repeating-linear-gradient(60deg, rgba(255,255,255,0.35) 0 2px, transparent 2px 9px), repeating-linear-gradient(-60deg, rgba(255,255,255,0.35) 0 2px, transparent 2px 9px), linear-gradient(180deg, #A2A6AC, #6F747A)',
+      metal: 'radial-gradient(circle, #0A0A0A 0 1.2px, transparent 1.5px) 0 0/5px 5px, #2E2F31',
+      check: 'repeating-conic-gradient(#1E2638 0 25%, #33415E 0 50%) 0 0/8px 8px'
+    };
+    var PANEL = {
+      gold: ['linear-gradient(180deg, #DCC27F, #C2A35C)', '#1A1A1A'],
+      brass: ['linear-gradient(180deg, #2A2621, #1C1915)', '#D7B76A'],
+      chrome: ['linear-gradient(180deg, #E4E6E8, #A9ACB0)', '#1A1A1A'],
+      silver: ['linear-gradient(180deg, #CFD2D5, #9DA1A6)', '#1A1A1A'],
+      alu: ['linear-gradient(180deg, #D8DADD, #B3B7BC)', '#1A1A1A'],
+      copper: ['linear-gradient(180deg, #C98B5A, #9C6338)', '#1A1A1A'],
+      blackface: ['linear-gradient(180deg, #1A1A1A, #0F0F0F)', '#EDEDED'],
+      black: ['linear-gradient(180deg, #202124, #141517)', '#D8D8D8'],
+      white: ['linear-gradient(180deg, #F2F0EA, #DDD9CF)', '#1A1A1A'],
+      svt: ['linear-gradient(180deg, #C9CDD2 0 70%, #2C4F8C 70% 100%)', '#1A1A1A']
+    };
+
+    // Faceted red pilot jewel in a chrome bezel, glowing.
+    var jewel = 'display: block; width: 13px; height: 13px; border-radius: 50%; flex: none; background: radial-gradient(circle at 38% 32%, rgba(255,255,255,0.8) 0 12%, rgba(255,255,255,0) 30%), conic-gradient(from 10deg, #FF8A80, #A8140C, #FF7065, #8E1009, #FF8A80, #B5160D, #FF6A60, #A8140C, #FF8A80); box-shadow: 0 0 0 2px #D2D2D2, 0 0 0 3px rgba(0,0,0,0.5), 0 0 8px rgba(255,59,48,0.7);';
+    // The model name on a metal plate: chrome on a dark cloth, black enamel
+    // with gold lettering on a light one.
+    var badge = function (onLight) {
+      return 'padding: 2px 9px; border-radius: 3px; font-family: \'Barlow Condensed\'; font-size: 13px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; ' +
+        (onLight
+          ? 'background: linear-gradient(180deg, #2A2A2A, #0E0E0E); color: #D9B860; border: 1px solid #8C7334; text-shadow: 0 1px 0 rgba(0,0,0,0.8);'
+          : 'background: linear-gradient(180deg, #F7F7F7 0%, #C4C4C4 48%, #E6E6E6 52%, #A9A9A9 100%); color: #1A1A1A; border: 1px solid #6E6E6E; text-shadow: 0 1px 0 rgba(255,255,255,0.7);') +
+        ' box-shadow: 0 1px 2px rgba(0,0,0,0.55), 0 3px 5px rgba(0,0,0,0.25);';
+    };
+    // Vinyl grain and top light over a tolex.
+    var tol = function (name) {
+      return 'linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0) 28%, rgba(0,0,0,0) 72%, rgba(0,0,0,0.28)), ' +
+        'radial-gradient(circle at 25% 30%, rgba(255,255,255,0.06) 0 0.5px, transparent 0.8px) 0 0/3px 3px, ' +
+        'radial-gradient(circle at 70% 70%, rgba(0,0,0,0.28) 0 0.6px, transparent 0.9px) 0 0/4px 4px, ' + TOLEX[name];
+    };
+    // The cabinet's thickness: light top edge, dark bottom and sides, firm
+    // contact shadow and a soft drop one.
+    var boxDepth = 'box-shadow: inset 0 2px 1px rgba(255,255,255,0.16), inset 0 -4px 6px rgba(0,0,0,0.55), inset 4px 0 5px rgba(255,255,255,0.05), inset -4px 0 5px rgba(0,0,0,0.32), 0 2px 2px rgba(0,0,0,0.6), 0 16px 28px rgba(0,0,0,0.36);';
+    // Grille cloth: weave, a vignette (cloth stretched over the baffle) and a
+    // recessed top edge.
+    var cloth = function (name) {
+      return 'radial-gradient(ellipse 85% 75% at 50% 42%, rgba(255,255,255,0.07), rgba(0,0,0,0.38) 100%), ' +
+        'repeating-linear-gradient(0deg, rgba(0,0,0,0.12) 0 1px, transparent 1px 2px), ' +
+        'repeating-linear-gradient(90deg, rgba(255,255,255,0.05) 0 1px, transparent 1px 2px), ' + GRILLE[name];
+    };
+    var clothEdge = function (piping) {
+      return piping
+        ? 'box-shadow: inset 0 0 0 1px rgba(0,0,0,0.6), inset 0 0 0 3px #ECE5CF, inset 0 1px 0 3px rgba(255,255,255,0.6), inset 0 0 0 4px rgba(0,0,0,0.5), inset 0 7px 10px rgba(0,0,0,0.35);'
+        : 'box-shadow: inset 0 0 0 2px rgba(0,0,0,0.6), inset 0 7px 10px rgba(0,0,0,0.38);';
+    };
+    // Speakers behind the cloth: dust cap, cone and surround.
+    var speakerBg = 'radial-gradient(circle, rgba(0,0,0,0.42) 0 11%, rgba(0,0,0,0.16) 13% 30%, rgba(0,0,0,0.10) 32% 60%, rgba(0,0,0,0.28) 62% 67%, rgba(0,0,0,0) 69%)';
+    var handle = function (w) {
+      return 'width: ' + w + 'px; height: 7px; border-radius: 4px; background: linear-gradient(180deg, rgba(255,255,255,0.18), rgba(0,0,0,0.25)), linear-gradient(90deg, #C9C9C9 0 9px, #2B1F17 9px calc(100% - 9px), #C9C9C9 calc(100% - 9px)); box-shadow: 0 1px 2px rgba(0,0,0,0.6);';
+    };
+
+    var v = { isPedal: false, isWah: false, isRack: false, isTape: false, isHead: false, isCombo: false, isCab: false, hasScreen: false, hasSliders: false, hasPlate: false, hasPad: false, hasSwitches: false, knobs: [], switches: [], sliders: [], speakers: [], corners: [], jacks: [], toggles: [], titleText: model };
+
+    var amp = A[model];
+    var cab = C[model] || (model.indexOf('User IR') === 0 ? [1, 12, 'grey', 'black', false, false, true] : null);
+    var ped = P[model] || (amp || cab ? null : ['std', '#555A61', '#FFFFFF', 'black']);
+
+    if (amp) {
+      var pan = PANEL[amp[3]];
+      // A dark name plate on a light grille cloth, a cream one on a dark one.
+      var lightGrille = ['silver', 'saltpepper', 'basket', 'tan', 'cream', 'jc', 'plate'].indexOf(amp[2]) >= 0;
+      var names = AK[model] || ['Gain', 'Pres', 'Vol', 'Bass', 'Middle', 'Treble'];
+      v.knobs = names.map(function (n, i) { return self.knob(n, i, 20, amp[4], pan[1], 8); });
+      v.jewel = jewel;
+      v.titleText = model;
+      // Input jacks: black hole in a chrome nut.
+      var jack = { style: 'display: block; flex: none; width: 11px; height: 11px; border-radius: 50%; background: radial-gradient(circle, #050505 0 34%, #EDEDED 37% 52%, #8A8A8A 60% 100%); box-shadow: 0 1px 1px rgba(0,0,0,0.5);' };
+      v.jacks = [jack, jack];
+      // Brushed metal (or painted) panel, recessed, with a soft top gloss.
+      var brushed = 'repeating-linear-gradient(90deg, rgba(255,255,255,0.06) 0 1px, rgba(0,0,0,0.05) 1px 2px), linear-gradient(180deg, rgba(255,255,255,0.20), rgba(255,255,255,0) 45%), ';
+      v.panel = 'display: flex; align-items: center; justify-content: space-around; gap: 4px; padding: 6px 9px 5px; background: ' + (amp[3] === 'gold' || amp[3] === 'copper' ? wear : '') + brushed + pan[0] + '; box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -2px 3px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(0,0,0,0.4);';
+      if (amp[0] === 'head') {
+        v.isHead = true;
+        // Power and standby: chrome bat toggles.
+        var toggle = { base: 'position: relative; display: block; flex: none; width: 9px; height: 9px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #FFFFFF, #A9A9A9 70%); box-shadow: 0 1px 1px rgba(0,0,0,0.5);', bat: 'position: absolute; left: 2.5px; top: -7px; width: 4px; height: 9px; border-radius: 2px; background: linear-gradient(90deg, #8E8E8E, #FFFFFF 45%, #9A9A9A); box-shadow: 0 1px 1px rgba(0,0,0,0.5);' };
+        v.toggles = [toggle, toggle];
+        v.outer = 'width: 250px; height: 104px; display: flex;';
+        v.body = 'width: 250px; height: 104px; display: flex; flex-direction: column; border-radius: 6px; overflow: hidden; border: 1px solid #050505; background: ' + tol(amp[1]) + '; ' + boxDepth;
+        v.tolexBand = 'height: 13px; display: flex; align-items: center; justify-content: center;';
+        v.handle = handle(64);
+        v.grille = 'flex: 1; margin: 0 8px; display: flex; align-items: center; justify-content: center; background: ' + cloth(amp[2]) + '; ' + clothEdge(amp[5]);
+        v.tolexFoot = 'height: 8px;';
+        v.badge = badge(lightGrille);
+      } else {
+        v.isCombo = true;
+        v.outer = 'width: 230px; height: 184px; display: flex;';
+        v.body = 'width: 230px; height: 184px; display: flex; flex-direction: column; border-radius: 8px; overflow: hidden; border: 1px solid #050505; background: ' + tol(amp[1]) + '; ' + boxDepth + ' padding: 0 8px 9px; box-sizing: border-box;';
+        v.handleTop = 'align-self: center; margin: 3px 0 4px; ' + handle(66);
+        v.panel = v.panel + ' border-radius: 2px;';
+        v.grille = 'flex: 1; margin-top: 6px; position: relative; display: flex; align-items: center; justify-content: space-around; padding: 10px; background: ' + cloth(amp[2]) + '; ' + clothEdge(amp[5]);
+        var spk = (model === 'Dark Twin' || model === 'Jazz 120' || model === 'Voks 30N' || model === 'Voks 30TB') ? 2 : (model.indexOf('B-Man') === 0 ? 4 : 1);
+        var d = spk === 1 ? 96 : spk === 2 ? 78 : 52;
+        v.speakers = [];
+        for (var s = 0; s < spk; s++) v.speakers.push({ style: 'display: block; width: ' + d + 'px; height: ' + d + 'px; border-radius: 50%; background: ' + speakerBg + ';' });
+        v.badge = 'position: absolute; left: 10px; top: 8px; ' + badge(lightGrille);
+      }
+    } else if (cab) {
+      v.isCab = true;
+      var n = cab[0], inch = cab[1];
+      var unit = inch === 8 ? 54 : inch === 10 ? 52 : 62;
+      var cols = n === 1 ? 1 : 2, rows = n <= 2 ? 1 : 2;
+      if (inch === 10 && n === 2) { cols = 1; rows = 2; }
+      var w = cols * unit + 30, h = rows * unit + 36;
+      if (inch === 10 && n === 4) { h += 6; }
+      v.outer = 'width: ' + w + 'px; height: ' + h + 'px; display: flex; position: relative;';
+      v.body = 'position: relative; width: ' + w + 'px; height: ' + h + 'px; box-sizing: border-box; padding: 9px 9px 18px; border-radius: 6px; border: 1px solid #050505; background: ' + tol(cab[2]) + '; ' + boxDepth;
+      // A slant cab is square from the front: its upper baffle leans back, so
+      // it catches the light differently above a seam just under the middle.
+      var slant = cab[4] ? 'linear-gradient(180deg, rgba(255,255,255,0.10) 0 46%, rgba(0,0,0,0.45) 46% 47.5%, rgba(255,255,255,0.06) 47.5% 48.5%, transparent 48.5%), ' : '';
+      v.grille = 'display: grid; grid-template-columns: repeat(' + cols + ', minmax(0, 1fr)); gap: 4px; padding: 6px; width: 100%; height: 100%; box-sizing: border-box; background: ' + slant + cloth(cab[3]) + '; ' + clothEdge(cab[5]);
+      for (var i = 0; i < n; i++) v.speakers.push({ style: 'display: block; border-radius: 50%; aspect-ratio: 1; align-self: center; justify-self: center; width: 92%; background: ' + speakerBg + ';' });
+      var lightCab = ['silver', 'saltpepper', 'basket', 'tan', 'cream', 'jc', 'check'].indexOf(cab[3]) < 0;
+      v.badge = 'position: absolute; left: 50%; bottom: 3px; transform: translateX(-50%); white-space: nowrap; ' + badge(false).replace('font-size: 13px', 'font-size: 10px').replace('padding: 2px 9px', 'padding: 0 6px');
+      if (!lightCab) v.badge = 'position: absolute; left: 50%; bottom: 3px; transform: translateX(-50%); white-space: nowrap; ' + badge(true).replace('font-size: 13px', 'font-size: 10px').replace('padding: 2px 9px', 'padding: 0 6px');
+      if (cab[6]) {
+        ['top: 1px; left: 1px;', 'top: 1px; right: 1px;', 'bottom: 1px; left: 1px;', 'bottom: 1px; right: 1px;'].forEach(function (p) {
+          v.corners.push({ style: 'position: absolute; ' + p + ' width: 12px; height: 12px; border-radius: 3px; background: radial-gradient(circle at 35% 30%, #FFFFFF, #D2D2D2 30%, #8C8C8C 75%, #5E5E5E); box-shadow: 0 1px 2px rgba(0,0,0,0.6), inset 0 -1px 1px rgba(0,0,0,0.35);' });
+        });
+      }
+    } else {
+      var fam = ped[0], col = ped[1], lc = ped[2], ks = ped[3];
+      var names2 = KN[model] || ['Level'];
+      // Glossy enamel over a thick rounded edge: a soft highlight up-left, a
+      // faint one low-right, the top edge catching light and the bottom and
+      // sides falling into shade, a firm contact shadow and a soft drop one.
+      var paint = 'background: ' + wear +
+        'radial-gradient(ellipse 75% 38% at 30% 16%, rgba(255,255,255,0.30), rgba(255,255,255,0) 70%), ' +
+        'radial-gradient(ellipse 55% 26% at 72% 88%, rgba(255,255,255,0.10), rgba(255,255,255,0) 70%), ' +
+        'linear-gradient(180deg, ' + this.shade(col, 0.12) + ' 0%, ' + col + ' 45%, ' + this.shade(col, -0.2) + ' 100%); ' +
+        'box-shadow: inset 0 2px 1px rgba(255,255,255,0.38), inset 0 4px 6px rgba(255,255,255,0.10), inset 0 -4px 6px rgba(0,0,0,0.38), inset 4px 0 6px rgba(255,255,255,0.08), inset -4px 0 6px rgba(0,0,0,0.20), 0 2px 2px rgba(0,0,0,0.55), 0 12px 24px rgba(0,0,0,0.32);';
+      // A real footswitch from above: light washer, hex nut, domed chrome cap.
+      var chrome = function (s) {
+        return {
+          washer: 'display: flex; align-items: center; justify-content: center; width: ' + (s + 12) + 'px; height: ' + (s + 12) + 'px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #FFFFFF, #DADADA 55%, #A9A9A9 100%); box-shadow: 0 1px 2px rgba(0,0,0,0.45), 0 3px 6px rgba(0,0,0,0.2);',
+          nut: 'display: flex; align-items: center; justify-content: center; width: ' + (s + 5) + 'px; height: ' + (s + 5) + 'px; clip-path: polygon(25% 6%, 75% 6%, 100% 50%, 75% 94%, 25% 94%, 0 50%); background: linear-gradient(135deg, #FAFAFA 0%, #9A9A9A 50%, #DCDCDC 70%, #7E7E7E 100%);',
+          cap: 'display: block; width: ' + (s - 2) + 'px; height: ' + (s - 2) + 'px; border-radius: 50%; background: radial-gradient(circle at 38% 30%, #FFFFFF 0%, #E2E2E2 22%, #9C9C9C 62%, #6A6A6A 100%); box-shadow: 0 1px 2px rgba(0,0,0,0.55);'
+        };
+      };
+      var led = function (top) { return 'display: block; width: 7px; height: 7px; border-radius: 50%; ' + (top ? 'margin-top: 8px;' : '') + ' background: radial-gradient(circle at 45% 40%, #FF8A80, #F0382C 70%); box-shadow: 0 0 4px rgba(255,59,48,0.6);'; };
+      var title = function (size, extra) { return 'font-family: \'Barlow Condensed\'; font-size: ' + size + 'px; font-weight: 700; letter-spacing: 1px; color: ' + lc + '; text-transform: uppercase; text-align: center; line-height: 1; ' + (extra || ''); };
+      var grid = function (cols, gap, pad) { return 'display: grid; grid-template-columns: repeat(' + cols + ', minmax(0, 1fr)); justify-items: center; align-items: start; gap: ' + gap + '; padding: ' + pad + ';'; };
+      var W = 112, H = 190;
+
+      if (fam === 'wah') {
+        v.isWah = true;
+        v.outer = 'width: 100px; height: 210px; display: flex;';
+        v.body = 'width: 100px; height: 210px; display: flex; flex-direction: column; align-items: center; border-radius: 14px 14px 8px 8px; background: ' + wear + 'linear-gradient(180deg, #2A2A2A, #151515); box-shadow: 0 1px 3px rgba(0,0,0,0.5), 0 8px 18px rgba(0,0,0,0.25);';
+        v.treadle = 'display: block; width: 78px; height: 128px; margin-top: 10px; border-radius: 10px 10px 4px 4px; background: repeating-linear-gradient(0deg, #1A1A1A 0 4px, #2E2E2E 4px 6px); box-shadow: 0 2px 3px rgba(0,0,0,0.6);';
+        v.title = title(12, 'margin-top: 8px; color: ' + lc + ';');
+        v.heel = 'display: block; width: 78px; height: 26px; margin-top: auto; margin-bottom: 8px; border-radius: 4px; background: linear-gradient(180deg, #D9D9D9, #8E8E8E);';
+      } else if (fam === 'rack' || fam === 'studio') {
+        v.isRack = true;
+        var rw = fam === 'rack' ? 250 : 240, rh = fam === 'rack' ? 74 : 110;
+        v.outer = 'width: ' + rw + 'px; height: ' + rh + 'px; display: flex;';
+        v.body = 'width: ' + rw + 'px; height: ' + rh + 'px; display: flex; align-items: center; gap: 8px; padding: 0 0; box-sizing: border-box; border-radius: 3px; ' + paint;
+        v.ear = 'align-self: stretch; width: 14px; background: radial-gradient(circle at 50% 22%, #111 0 2.5px, transparent 3px), radial-gradient(circle at 50% 78%, #111 0 2.5px, transparent 3px), linear-gradient(90deg, rgba(0,0,0,0.18), rgba(0,0,0,0.05));';
+        v.title = title(12, 'width: 46px; text-align: left;');
+        v.hasScreen = fam === 'rack';
+        v.screen = 'padding: 3px 6px; border-radius: 2px; background: #1A0505; color: #FF4A3A; font-family: \'Share Tech Mono\'; font-size: 15px; text-shadow: 0 0 4px rgba(255,74,58,0.6);';
+        v.screenText = '500ms';
+        var rk = names2.length;
+        v.knobGrid = grid(fam === 'rack' ? rk : Math.ceil(rk / 2), '4px 6px', '0') + ' flex: 1;';
+        v.knobs = names2.map(function (nm, i) { return self.knob(nm, i, fam === 'rack' ? 18 : 20, ks, lc, 7); });
+        v.led = led(false);
+      } else if (fam === 'tape') {
+        v.isTape = true;
+        v.outer = 'width: 230px; height: 130px; display: flex;';
+        v.body = 'width: 230px; height: 130px; display: flex; align-items: center; gap: 10px; padding: 10px; box-sizing: border-box; border-radius: 8px; border: 1px solid #050505; background: ' + TOLEX.grey + '; box-shadow: 0 1px 3px rgba(0,0,0,0.5), 0 8px 18px rgba(0,0,0,0.25);';
+        v.tapeWindow = 'display: flex; align-items: center; justify-content: space-between; width: 120px; height: 96px; padding: 0 8px; box-sizing: border-box; border-radius: 6px; background: linear-gradient(180deg, rgba(20,20,20,0.85), rgba(40,40,40,0.85)); box-shadow: inset 0 2px 4px rgba(0,0,0,0.7);';
+        v.reel = 'display: block; width: 40px; height: 40px; border-radius: 50%; background: radial-gradient(circle, #CFCFCF 0 14%, #3A3A3A 16% 30%, #6B4E2E 32% 92%, #2A2A2A 94%);';
+        v.tapeLine = 'display: block; flex: 1; height: 2px; background: #6B4E2E;';
+        v.title = title(13);
+        v.knobGrid = grid(3, '2px 4px', '0');
+        v.knobs = names2.map(function (nm, i) { return self.knob(nm, i, 18, ks, lc, 7); });
+        v.led = led(false);
+      } else {
+        v.isPedal = true;
+        var nk = names2.length;
+        var kSize = 22, cols2 = Math.min(nk, 3), pad = '14px 10px 0', kGap = '6px 6px';
+        v.hasSwitches = true;
+        v.switchRow = 'display: flex; gap: 14px; margin-top: auto; margin-bottom: 12px;';
+        v.switches = [chrome(22)];
+        v.led = led(true);
+        v.title = title(13, 'margin-top: 6px; padding: 0 6px;');
+        if (fam === 'compact') {
+          W = 110; H = 190; kSize = 18; cols2 = Math.min(nk, 4); pad = '10px 8px 0'; kGap = '4px 4px';
+          v.hasSwitches = false; v.hasPlate = true;
+          v.plate = 'display: block; width: 92px; flex: 1; margin: 8px 0 8px; border-radius: 4px; background: linear-gradient(180deg, ' + this.shade(col, -0.06) + ', ' + this.shade(col, -0.16) + '); box-shadow: inset 0 2px 0 rgba(0,0,0,0.25), inset 0 -1px 0 rgba(255,255,255,0.08);';
+          v.title = title(11, 'margin-top: 4px;');
+        } else if (fam === 'ts') {
+          W = 112; H = 190; kSize = 24; cols2 = 3;
+          v.hasSwitches = false; v.hasPad = true;
+          v.pad = 'display: block; width: 86px; height: 62px; margin-top: auto; margin-bottom: 10px; border-radius: 6px; background: repeating-linear-gradient(0deg, #1E1E1E 0 3px, #2C2C2C 3px 5px); box-shadow: 0 2px 3px rgba(0,0,0,0.5);';
+        } else if (fam === 'mxr') {
+          W = 92; H = 160; kSize = nk === 1 ? 34 : 24; cols2 = Math.min(nk, 2);
+          v.title = title(14, 'margin-top: 8px; font-style: italic; text-transform: none; letter-spacing: 0;');
+          v.switches = [chrome(20)];
+        } else if (fam === 'wide') {
+          W = 180; H = 160; kSize = 30; cols2 = Math.min(nk, 3); pad = '16px 14px 0';
+          v.title = title(16, 'margin-top: 8px;');
+        } else if (fam === 'round') {
+          W = 170; H = 170; kSize = 26; cols2 = 2; pad = '26px 40px 0';
+          v.title = title(16, 'margin-top: 6px; font-style: italic;');
+          v.switchRow = 'display: flex; margin-top: auto; margin-bottom: 28px;';
+        } else if (fam === 'wedge') {
+          W = 120; H = 190; kSize = 24; cols2 = 2;
+        } else if (fam === 'rat') {
+          W = 112; H = 190; kSize = 22; cols2 = 3;
+          v.title = title(18, 'margin-top: 10px; letter-spacing: 3px; font-weight: 700;');
+        } else if (fam === 'graphic') {
+          W = 110; H = 190; v.hasSliders = true; v.hasSwitches = false; v.hasPlate = true;
+          v.plate = 'display: block; width: 92px; height: 54px; margin: 6px 0 8px; border-radius: 4px; background: linear-gradient(180deg, ' + this.shade(col, -0.06) + ', ' + this.shade(col, -0.16) + '); box-shadow: inset 0 2px 0 rgba(0,0,0,0.25);';
+          v.sliderRow = 'display: flex; gap: 8px; margin-top: 10px; height: 66px;';
+          v.sliders = names2.slice(0, 6).map(function (nm, i) {
+            var p = [60, 40, 55, 70, 45, 50][i];
+            return { track: 'position: relative; display: block; width: 3px; height: 66px; border-radius: 2px; background: rgba(0,0,0,0.55);', thumb: 'position: absolute; left: -4px; width: 11px; height: 7px; border-radius: 1px; bottom: calc(' + p + '% - 3px); background: linear-gradient(180deg, #F2F2F2, #9A9A9A);' };
+          });
+          names2 = [];
+          v.title = title(11, 'margin-top: 4px;');
+        } else if (fam === 'modern') {
+          W = 200; H = 176; kSize = 20; cols2 = 4; pad = '6px 12px 0'; kGap = '4px 6px';
+          v.hasScreen = true;
+          v.screen = 'display: block; margin-top: 8px; padding: 2px 10px; border-radius: 3px; background: #0B0C0E; color: #9FE3FF; font-family: \'Share Tech Mono\'; font-size: 11px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.8);';
+          v.screenText = model.toUpperCase();
+          v.switches = [chrome(18), chrome(18)];
+          v.switchRow = 'display: flex; gap: 70px; margin-top: auto; margin-bottom: 10px;';
+          v.title = title(12, 'margin-top: 2px;');
+        } else if (nk >= 4) {
+          W = 124; H = 196; kSize = 20; cols2 = nk === 4 ? 2 : 3;
+        }
+        var body = 'position: relative; width: ' + W + 'px; height: ' + H + 'px; display: flex; flex-direction: column; align-items: center; box-sizing: border-box; border-radius: ' + (fam === 'round' ? '50%' : fam === 'ts' ? '16px 16px 10px 10px' : '9px') + '; ';
+        if (fam === 'wedge') {
+          body += 'background: ' + wear + 'radial-gradient(circle, rgba(255,255,255,0.12) 0 0.6px, transparent 1px) 0 0/3px 3px, linear-gradient(180deg, ' + this.shade(col, -0.18) + ' 0 30%, ' + this.shade(col, 0.06) + ' 31% 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.14), 0 1px 3px rgba(0,0,0,0.45), 0 8px 18px rgba(0,0,0,0.25);';
+        } else {
+          body += paint;
+        }
+        v.outer = 'width: ' + W + 'px; height: ' + H + 'px; display: flex;';
+        v.body = body;
+        v.knobGrid = grid(Math.max(1, cols2), kGap, pad);
+        v.knobs = names2.map(function (nm, i) { return self.knob(nm, i, fam === 'ts' && i === 1 ? 16 : kSize, ks, lc, fam === 'compact' ? 6.5 : 7.5); });
+      }
+    }
+
+    // Lit or not (the block on or off): LEDs and the pilot jewel go dark.
+    var lit = this.props.lit ?? true;
+    if (!lit) {
+      var dark = 'background: #3A1512; box-shadow: inset 0 1px 1px rgba(0,0,0,0.8);';
+      if (v.led) v.led = v.led.replace(/background:[^;]*;/, '').replace(/box-shadow:[^;]*;/, '') + dark;
+      if (v.jewel) v.jewel = v.jewel.replace(/background:[^;]*;/, '').replace(/box-shadow:[^;]*;/, '') + 'background: radial-gradient(circle at 40% 35%, #5A3532, #2A0D0B); box-shadow: 0 0 0 2px #D2D2D2, 0 0 0 3px rgba(0,0,0,0.5);';
+    }
+    var onSwitch = this.props.onSwitch;
+    v.switchClick = function () { if (onSwitch) onSwitch(); };
+    v.tab = onSwitch ? 0 : -1;
+    v.switches = v.switches.map(function (sw) {
+      return { washer: sw.washer + ' border: 0; padding: 0; cursor: ' + (onSwitch ? 'pointer' : 'default') + ';', nut: sw.nut, cap: sw.cap };
+    });
+
+    // Fit the piece into fit-w x fit-h (keeping its proportions); natural
+    // size when none is given.
+    var mw = /width: (\d+)px/.exec(v.outer), mh = /height: (\d+)px/.exec(v.outer);
+    var W = mw ? +mw[1] : 112, H = mh ? +mh[1] : 190;
+    var fw = this.props.fitW, fh = this.props.fitH;
+    var sc = fw && fh ? Math.min(fw / W, fh / H) : 1;
+    v.frame = 'position: relative; flex: none; width: ' + (W * sc).toFixed(1) + 'px; height: ' + (H * sc).toFixed(1) + 'px;';
+    v.outer += ' position: absolute; left: 0; top: 0; transform: scale(' + sc.toFixed(4) + '); transform-origin: 0 0;';
+
+    return { v: v };
+  }
+}
+</script>
+</body>
+</html>
