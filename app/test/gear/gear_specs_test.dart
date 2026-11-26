@@ -4,8 +4,8 @@ import 'package:sonicmaster/gear/gear_specs.dart';
 void main() {
   test('table sizes', () {
     expect(pedalSpecs.length, 86);
-    expect(ampSpecs.length, 37);
-    expect(cabSpecs.length, 19);
+    expect(ampSpecs.length, 38);
+    expect(cabSpecs.length, 28);
   });
 
   test('known entries', () {

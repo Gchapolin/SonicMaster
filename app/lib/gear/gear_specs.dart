@@ -4,6 +4,9 @@ import 'package:flutter/painting.dart';
 // plus the tolex, grille and panel colour tables). Gradients and weaves of the
 // prototype are reduced to their base colour; drawing adds the texture.
 
+/// What a model is drawn as.
+enum GearKind { pedal, amp, cab }
+
 enum PedalFamily {
   std,
   compact,
@@ -95,10 +98,10 @@ class CabSpec extends GearSpec {
   final bool corners;
 }
 
-/// Fallback for models with no table entry (kind: 'pedal', 'amp' or 'cab').
+/// Fallback for models with no table entry.
 class GenericSpec extends GearSpec {
   const GenericSpec(this.kind);
-  final String kind;
+  final GearKind kind;
 }
 
 const Map<String, PedalSpec> pedalSpecs = {
@@ -887,6 +890,15 @@ const Map<String, AmpSpec> ampSpecs = {
     false,
     ['Gain', 'Pres', 'Vol', 'Bass', 'Middle', 'Treble'],
   ),
+  'Supero 2 OD': AmpSpec(
+    true,
+    Color(0xFF1C1C1C),
+    Color(0xFF222222),
+    Color(0xFFE4E6E8),
+    KnobStyle.blackFlat,
+    false,
+    ['Gain1', 'Tone1', 'Gain2', 'Tone2', 'Vol'],
+  ),
   'Sol 100 LD': AmpSpec(
     true,
     Color(0xFF1C1C1C),
@@ -1206,6 +1218,87 @@ const Map<String, CabSpec> cabSpecs = {
     true,
   ),
   'User IR 1': CabSpec(
+    1,
+    12,
+    Color(0xFF3A3D42),
+    Color(0xFF222222),
+    false,
+    false,
+    true,
+  ),
+  'User IR 2': CabSpec(
+    1,
+    12,
+    Color(0xFF3A3D42),
+    Color(0xFF222222),
+    false,
+    false,
+    true,
+  ),
+  'User IR 3': CabSpec(
+    1,
+    12,
+    Color(0xFF3A3D42),
+    Color(0xFF222222),
+    false,
+    false,
+    true,
+  ),
+  'User IR 4': CabSpec(
+    1,
+    12,
+    Color(0xFF3A3D42),
+    Color(0xFF222222),
+    false,
+    false,
+    true,
+  ),
+  'User IR 5': CabSpec(
+    1,
+    12,
+    Color(0xFF3A3D42),
+    Color(0xFF222222),
+    false,
+    false,
+    true,
+  ),
+  'User IR 6': CabSpec(
+    1,
+    12,
+    Color(0xFF3A3D42),
+    Color(0xFF222222),
+    false,
+    false,
+    true,
+  ),
+  'User IR 7': CabSpec(
+    1,
+    12,
+    Color(0xFF3A3D42),
+    Color(0xFF222222),
+    false,
+    false,
+    true,
+  ),
+  'User IR 8': CabSpec(
+    1,
+    12,
+    Color(0xFF3A3D42),
+    Color(0xFF222222),
+    false,
+    false,
+    true,
+  ),
+  'User IR 9': CabSpec(
+    1,
+    12,
+    Color(0xFF3A3D42),
+    Color(0xFF222222),
+    false,
+    false,
+    true,
+  ),
+  'User IR 10': CabSpec(
     1,
     12,
     Color(0xFF3A3D42),
