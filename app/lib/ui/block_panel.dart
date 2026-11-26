@@ -25,6 +25,20 @@ import 'user_slots_dialog.dart';
 const blockPanelWidth = 236.0;
 const _inner = blockPanelWidth - 2 * 12;
 
+/// Whether two switch labels each fit whole beside a 26pt switch when the pair
+/// shares one panel row (16pt gap, 8pt between a label and its switch).
+bool _pairFits(String a, String b) {
+  const switchWidth = 26 * 104 / 46;
+
+  double width(String s) => (TextPainter(
+    text: TextSpan(text: s, style: AppText.ui),
+    textDirection: TextDirection.ltr,
+    maxLines: 1,
+  )..layout()).width;
+
+  return width(a) + width(b) + 2 * (switchWidth + 8) + 16 <= _inner;
+}
+
 /// The regular editor's right-hand panel (prototype N_Principal): block on,
 /// Clone Mode (amp), the user slots (cab / clone), the footswitch, the
 /// effect's non-knob params (toggles, selects, synced divisions, EQ bands),
@@ -105,6 +119,7 @@ class BlockPanel extends ConsumerWidget {
     // The params the piece doesn't draw.
     final params = <Widget>[];
     final toggles = <Widget>[];
+    final toggleLabels = <String>[];
     final bands = <Widget>[];
 
     for (final p in knobs) {
@@ -112,6 +127,7 @@ class BlockPanel extends ConsumerWidget {
 
       switch (p.widgetType) {
         case .toggle:
+          toggleLabels.add(p.name);
           toggles.add(
             labelled(
               key: ValueKey('param:${p.name}'),
@@ -223,17 +239,22 @@ class BlockPanel extends ConsumerWidget {
                 : (a) => setModuleFootswitch(ref, physId, a),
           ),
         ),
-      // The switches two to a row.
+      // The switches two to a row when both labels fit beside their switch,
+      // else one to a row.
       for (var i = 0; i < toggles.length; i += 2)
-        Row(
-          children: [
-            Expanded(child: toggles[i]),
-            const SizedBox(width: 16),
-            Expanded(
-              child: i + 1 < toggles.length ? toggles[i + 1] : const SizedBox(),
-            ),
-          ],
-        ),
+        if (i + 1 < toggles.length &&
+            _pairFits(toggleLabels[i], toggleLabels[i + 1]))
+          Row(
+            children: [
+              Expanded(child: toggles[i]),
+              const SizedBox(width: 16),
+              Expanded(child: toggles[i + 1]),
+            ],
+          )
+        else ...[
+          toggles[i],
+          if (i + 1 < toggles.length) toggles[i + 1],
+        ],
       ...params,
       // The EQ bands side by side, small and dense.
       if (bands.isNotEmpty)
@@ -263,7 +284,10 @@ class BlockPanel extends ConsumerWidget {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: Palette.outlineVariant),
       ),
-      child: Padding(padding: const EdgeInsets.all(12), child: child),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: child,
+      ),
     );
 
     return SizedBox(
@@ -278,7 +302,7 @@ class BlockPanel extends ConsumerWidget {
               children: [
                 Column(
                   crossAxisAlignment: .stretch,
-                  spacing: 12,
+                  spacing: 6,
                   children: controls,
                 ),
                 // CFW only (empty otherwise).

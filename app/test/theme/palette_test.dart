@@ -71,8 +71,24 @@ void main() {
     expect(Palette.chainEffect, Palette.onSurfaceVariant);
   });
 
+  test('error text reads at 4.5:1 on card and head in every palette', () {
+    for (final p in appPalettes) {
+      Palette.current = p;
+      expect(
+        contrast(Palette.error, p.card),
+        greaterThanOrEqualTo(4.5),
+        reason: '${p.id} card',
+      );
+      expect(
+        contrast(Palette.error, p.head),
+        greaterThanOrEqualTo(4.5),
+        reason: '${p.id} head',
+      );
+    }
+  });
+
   test('the colors with a meaning of their own keep today\'s values', () {
-    expect(Palette.error, const Color(0xFFFF5449));
+    expect(Palette.error, const Color(0xFFFF8F86));
     expect(Palette.ledConnected, const Color(0xFF44FF44));
     expect(Palette.ledDisconnected, const Color(0xFFFF4444));
     expect(Palette.scrim, const Color(0x99000000));

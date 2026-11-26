@@ -47,8 +47,9 @@ abstract final class Palette {
   /// Primary interactive accent (buttons, cursors, scan spinner, active menu).
   static Color get accent => primary;
 
-  /// Warning / out-of-range red.
-  static const Color error = Color(0xFFFF5449);
+  /// Warning / out-of-range red: a salmon red that keeps 4.5:1 on the card and
+  /// head surfaces of all 18 palettes.
+  static const Color error = Color(0xFFFF8F86);
 
   /// Primary text.
   static Color get textPrimary => onSurface;

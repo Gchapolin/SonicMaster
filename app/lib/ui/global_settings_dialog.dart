@@ -9,6 +9,7 @@ import '../l10n/common_text.dart';
 import '../l10n/settings_text.dart';
 import '../model/cfw_eq_models.dart';
 import '../model/cfw_info.dart';
+import '../model/device_capabilities.dart';
 import '../state/cfw_providers.dart';
 import '../state/connection_prefs.dart';
 import '../state/data_providers.dart';
@@ -144,6 +145,7 @@ class GlobalSettingsDialog extends ConsumerWidget {
                 value: cfw.usbRec,
                 width: 220,
                 segmentPadding: 6,
+                isProportional: true,
                 segments: const [
                   (value: 0, label: 'Wet'),
                   (value: 1, label: 'Dry DI'),
@@ -252,6 +254,7 @@ class GlobalSettingsDialog extends ConsumerWidget {
               value: g0.expFsType,
               width: 200,
               segmentPadding: 6,
+              isProportional: true,
               segments: const [
                 (value: 0, label: 'EXP'),
                 (value: 1, label: 'SingleFS'),
@@ -676,8 +679,9 @@ class _MidiSection extends ConsumerWidget {
           label: t.sameAgain,
           child: SonicSegmented<int>(
             value: cfw.sameAgain,
-            width: 200,
+            width: 220,
             segmentPadding: 6,
+            isProportional: true,
             segments: [
               (value: 0, label: t.off),
               (value: 1, label: t.cycle),
@@ -953,6 +957,16 @@ class _LevelKnob extends ConsumerWidget {
   }
 }
 
+String _detectedName(
+  SettingsText t,
+  DeviceCapabilities? caps,
+  DeviceModel detected,
+) {
+  if (caps == null) return t.detecting;
+
+  return detected == .unknown ? t.unknownDevice : caps.displayName(detected);
+}
+
 /// Auto / Pocket Master / Smart Box model selector. "Auto" (null override)
 /// follows detection and shows the detected model; picking a model manually
 /// overrides detection and persists across launches.
@@ -974,7 +988,7 @@ class _DeviceModelSelector extends ConsumerWidget {
         items: [
           (
             value: DeviceModel.unknown,
-            label: 'Auto — ${caps?.displayName(detected) ?? t.detecting}',
+            label: '${t.auto} — ${_detectedName(t, caps, detected)}',
           ),
           (value: DeviceModel.pocketMaster, label: 'Pocket Master'),
           (value: DeviceModel.smartBox, label: 'Smart Box'),

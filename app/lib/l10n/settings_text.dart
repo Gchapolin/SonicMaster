@@ -66,6 +66,8 @@ abstract class SettingsText {
   // Device model.
   String get deviceModel;
   String get detecting;
+  String get auto;
+  String get unknownDevice;
 
   // Preset order.
   String get move;
@@ -184,6 +186,10 @@ class _En extends SettingsText {
   String get deviceModel => 'Device model';
   @override
   String get detecting => 'detecting…';
+  @override
+  String get auto => 'Auto';
+  @override
+  String get unknownDevice => 'Unknown device';
   @override
   String get move => 'Move';
   @override
@@ -307,6 +313,10 @@ class _Pt extends SettingsText {
   String get deviceModel => 'Modelo do aparelho';
   @override
   String get detecting => 'detectando…';
+  @override
+  String get auto => 'Auto';
+  @override
+  String get unknownDevice => 'Aparelho desconhecido';
   @override
   String get move => 'Mover';
   @override

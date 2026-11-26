@@ -23,11 +23,16 @@ class SonicToggle extends StatelessWidget {
     required this.value,
     required this.onChanged,
     this.height = 26,
+    this.touchHeight = 0,
   });
 
   final bool value;
   final ValueChanged<bool>? onChanged;
   final double height;
+
+  /// The tap target's height when it is taller than the drawn track: the track
+  /// stays [height] high, centred in the taller hit area.
+  final double touchHeight;
 
   @override
   Widget build(BuildContext context) {
@@ -48,39 +53,45 @@ class SonicToggle extends StatelessWidget {
           onTap: isEnabled ? () => onChanged!(!value) : null,
           child: SizedBox(
             width: w,
-            height: h,
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: AnimatedContainer(
-                    duration: duration,
-                    curve: curve,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(h / 2),
-                      color: value
-                          ? Palette.primary
-                          : Palette.surfaceContainerHighest,
-                      border: Border.all(
-                        color: value ? Palette.primary : Palette.outline,
-                        width: 2,
+            height: math.max(h, touchHeight),
+            child: Center(
+              child: SizedBox(
+                width: w,
+                height: h,
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: AnimatedContainer(
+                        duration: duration,
+                        curve: curve,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(h / 2),
+                          color: value
+                              ? Palette.primary
+                              : Palette.surfaceContainerHighest,
+                          border: Border.all(
+                            color: value ? Palette.primary : Palette.outline,
+                            width: 2,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-                AnimatedPositioned(
-                  duration: duration,
-                  curve: curve,
-                  top: inset,
-                  left: value ? w - inset - thumb : inset,
-                  width: thumb,
-                  height: thumb,
-                  child: CustomPaint(
-                    painter: _ToggleKnobPainter(
-                      value ? Palette.onPrimary : Palette.outline,
+                    AnimatedPositioned(
+                      duration: duration,
+                      curve: curve,
+                      top: inset,
+                      left: value ? w - inset - thumb : inset,
+                      width: thumb,
+                      height: thumb,
+                      child: CustomPaint(
+                        painter: _ToggleKnobPainter(
+                          value ? Palette.onPrimary : Palette.outline,
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),
@@ -418,6 +429,7 @@ class SonicSegmented<T> extends StatelessWidget {
     this.isExpanded = false,
     this.disabledValues = const {},
     this.segmentPadding = 16,
+    this.isProportional = false,
   });
 
   final T value;
@@ -435,6 +447,27 @@ class SonicSegmented<T> extends StatelessWidget {
 
   /// Horizontal padding inside each segment, around its label.
   final double segmentPadding;
+
+  /// Split a filled bar in proportion to the label widths instead of equally,
+  /// so a long label ("DESLIGADO") keeps the size of its short siblings as long
+  /// as the labels fit the bar together.
+  final bool isProportional;
+
+  /// A segment's flex: its label's width, rounded up, plus the padding.
+  int _flexOf(SonicItem<T> seg) {
+    if (!isProportional) return 1;
+
+    final painter = TextPainter(
+      text: TextSpan(
+        text: seg.label.toUpperCase(),
+        style: AppText.segmentLabel,
+      ),
+      textDirection: TextDirection.ltr,
+      maxLines: 1,
+    )..layout();
+
+    return (painter.width + 2 * segmentPadding).ceil();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -456,7 +489,10 @@ class SonicSegmented<T> extends StatelessWidget {
     ];
 
     final children = isFilled
-        ? [for (final s in segmentWidgets) Expanded(child: s)]
+        ? [
+            for (final (i, s) in segmentWidgets.indexed)
+              Expanded(flex: _flexOf(segments[i]), child: s),
+          ]
         : segmentWidgets;
 
     final radius = BorderRadius.circular(height / 2);
