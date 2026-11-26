@@ -96,17 +96,15 @@ void main() {
     await teardown(tester);
   });
 
-  testWidgets('regular: a decimal comma applies nothing (unchanged)', (
-    tester,
-  ) async {
+  testWidgets('regular: a decimal comma is accepted too', (tester) async {
     final sent = await pump(tester);
 
     await tester.enterText(find.byType(EditableText), '130,5');
     await tester.testTextInput.receiveAction(.done);
     await tester.pump();
 
-    expect(sent, isEmpty);
-    expect(bpmText(tester), '130,5');
+    expect(sent, [460]);
+    expect(bpmText(tester), '130.5');
     await teardown(tester);
   });
 

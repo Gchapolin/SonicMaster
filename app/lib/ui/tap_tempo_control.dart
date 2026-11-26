@@ -99,8 +99,8 @@ class TapTempoControl extends HookWidget {
     }
 
     void submitBpm(String s) {
-      // Compact (phones): a decimal comma from the keyboard reads as a point.
-      final v = double.tryParse(metrics.isCompact ? withDecimalPoint(s) : s);
+      // A decimal comma from the keyboard (pt-BR) reads as a point.
+      final v = double.tryParse(withDecimalPoint(s));
 
       if (v == null) return;
 
