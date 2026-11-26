@@ -125,9 +125,7 @@ class _Chip extends StatelessWidget {
             borderRadius: .circular(18),
             border: Border.all(
               width: 2,
-              color: isSelected
-                  ? Palette.primary
-                  : Palette.surfaceContainerHighest,
+              color: isSelected ? Palette.primary : Palette.transparent,
             ),
           ),
           child: Row(
@@ -137,17 +135,24 @@ class _Chip extends StatelessWidget {
                 child: SizedBox(
                   width: 40,
                   height: 16,
-                  child: Row(
-                    children: [
-                      for (final c in palette.swatches)
-                        Expanded(
-                          child: DecoratedBox(
-                            key: const ValueKey('swatch'),
-                            decoration: BoxDecoration(color: c),
-                            child: const SizedBox.expand(),
+                  child: DecoratedBox(
+                    position: DecorationPosition.foreground,
+                    decoration: BoxDecoration(
+                      borderRadius: .circular(4),
+                      border: Border.all(color: Palette.scrim),
+                    ),
+                    child: Row(
+                      children: [
+                        for (final c in palette.swatches)
+                          Expanded(
+                            child: DecoratedBox(
+                              key: const ValueKey('swatch'),
+                              decoration: BoxDecoration(color: c),
+                              child: const SizedBox.expand(),
+                            ),
                           ),
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),

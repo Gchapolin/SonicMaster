@@ -1,13 +1,18 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sonicmaster/l10n/lang.dart';
+import 'package:sonicmaster/main.dart';
 import 'package:sonicmaster/state/palette_providers.dart';
 import 'package:sonicmaster/theme/app_colors.dart';
 import 'package:sonicmaster/theme/app_palettes.dart';
 import 'package:sonicmaster/ui/appearance_dialog.dart';
+import 'package:sonicmaster/ui/preset_browser_page.dart';
 
+import '../support/page_harness.dart';
 import '../support/sonic_host.dart';
 
 Future<ProviderContainer> _open(WidgetTester tester) async {
@@ -23,8 +28,6 @@ Future<ProviderContainer> _open(WidgetTester tester) async {
 
   return ProviderScope.containerOf(context);
 }
-
-void unawaited(Future<void> f) {}
 
 void main() {
   setUp(() => appLang = Lang.pt);
@@ -73,5 +76,45 @@ void main() {
 
     // chip label plus footer
     expect(find.text(p.name), findsNWidgets(2));
+  });
+
+  Future<BuildContext> openOverPage(WidgetTester tester) async {
+    await pumpPage(tester, size: const Size(1180, 820), isConnected: false);
+    await tester.pumpAndSettle();
+    final context = tester.element(find.byType(PresetBrowserPage));
+    unawaited(showAppearanceDialog(context));
+    await tester.pumpAndSettle();
+
+    return context;
+  }
+
+  Set<Color> pageColours(WidgetTester tester) => {
+    for (final w in tester.widgetList<ColoredBox>(
+      find.descendant(
+        of: find.byType(PresetBrowserPage),
+        matching: find.byType(ColoredBox),
+      ),
+    ))
+      w.color,
+  };
+
+  testWidgets('tapping a palette recolours the main screen behind the dialog', (
+    tester,
+  ) async {
+    await openOverPage(tester);
+    final before = pageColours(tester);
+    await tester.tap(find.text(appPalettes[5].name));
+    await tester.pumpAndSettle();
+
+    expect(pageColours(tester), isNot(before));
+  });
+
+  testWidgets('golden: the dialog over the main screen', (tester) async {
+    await openOverPage(tester);
+
+    await expectLater(
+      find.byType(SonicMasterApp),
+      matchesGoldenFile('goldens/appearance_dialog_1180x820.png'),
+    );
   });
 }
