@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart' show Icons;
@@ -12,6 +13,7 @@ import 'package:sonicmaster/protocol/cfw_tuner_codec.dart';
 import 'package:sonicmaster/protocol/sysex_write_frame.dart';
 import 'package:sonicmaster/state/cfw_providers.dart';
 import 'package:sonicmaster/state/device_providers.dart';
+import 'package:sonicmaster/theme/app_colors.dart';
 import 'package:sonicmaster/ui/sonic_controls.dart';
 import 'package:sonicmaster/ui/top_bar.dart';
 import 'package:sonicmaster/ui/tuner_dialog.dart';
@@ -106,36 +108,69 @@ void main() {
 
     expect(find.text('A'), findsOneWidget);
     expect(find.text('2'), findsOneWidget);
-    expect(find.text('-4.5 ¢'), findsOneWidget);
-    expect(find.text('109.7 Hz'), findsOneWidget);
+    expect(find.text('109.7 Hz · -4.5 cents'), findsOneWidget);
     expect(find.text('FLAT'), findsOneWidget);
   });
 
-  testWidgets('sharp, and in tune within 3 cents', (tester) async {
+  testWidgets('sharp, and in tune within 5 cents', (tester) async {
     final pedal = await open(tester, reading: _reading(cents: 12, note: 7));
 
     expect(find.text('E'), findsOneWidget);
-    expect(find.text('+12.0 ¢'), findsOneWidget);
+    expect(find.text('110.0 Hz · +12.0 cents'), findsOneWidget);
     expect(find.text('SHARP'), findsOneWidget);
 
-    pedal.reading = _reading(cents: 2.9, note: 7);
+    pedal.reading = _reading(cents: 4.9, note: 7);
     await tester.pump(TunerDialog.pollEvery * 2);
 
     expect(find.text('IN TUNE'), findsOneWidget);
   });
 
-  testWidgets('Mute and Bypass set the pedal\'s output', (tester) async {
+  testWidgets('mute switch', (tester) async {
     final pedal = await open(tester, reading: _silent);
 
-    await tester.tap(find.text('MUTE'));
-    await tester.pump();
-    await tester.tap(find.text('BYPASS'));
+    expect(tester.widget<SonicToggle>(find.byType(SonicToggle)).value, false);
+
+    await tester.tap(find.byType(SonicToggle));
     await tester.pump();
 
-    expect(pedal.sent.sublist(1), [
-      tunerOutputFrame(isMuted: true),
-      tunerOutputFrame(isMuted: false),
-    ]);
+    expect(pedal.sent.last, tunerOutputFrame(isMuted: true));
+
+    pedal.reading = _reading(note: 0xff, octave: 0x7f);
+    await tester.pump(TunerDialog.pollEvery * 2);
+
+    expect(tester.widget<SonicToggle>(find.byType(SonicToggle)).value, true);
+
+    await tester.tap(find.byType(SonicToggle));
+    await tester.pump();
+
+    expect(pedal.sent.last, tunerOutputFrame(isMuted: false));
+  });
+
+  test('the needle follows the cents', () {
+    expect(tunerNeedleAngle(-50), closeTo(-60 * pi / 180, 1e-9));
+    expect(tunerNeedleAngle(0), 0);
+    expect(tunerNeedleAngle(25), closeTo(30 * pi / 180, 1e-9));
+    expect(tunerNeedleAngle(50), closeTo(60 * pi / 180, 1e-9));
+    expect(tunerNeedleAngle(80), closeTo(60 * pi / 180, 1e-9));
+  });
+
+  testWidgets('the gauge is given the pedal\'s cents', (tester) async {
+    await open(tester, reading: _reading(cents: -12));
+
+    expect(tester.widget<TunerGauge>(find.byType(TunerGauge)).cents, -12);
+  });
+
+  testWidgets('in tune within 5 cents turns the note green', (tester) async {
+    final pedal = await open(tester, reading: _reading(cents: -3));
+
+    Color noteColor() => tester.widget<Text>(find.text('A')).style!.color!;
+
+    expect(noteColor(), Palette.ok);
+
+    pedal.reading = _reading(cents: -8);
+    await tester.pump(TunerDialog.pollEvery * 2);
+
+    expect(noteColor(), Palette.onSurface);
   });
 
   testWidgets('the A4 picker sets the reference pitch', (tester) async {
@@ -271,7 +306,7 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.text('Afinador'), findsOneWidget);
       expect(find.text('BAIXO'), findsOneWidget);
-      expect(find.text('MUDO'), findsOneWidget);
+      expect(find.text('Mudo'), findsOneWidget);
       expect(find.text('Fechar'), findsOneWidget);
     });
   });
