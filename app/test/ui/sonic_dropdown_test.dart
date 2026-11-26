@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sonicmaster/state/edit_providers.dart';
@@ -5,6 +7,7 @@ import 'package:sonicmaster/state/layout_providers.dart';
 import 'package:sonicmaster/ui/sonic_controls.dart';
 
 import '../support/page_harness.dart';
+import '../support/sonic_host.dart';
 import '../support/view_helpers.dart';
 
 void main() {
@@ -88,13 +91,7 @@ void main() {
   // The module editor's effect dropdown (FX1 holds COMP 1) as a real
   // SonicDropdown host; its menu lists COMP 2 among others.
   group('a SonicDropdown in the module editor', () {
-    Future<void> openEffects(
-      WidgetTester tester, {
-      required Size size,
-      double keyboard = 0,
-    }) async {
-      tester.view.viewInsets = FakeViewPadding(bottom: keyboard);
-      addTearDown(tester.view.resetViewInsets);
+    Future<void> openEffects(WidgetTester tester, {required Size size}) async {
       await pumpPage(
         tester,
         size: size,
@@ -139,17 +136,69 @@ void main() {
       expectPlaced(tester, const Rect.fromLTWH(0, 0, 568, 320));
     });
 
-    testWidgets('the keyboard closing under it: it stays open and follows', (
+    // The dropdown sits in a SonicDialog, which lifts its plate above the
+    // keyboard (compact): closing the keyboard moves the trigger, so the open
+    // menu must be placed again for the new spot.
+    testWidgets('the keyboard closing under it: it stays open and re-places', (
       tester,
     ) async {
-      await openEffects(tester, size: const Size(852, 393), keyboard: 180);
-      expectPlaced(tester, const Rect.fromLTWH(0, 0, 852, 393 - 180));
+      const size = Size(852, 393);
+      final context = await pumpSonicHost(tester, size: size, keyboard: 180);
+
+      unawaited(
+        showSonicDialog<void>(
+          context: context,
+          builder: (_) => SonicDialog(
+            child: SonicDropdown<int>(
+              value: 1,
+              width: 120,
+              items: [
+                for (var n = 1; n <= 12; n++) (value: n, label: 'Item $n'),
+              ],
+              onChanged: (_) {},
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final dropdown = find.byType(SonicDropdown<int>);
+
+      await tester.tap(find.text('Item 1'));
+      await tester.pumpAndSettle();
+
+      final before = tester.getRect(dropdown);
+      final menuRow = find.text('Item 2');
+
+      Rect menu() => tester.getRect(
+        find.ancestor(of: menuRow, matching: find.byType(SonicSurface)).first,
+      );
 
       await setKeyboard(tester, 0);
       await tester.pumpAndSettle();
 
-      expect(find.text('COMP 2'), findsOneWidget); // still open
-      expectPlaced(tester, const Rect.fromLTWH(0, 0, 852, 393));
+      final trigger = tester.getRect(dropdown);
+
+      expect(trigger, isNot(before)); // the dialog re-centred
+      expect(menuRow, findsOneWidget); // still open
+
+      final expected = placeDropdownMenu(
+        trigger: trigger,
+        screen: size,
+        bottomInset: 0,
+        menuWidth: 120,
+        contentHeight: 12 * 40,
+      );
+      final rect = menu();
+
+      expect(
+        expected.isAbove
+            ? (trigger.top - rect.bottom - 6).abs()
+            : (rect.top - trigger.bottom - 6).abs(),
+        lessThan(0.01),
+        reason: 'menu $rect is on the wrong side of trigger $trigger',
+      );
+      expect(rect.height, lessThanOrEqualTo(expected.maxHeight + 14 + 0.01));
     });
 
     // A phone turned to portrait and back while the menu is open: the menu

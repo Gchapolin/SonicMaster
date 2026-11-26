@@ -160,15 +160,10 @@ void main() {
   group('back and Escape with the slot list open', () {
     const current = PresetRef(.user, 5);
 
-    Future<void> openSave(
-      WidgetTester tester, {
-      required Size size,
-      double keyboard = 0,
-    }) async {
+    Future<void> openSave(WidgetTester tester, {required Size size}) async {
       final context = await pumpSonicHost(
         tester,
         size: size,
-        keyboard: keyboard,
         overrides: [
           currentPresetProvider.overrideWith((_) => current),
           presetNamesProvider.overrideWith((_) => {current: 'MyPatch'}),
