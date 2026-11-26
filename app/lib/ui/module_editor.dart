@@ -142,9 +142,11 @@ class ModuleEditor extends ConsumerWidget {
     // The effect's knobs live on the piece; a synced Rate / Time holds a
     // note division, not a position: it stays off the piece and keeps its
     // division dropdown in the panel.
+    // A cab or a wah draws no knobs: theirs stay in the panel.
     final onPiece = [
-      for (final p in pieceKnobs(def, isCfw: isCfw))
-        if (!p.isSynced(values)) p,
+      if (pieceDrawsKnobs(def.name, gearKindForModule(physId)))
+        for (final p in pieceKnobs(def, isCfw: isCfw))
+          if (!p.isSynced(values)) p,
     ];
 
     // A compact tablet (shortest side 600+; phones have no room) draws the
@@ -201,7 +203,7 @@ class ModuleEditor extends ConsumerWidget {
             right: 16,
             bottom: 12,
             width: blockPanelWidth,
-            child: SingleChildScrollView(child: BlockPanel(moduleId)),
+            child: _ScrollingPanel(moduleId),
           ),
         ],
       );
@@ -665,7 +667,9 @@ class _ModelHeader extends StatelessWidget {
                 DecoratedBox(
                   key: const Key('amp-band'),
                   decoration: BoxDecoration(
-                    color: Palette.primary.withValues(alpha: 0.14),
+                    // Opaque card fill: accent text on it reads at 4.5:1 on
+                    // every palette (a tint of the accent did not).
+                    color: Palette.surfaceContainerHigh,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Padding(
@@ -869,6 +873,31 @@ class PieceEditor extends HookWidget {
           const SizedBox(height: 8),
           line(),
         ],
+      ),
+    );
+  }
+}
+
+/// The block panel in its own scroll view, with a visible scrollbar for the
+/// states where it is taller than the editor (CFW SC1 + EXP).
+class _ScrollingPanel extends HookWidget {
+  const _ScrollingPanel(this.moduleId);
+
+  final int moduleId;
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = useScrollController();
+
+    return RawScrollbar(
+      controller: controller,
+      thumbVisibility: true,
+      thumbColor: Palette.outline,
+      radius: const Radius.circular(2),
+      thickness: 3,
+      child: SingleChildScrollView(
+        controller: controller,
+        child: BlockPanel(moduleId),
       ),
     );
   }

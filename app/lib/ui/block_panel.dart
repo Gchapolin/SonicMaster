@@ -12,6 +12,7 @@ import '../state/preset_providers.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text.dart';
 import 'exp_controls.dart';
+import '../gear/gear_lookup.dart';
 import 'knob_control.dart';
 import 'module_editor.dart';
 import 'scene_controls.dart';
@@ -70,6 +71,7 @@ class BlockPanel extends ConsumerWidget {
         state?.moduleStates[data.modules.nameOf(physId) ?? ''] ?? false;
     final values = editorValues(ref, moduleId);
     final knobs = def.paramsFor(isCfw: isCfw);
+    final drawsKnobs = pieceDrawsKnobs(def.name, gearKindForModule(physId));
 
     void set(EffectParameter p, num v) =>
         setParameter(ref, moduleId, p.algId, v);
@@ -154,7 +156,24 @@ class BlockPanel extends ConsumerWidget {
           // Tempo-sync engaged: the slot holds a note division.
           params.add(dropdown(p, syncDivisions, v.round()));
         case .knob:
-          break; // on the piece
+          // On the piece, unless it draws no knobs (cab, wah).
+          if (!drawsKnobs) {
+            bands.add(
+              KnobControl(
+                value: v,
+                min: p.min ?? 0,
+                max: p.max ?? 100,
+                step: p.step ?? 1,
+                label: p.name,
+                unit: p.unit,
+                valueText: p.textFor(v),
+                size: 36,
+                isDense: true,
+                isEnabled: !isLoading,
+                onChanged: (x) => set(p, x),
+              ),
+            );
+          }
         case .eqBand:
           bands.add(
             KnobControl(

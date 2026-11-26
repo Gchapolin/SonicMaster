@@ -166,9 +166,12 @@ class GearPiece extends StatelessWidget {
     };
   }
 
+  // Its own layer: dragging a knob repaints this piece, not its neighbours.
   @override
-  Widget build(BuildContext context) => SizedBox.fromSize(
-    size: fit,
-    child: FittedBox(fit: BoxFit.contain, child: _piece()),
+  Widget build(BuildContext context) => RepaintBoundary(
+    child: SizedBox.fromSize(
+      size: fit,
+      child: FittedBox(fit: BoxFit.contain, child: _piece()),
+    ),
   );
 }

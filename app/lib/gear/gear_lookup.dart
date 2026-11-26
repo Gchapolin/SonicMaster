@@ -17,3 +17,13 @@ GearKind gearKindForModule(int physId) => switch (physId) {
   4 => GearKind.cab,
   _ => GearKind.pedal,
 };
+
+/// Whether [model]'s piece draws knobs that can be turned: cabs and the wah
+/// family draw none, so their knob params must live in the panel instead.
+bool pieceDrawsKnobs(String model, GearKind kind) =>
+    switch (gearFor(model, kind)) {
+      CabSpec() => false,
+      GenericSpec(kind: GearKind.cab) => false,
+      PedalSpec(family: PedalFamily.wah) => false,
+      _ => true,
+    };
