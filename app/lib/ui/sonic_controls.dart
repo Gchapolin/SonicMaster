@@ -418,6 +418,7 @@ class SonicSegmented<T> extends StatelessWidget {
     this.isExpanded = false,
     this.disabledValues = const {},
     this.segmentPadding = 16,
+    this.isProportional = false,
   });
 
   final T value;
@@ -435,6 +436,27 @@ class SonicSegmented<T> extends StatelessWidget {
 
   /// Horizontal padding inside each segment, around its label.
   final double segmentPadding;
+
+  /// Split a filled bar in proportion to the label widths instead of equally,
+  /// so a long label ("DESLIGADO") keeps the size of its short siblings as long
+  /// as the labels fit the bar together.
+  final bool isProportional;
+
+  /// A segment's flex: its label's width, rounded up, plus the padding.
+  int _flexOf(SonicItem<T> seg) {
+    if (!isProportional) return 1;
+
+    final painter = TextPainter(
+      text: TextSpan(
+        text: seg.label.toUpperCase(),
+        style: AppText.segmentLabel,
+      ),
+      textDirection: TextDirection.ltr,
+      maxLines: 1,
+    )..layout();
+
+    return (painter.width + 2 * segmentPadding).ceil();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -456,7 +478,10 @@ class SonicSegmented<T> extends StatelessWidget {
     ];
 
     final children = isFilled
-        ? [for (final s in segmentWidgets) Expanded(child: s)]
+        ? [
+            for (final (i, s) in segmentWidgets.indexed)
+              Expanded(flex: _flexOf(segments[i]), child: s),
+          ]
         : segmentWidgets;
 
     final radius = BorderRadius.circular(height / 2);

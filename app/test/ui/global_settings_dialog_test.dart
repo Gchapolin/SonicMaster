@@ -780,7 +780,7 @@ void main() {
         'NÍVEIS',
         'Canal MIDI',
         'Todos os canais',
-        'Mesmo preset de novo',
+        'Preset repetido',
         'Editar mapa',
         'ORDEM DOS PRESETS',
         'Mover preset',

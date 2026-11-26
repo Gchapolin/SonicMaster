@@ -108,7 +108,9 @@ class SavePresetDialog extends HookConsumerWidget {
               Text(
                 _id(n),
                 style: AppText.mono.copyWith(
-                  color: Palette.primary,
+                  // The accent is under 3:1 on the selected fill; the text role
+                  // keeps 4.5:1 there.
+                  color: isPicked ? Palette.onSurface : Palette.primary,
                   fontSize: 13,
                 ),
               ),

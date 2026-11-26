@@ -9,6 +9,8 @@ import 'package:sonicmaster/model/preset_ref.dart';
 import 'package:sonicmaster/state/data_providers.dart';
 import 'package:sonicmaster/state/names_providers.dart';
 import 'package:sonicmaster/state/preset_providers.dart';
+import 'package:sonicmaster/theme/app_colors.dart';
+import 'package:sonicmaster/theme/app_palettes.dart';
 import 'package:sonicmaster/ui/save_preset_dialog.dart';
 import 'package:sonicmaster/ui/sonic_controls.dart';
 
@@ -329,5 +331,44 @@ void main() {
 
       expect(find.text('Save preset'), findsNothing);
     });
+  });
+
+  group('the picked slot id', () {
+    tearDown(() => Palette.current = appPalettes.first);
+
+    double ratio(Color a, Color b) {
+      final hi = a.computeLuminance() > b.computeLuminance() ? a : b;
+      final lo = identical(hi, a) ? b : a;
+
+      return (hi.computeLuminance() + 0.05) / (lo.computeLuminance() + 0.05);
+    }
+
+    for (final p in appPalettes) {
+      testWidgets('reads at 4.5:1 on the selected fill (${p.id})', (
+        tester,
+      ) async {
+        Palette.current = p;
+        await open(tester, current: const PresetRef(.user, 5));
+        await tester.tap(find.text('P05'));
+        await tester.pumpAndSettle();
+
+        final row = find.ancestor(
+          of: find.text('P05'),
+          matching: find.byWidgetPredicate(
+            (w) =>
+                w is Container &&
+                w.decoration is BoxDecoration &&
+                (w.decoration! as BoxDecoration).color == p.sel,
+          ),
+        );
+        final id = find.descendant(of: row, matching: find.text('P05'));
+
+        expect(id, findsOneWidget);
+        expect(
+          ratio(tester.widget<Text>(id).style!.color!, p.sel),
+          greaterThanOrEqualTo(4.5),
+        );
+      });
+    }
   });
 }
