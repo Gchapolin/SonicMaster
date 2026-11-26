@@ -11,7 +11,18 @@ Future<String> changedBackup(
   FakeCfwPedal pedal, {
   bool withOrder = false,
 }) async {
-  final b = await readPedalBackup(pedal, testCfwInfo(), app: 'test');
+  final b = await readPedalBackup(
+    pedal,
+    testCfwInfo(),
+    app: 'test',
+    now: DateTime.utc(
+      2026,
+      1,
+      2,
+      3,
+      4,
+    ), // fixed: shows in the restore dialog golden
+  );
 
   pedal.reads.clear();
 

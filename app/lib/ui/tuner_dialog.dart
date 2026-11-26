@@ -177,6 +177,7 @@ class TunerDialog extends HookConsumerWidget {
               SonicDropdown<int>(
                 value: a4,
                 width: 104,
+                fitLabels: true,
                 items: [
                   for (final hz in {
                     for (var hz = 430; hz <= 450; hz++) hz,

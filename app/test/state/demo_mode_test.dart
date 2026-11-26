@@ -45,7 +45,9 @@ void main() {
     await tester.runAsync(() async {
       await c.read(dataAssetsProvider.future);
       await startDemo(ref);
-      await Future<void>.delayed(const Duration(milliseconds: 400));
+      // connectAndSync fires the names, CFW, slot-name and scene reads
+      // unawaited; wait for all of them so nothing outlives the test.
+      await pendingConnectReads;
     });
 
     expect(c.read(demoModeProvider), isTrue);

@@ -4,6 +4,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sonicmaster/state/http_get.dart';
 
 void main() {
+  // flutter_test_config.dart initialises the test binding, which stubs every
+  // HttpClient with a 400; this file talks to a real loopback server.
+  setUpAll(() => HttpOverrides.global = null);
+
   late HttpServer server;
 
   setUp(() async {

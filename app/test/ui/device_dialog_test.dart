@@ -144,7 +144,7 @@ void main() {
     expect(
       tester.getRect(find.text('Select Bluetooth device')),
       rectMoreOrLessEquals(
-        const Rect.fromLTRB(545.6, 469.5, 734.4, 492.5),
+        const Rect.fromLTRB(545.6, 462.5, 734.4, 485.5),
         epsilon: 0.1,
       ),
     );

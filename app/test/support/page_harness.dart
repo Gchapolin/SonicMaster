@@ -14,7 +14,6 @@ import 'package:sonicmaster/state/names_providers.dart';
 import 'package:sonicmaster/state/preset_providers.dart';
 import 'package:sonicmaster/ui/preset_browser_page.dart';
 
-import 'fonts.dart';
 import 'silent_transport.dart';
 import 'test_assets.dart';
 
@@ -106,7 +105,6 @@ Future<ProviderContainer> pumpPage(
   List<Override> overrides = const [],
   Widget home = const PresetBrowserPage(),
 }) async {
-  await loadOswald();
   SharedPreferences.setMockInitialValues({});
   // A fixed version: the rail footer shows it, so the page goldens never
   // change with a version bump.

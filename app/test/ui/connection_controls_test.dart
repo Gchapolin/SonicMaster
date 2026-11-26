@@ -37,18 +37,10 @@ class _ThrowingPrefs extends ConnectionPrefs {
   Future<void> clearAutoConnect() async => throw StateError('prefs down');
 }
 
-Future<void> _loadFont() async {
-  final fl = FontLoader('Oswald')
-    ..addFont(rootBundle.load('assets/fonts/Oswald.ttf'));
-
-  await fl.load();
-}
-
 void main() {
   testWidgets('disconnected: Disconnected status + a compact Connect button', (
     tester,
   ) async {
-    await _loadFont();
     tester.view.physicalSize = const Size(800, 200);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -69,7 +61,6 @@ void main() {
   testWidgets('connected: Connected status + a Disconnect button', (
     tester,
   ) async {
-    await _loadFont();
     tester.view.physicalSize = const Size(800, 200);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -95,7 +86,6 @@ void main() {
   testWidgets('when connected, shows the device name instead of "Connected"', (
     tester,
   ) async {
-    await _loadFont();
     tester.view.physicalSize = const Size(800, 200);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -125,7 +115,6 @@ void main() {
   testWidgets('without its status label: glyph and Disconnect only', (
     tester,
   ) async {
-    await _loadFont();
     tester.view.physicalSize = const Size(800, 200);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -160,7 +149,6 @@ void main() {
   testWidgets('without its status label while disconnected: dot + Connect', (
     tester,
   ) async {
-    await _loadFont();
     tester.view.physicalSize = const Size(800, 200);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);

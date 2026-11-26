@@ -23,20 +23,6 @@ const _models = [
   'Studio Delay', // modern
 ];
 
-// flutter_test does not walk fontFamilyFallback, so the bundled Oswald also
-// stands in for Barlow Condensed and Share Tech Mono (not bundled yet).
-Future<void> _loadFont() async {
-  for (final family in const [
-    'Oswald',
-    'Barlow Condensed',
-    'Share Tech Mono',
-  ]) {
-    final fl = FontLoader(family)
-      ..addFont(rootBundle.load('assets/fonts/Oswald.ttf'));
-    await fl.load();
-  }
-}
-
 Widget _host(Widget child) => Directionality(
   textDirection: TextDirection.ltr,
   child: Align(alignment: Alignment.topLeft, child: child),
@@ -183,6 +169,22 @@ void main() {
     expect(got, isNotEmpty);
   });
 
+  testWidgets('no pedal title touches the body edges', (tester) async {
+    for (final e in pedalSpecs.entries) {
+      await tester.pumpWidget(_host(PedalPiece(spec: e.value, model: e.key)));
+      final body = tester.getRect(find.byType(PedalPiece));
+      final title = find.text(
+        e.value.family == PedalFamily.mxr ? e.key : e.key.toUpperCase(),
+      );
+      expect(title, findsWidgets, reason: e.key);
+      final r = tester.getRect(title.first);
+
+      // Wrap rather than touch: at least 4px of body on each side.
+      expect(r.left, greaterThanOrEqualTo(body.left + 4), reason: e.key);
+      expect(r.right, lessThanOrEqualTo(body.right - 4), reason: e.key);
+    }
+  });
+
   testWidgets('the model name is printed on the pedal', (tester) async {
     await tester.pumpWidget(
       _host(PedalPiece(spec: pedalSpecs['Phaser M']!, model: 'Phaser M')),
@@ -192,7 +194,6 @@ void main() {
   });
 
   testWidgets('eight knobs fit without overflow', (tester) async {
-    await _loadFont();
     final base = pedalSpecs['Studio Delay']!;
     // The app's Studio Delay has 8 parameters (Trail is the 8th).
     final names = [...base.knobNames, 'Trail'];
@@ -227,7 +228,6 @@ void main() {
   });
 
   testWidgets('every pedal model lays out without overflow', (tester) async {
-    await _loadFont();
     for (final e in pedalSpecs.entries) {
       for (final lit in const [true, false]) {
         await tester.pumpWidget(
@@ -241,7 +241,6 @@ void main() {
   testWidgets('pedal_families golden (14 families, lit and unlit)', (
     tester,
   ) async {
-    await _loadFont();
     tester.view.physicalSize = const Size(1500, 1000);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);

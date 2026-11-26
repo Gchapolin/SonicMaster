@@ -363,10 +363,16 @@ void main() {
   group('regular 1280x800 plates are unchanged', () {
     for (final (name, rect) in const [
       ('unsaved changes', Rect.fromLTRB(400, 301, 880, 499)),
+<<<<<<< HEAD
       ('save preset', Rect.fromLTRB(450, 247, 830, 553)),
       ('device picker, scanning', Rect.fromLTRB(410, 148, 870, 652)),
       // The redesign's three-column grid, Close in the header.
       ('settings', Rect.fromLTRB(90, 151, 1190, 649)),
+=======
+      ('save preset', Rect.fromLTRB(450, 266, 830, 534)),
+      ('device picker, scanning', Rect.fromLTRB(410, 145, 870, 655)),
+      ('settings', Rect.fromLTRB(420, 80, 860, 720)),
+>>>>>>> redesign-bugfix
     ]) {
       testWidgets(name, (tester) async {
         final dialog = _cases.firstWhere((c) => c.name == name);

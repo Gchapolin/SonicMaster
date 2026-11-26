@@ -22,6 +22,7 @@ import '../fixtures/cfw_dumps.dart';
 import '../support/page_harness.dart';
 import '../support/silent_transport.dart';
 import '../support/sonic_host.dart';
+import '../support/text_fit.dart';
 import '../support/view_helpers.dart';
 
 List<int> _f32(double v) =>
@@ -184,6 +185,18 @@ void main() {
     await tester.pump();
 
     expect(pedal.sent.last, tunerA4Frame(441));
+  });
+
+  testWidgets('the A4 dropdown shows its whole value', (tester) async {
+    await open(tester, reading: _silent);
+
+    expectNoTruncatedText(
+      tester,
+      find.ancestor(
+        of: find.text('440 Hz'),
+        matching: find.byType(SonicDropdown<int>),
+      ),
+    );
   });
 
   testWidgets('the pedal\'s own A4 and mute state are shown', (tester) async {

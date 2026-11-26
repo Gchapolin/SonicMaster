@@ -1,6 +1,6 @@
 import 'dart:async'; // unawaited
 
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../device/device_model.dart';
@@ -11,6 +11,11 @@ import 'connection_prefs.dart';
 import 'data_providers.dart';
 import 'device_providers.dart';
 import 'preset_providers.dart';
+
+/// The connect-time reads still in flight (names, CFW block, slot names,
+/// scenes), kept so a test can await the real tail instead of sleeping.
+@visibleForTesting
+Future<void> pendingConnectReads = Future.value();
 
 /// Open [target] on the current transport and, unless the transport changed
 /// mid-await, mark the connection live, set [statusOnSuccess], and sync device
@@ -68,7 +73,7 @@ Future<bool> connectAndSync(
   // Names first, then the community custom firmware (CFW) settings block:
   // stock firmware never answers it, so its timeout must not hold the IO gate
   // ahead of the names.
-  unawaited(refreshNamesThenCfw(ref));
+  unawaited(pendingConnectReads = refreshNamesThenCfw(ref));
 
   return true;
 }

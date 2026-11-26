@@ -187,11 +187,21 @@ class PedalPiece extends StatelessWidget {
     bool italic = false,
     bool upper = true,
     TextAlign align = TextAlign.center,
-  }) => Text(
-    upper ? model.toUpperCase() : model,
-    textAlign: align,
-    maxLines: 2,
-    style: _font(size, spec.label, spacing: spacing, italic: italic),
+  }) => Padding(
+    // Side margin: a long name wraps before it touches the body's edges
+    // (rack, studio and tape size their title box to the text and need none).
+    padding: EdgeInsets.symmetric(
+      horizontal: switch (spec.family) {
+        PedalFamily.rack || PedalFamily.studio || PedalFamily.tape => 0,
+        _ => 6,
+      },
+    ),
+    child: Text(
+      upper ? model.toUpperCase() : model,
+      textAlign: align,
+      maxLines: 2,
+      style: _font(size, spec.label, spacing: spacing, italic: italic),
+    ),
   );
 
   Widget _led() =>
