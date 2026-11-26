@@ -11,6 +11,7 @@ import 'device/transport.dart';
 import 'src/rust/frb_generated.dart';
 import 'state/connection_prefs.dart';
 import 'state/device_providers.dart';
+import 'state/palette_providers.dart';
 import 'theme/app_colors.dart';
 import 'ui/preset_browser_page.dart';
 import 'ui/rotate_device_overlay.dart';
@@ -78,12 +79,14 @@ Future<void> main() async {
 
   await initTransports(); // no-op; package transports init lazily on connect
 
-  final prefs = ConnectionPrefs(await SharedPreferences.getInstance());
+  final shared = await SharedPreferences.getInstance();
+  final prefs = ConnectionPrefs(shared);
 
   runApp(
     ProviderScope(
       overrides: [
         connectionPrefsProvider.overrideWithValue(prefs),
+        paletteStoreProvider.overrideWithValue(shared),
         // Seed the manual model override from the persisted value so a device
         // whose name we don't auto-recognize stays gated across launches.
         deviceModelOverrideProvider.overrideWith((_) => prefs.modelOverride),
@@ -131,13 +134,17 @@ class SonicMasterApp extends StatelessWidget {
 /// [child] is never wrapped conditionally. A wrapper that comes and goes with
 /// the mode or the orientation remounts the FocusScope around the Navigator on
 /// every flip; the routes would survive only by GlobalKey reparenting.
-class _AppFrame extends StatelessWidget {
+class _AppFrame extends ConsumerWidget {
   const _AppFrame({required this.child});
 
   final Widget child;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Palette colors are static getters, not inherited: on a change, mark every
+    // element dirty so routes and open dialogs repaint without being remounted.
+    ref.listen(paletteIdProvider, (_, _) => _rebuildAll(context as Element));
+
     return SonicMetricsScope(
       metrics: isDesktopWindow
           ? SonicMetrics.regular
@@ -145,4 +152,9 @@ class _AppFrame extends StatelessWidget {
       child: RotateDeviceOverlay(child: child),
     );
   }
+}
+
+void _rebuildAll(Element e) {
+  e.markNeedsBuild();
+  e.visitChildren(_rebuildAll);
 }
