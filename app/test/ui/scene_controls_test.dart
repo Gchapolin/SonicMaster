@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sonicmaster/l10n/lang.dart';
 import 'package:sonicmaster/device/device_service.dart';
-import 'package:sonicmaster/gear/gear_piece.dart';
 import 'package:sonicmaster/model/cfw_scenes.dart';
 import 'package:sonicmaster/protocol/cfw_scene_codec.dart';
 import 'package:sonicmaster/protocol/cfw_settings_decoder.dart';
@@ -51,10 +50,6 @@ void main() {
   Finder inEditor(Finder f) =>
       find.descendant(of: find.byType(ModuleEditor), matching: f);
 
-  // Gate's THRE (0..100) on the regular editor's piece.
-  double? thre(WidgetTester tester) =>
-      tester.widget<GearPiece>(inEditor(find.byType(GearPiece))).values![0];
-
   testWidgets('stock firmware: no scene controls', (tester) async {
     await pump(tester, isCfw: false);
 
@@ -81,7 +76,7 @@ void main() {
       },
     );
 
-    expect(thre(tester), 23); // THRE: base is 50
+    expect(inEditor(find.text('23')), findsOneWidget); // THRE: base is 50
     expect(inEditor(find.text('SC1')), findsOneWidget);
     expect(inEditor(find.text('SC2')), findsOneWidget);
     expect(inEditor(find.text('ON')), findsOneWidget);
@@ -96,7 +91,7 @@ void main() {
       },
     );
 
-    expect(thre(tester), 50);
+    expect(inEditor(find.text('50')), findsOneWidget);
     expect(inEditor(find.text('OFF')), findsNothing); // no override in BASE
   });
 
@@ -112,7 +107,7 @@ void main() {
     );
 
     expect(tester.takeException(), isNull);
-    expect(thre(tester), 50);
+    expect(inEditor(find.text('50')), findsOneWidget);
   });
 
   testWidgets('OFF sends the record with the SC1 off flags', (tester) async {

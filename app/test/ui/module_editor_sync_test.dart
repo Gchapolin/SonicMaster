@@ -226,11 +226,11 @@ void main() {
         c.syncAlg: 1,
       });
 
-      // The piece knob holds no position: the slot is a note division.
+      // The slot is a note division: the knob leaves the piece.
       expect(
-        pieceValue(tester, c.tempo),
-        isNull,
-        reason: 'the ${c.tempo} knob must be blank once Sync is engaged',
+        tester.widget<GearPiece>(find.byType(GearPiece)).knobNames,
+        isNot(contains(c.tempo)),
+        reason: 'the ${c.tempo} knob must be gone once Sync is engaged',
       );
 
       final divisions = tester.widget<SonicDropdown<int>>(

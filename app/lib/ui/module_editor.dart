@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart' show Icons;
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../gear/gear_lookup.dart';
@@ -10,6 +12,7 @@ import '../model/amp_gain.dart';
 import '../model/effect_parameter.dart';
 import '../model/footswitch_assignment.dart';
 import '../model/footswitch_state.dart';
+import '../model/slider_nudge.dart';
 import '../protocol/cfw_slot_names_codec.dart';
 import '../state/cfw_providers.dart';
 import '../state/data_providers.dart';
@@ -23,6 +26,7 @@ import 'knob_control.dart';
 import 'knob_mapping.dart';
 import 'scene_controls.dart';
 import 'sonic_controls.dart';
+import 'sonic_field.dart';
 import 'sonic_metrics.dart';
 import 'tap_tempo_control.dart';
 import 'user_ir_actions.dart';
@@ -121,8 +125,13 @@ class ModuleEditor extends ConsumerWidget {
     final isRegular = !metrics.isCompact;
     // Regular: the effect's knobs live on its big piece; the rest of its
     // params stay in the control row below.
+    // A synced Rate / Time holds a note division, not a position: it stays
+    // off the piece and keeps its division dropdown in the control row.
     final onPiece = isRegular
-        ? pieceKnobs(def, isCfw: isCfw)
+        ? [
+            for (final p in pieceKnobs(def, isCfw: isCfw))
+              if (!p.isSynced(values)) p,
+          ]
         : const <EffectParameter>[];
 
     return Column(
@@ -218,44 +227,17 @@ class ModuleEditor extends ConsumerWidget {
             ),
           ),
         if (isRegular)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-            // Narrower than the piece: it scales down, never overflows.
-            child: Center(
-              child: FittedBox(
-                fit: .scaleDown,
-                child: GearPiece(
-                  model: def.name,
-                  kind: gearKindForModule(physId),
-                  fit: const Size(660, 440),
-                  knobNames: [for (final p in onPiece) p.name],
-                  values: [
-                    for (final p in onPiece)
-                      // A synced Rate holds a note division, not a position.
-                      p.isSynced(values)
-                          ? null
-                          : toPieceValue(p, values[p.algId] ?? p.defaultValue),
-                  ],
-                  onKnob: isLoading
-                      ? null
-                      : (e) {
-                          final p = onPiece[e.$1];
-
-                          if (p.isSynced(values)) return;
-
-                          final v = fromPieceValue(p, e.$2);
-
-                          if (v == (values[p.algId] ?? p.defaultValue)) return;
-
-                          setParameter(ref, moduleId, p.algId, v);
-                        },
-                  onSwitch: isLoading
-                      ? null
-                      : () => toggleModule(ref, physId, !moduleOn),
-                  lit: moduleOn,
-                ),
-              ),
-            ),
+          _PieceEditor(
+            // A new model starts the value line on its first knob again.
+            key: ValueKey(def.id),
+            model: def.name,
+            kind: gearKindForModule(physId),
+            knobs: onPiece,
+            values: values,
+            isOn: moduleOn,
+            isEnabled: !isLoading,
+            onSet: (p, v) => setParameter(ref, moduleId, p.algId, v),
+            onSwitch: () => toggleModule(ref, physId, !moduleOn),
           ),
         // Every control — knobs, toggles, dropdowns — flows in ONE horizontal
         // Wrap like a hardware unit's front panel (always a single row that
@@ -324,8 +306,7 @@ class ModuleEditor extends ConsumerWidget {
                     ),
                   ),
               for (final p in knobs)
-                // A synced Rate stays here: its division dropdown.
-                if (!onPiece.contains(p) || p.isSynced(values))
+                if (!onPiece.contains(p))
                   _control(
                     context,
                     ref,
@@ -669,6 +650,164 @@ class _ModelHeader extends StatelessWidget {
         ),
         trailing,
       ],
+    );
+  }
+}
+
+/// The regular editor's big piece (fitted to 660x440, scaled down when the
+/// editor is narrower) with the value line under it: the last-touched knob's
+/// name and value, as KnobControl prints it. Tapping the value types one in.
+class _PieceEditor extends HookWidget {
+  const _PieceEditor({
+    super.key,
+    required this.model,
+    required this.kind,
+    required this.knobs,
+    required this.values,
+    required this.isOn,
+    required this.isEnabled,
+    required this.onSet,
+    required this.onSwitch,
+  });
+
+  final String model;
+  final GearKind kind;
+  final List<EffectParameter> knobs;
+  final Map<int, num> values;
+  final bool isOn;
+  final bool isEnabled;
+  final void Function(EffectParameter p, num value) onSet;
+  final VoidCallback onSwitch;
+
+  num _valueOf(EffectParameter p) => values[p.algId] ?? p.defaultValue;
+
+  @override
+  Widget build(BuildContext context) {
+    final touched = useState(0);
+    final isEditing = useState(false);
+    final controller = useTextEditingController();
+    final metrics = SonicMetrics.of(context);
+
+    // Sends [v] unless the knob already holds it.
+    void set(EffectParameter p, num v) {
+      if (v != _valueOf(p)) onSet(p, v);
+    }
+
+    final p = knobs.isEmpty ? null : knobs[touched.value % knobs.length];
+
+    void commit() {
+      if (!isEditing.value || p == null) return;
+
+      isEditing.value = false;
+
+      final v = parseSliderValue(
+        controller.text,
+        p.min ?? 0,
+        p.max ?? 100,
+        p.step ?? 1,
+      );
+
+      if (v != null) set(p, v);
+    }
+
+    Widget line() {
+      if (p == null) return const SizedBox.shrink();
+
+      final value = _valueOf(p);
+      final valueStyle = metrics.knobValueStyle.copyWith(
+        color: Palette.textPrimary,
+      );
+
+      return Row(
+        key: const Key('piece-value'),
+        mainAxisAlignment: .center,
+        children: [
+          Text(
+            p.name,
+            style: AppText.section.copyWith(color: Palette.textMuted),
+          ),
+          const SizedBox(width: 10),
+          if (isEditing.value)
+            SizedBox(
+              width: 120,
+              child: CallbackShortcuts(
+                bindings: {
+                  const SingleActivator(LogicalKeyboardKey.escape): () =>
+                      isEditing.value = false,
+                },
+                child: SonicField(
+                  controller: controller,
+                  autofocus: true,
+                  textAlign: .center,
+                  style: valueStyle,
+                  isRecessed: false,
+                  padding: EdgeInsets.zero,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                    signed: true,
+                  ),
+                  selectAllOnFocus: true,
+                  onSubmitted: (_) => commit(),
+                  onTapOutside: (_) => commit(),
+                ),
+              ),
+            )
+          else
+            GestureDetector(
+              behavior: .opaque,
+              onTap: isEnabled
+                  ? () {
+                      final text = '$value';
+
+                      controller.value = TextEditingValue(
+                        text: text,
+                        selection: TextSelection.collapsed(offset: text.length),
+                      );
+                      isEditing.value = true;
+                    }
+                  : null,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Text(
+                  p.textFor(value) ?? '$value${p.unit ?? ''}',
+                  style: valueStyle,
+                ),
+              ),
+            ),
+        ],
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+      child: Column(
+        mainAxisSize: .min,
+        children: [
+          // Narrower than the piece: it scales down, never overflows.
+          Center(
+            child: FittedBox(
+              fit: .scaleDown,
+              child: GearPiece(
+                model: model,
+                kind: kind,
+                fit: const Size(660, 440),
+                knobNames: [for (final k in knobs) k.name],
+                values: [for (final k in knobs) toPieceValue(k, _valueOf(k))],
+                onKnob: isEnabled
+                    ? (e) {
+                        touched.value = e.$1;
+                        set(knobs[e.$1], fromPieceValue(knobs[e.$1], e.$2));
+                      }
+                    : null,
+                onSwitch: isEnabled ? onSwitch : null,
+                lit: isOn,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          line(),
+        ],
+      ),
     );
   }
 }
