@@ -19,10 +19,11 @@ import 'sonic_controls.dart';
 import 'tap_tempo_control.dart';
 import 'user_slots_dialog.dart';
 
-/// The panel's width (prototype N_Principal) and the width its card's 14-px
-/// padding leaves its controls.
+/// The panel's width (prototype N_Principal) and the width its card's 12-px
+/// padding leaves its controls (the prototype pads 14 and spaces 16; a little
+/// tighter so every effect's controls fit at 1180x820).
 const blockPanelWidth = 236.0;
-const _inner = blockPanelWidth - 2 * 14;
+const _inner = blockPanelWidth - 2 * 12;
 
 /// The regular editor's right-hand panel (prototype N_Principal): block on,
 /// Clone Mode (amp), the user slots (cab / clone), the footswitch, the
@@ -103,6 +104,7 @@ class BlockPanel extends ConsumerWidget {
 
     // The params the piece doesn't draw.
     final params = <Widget>[];
+    final toggles = <Widget>[];
     final bands = <Widget>[];
 
     for (final p in knobs) {
@@ -110,7 +112,7 @@ class BlockPanel extends ConsumerWidget {
 
       switch (p.widgetType) {
         case .toggle:
-          params.add(
+          toggles.add(
             labelled(
               key: ValueKey('param:${p.name}'),
               p.name,
@@ -123,7 +125,15 @@ class BlockPanel extends ConsumerWidget {
         case .select:
           final options = p.options ?? const <String>[];
 
-          if (options.isNotEmpty) params.add(dropdown(p, options, v.toInt()));
+          params.add(
+            options.isEmpty
+                ? labelled(
+                    key: ValueKey('param:${p.name}'),
+                    p.name,
+                    const Text('—'),
+                  )
+                : dropdown(p, options, v.toInt()),
+          );
         case .knob when p.isSynced(values):
           // Tempo-sync engaged: the slot holds a note division.
           params.add(dropdown(p, syncDivisions, v.round()));
@@ -139,7 +149,8 @@ class BlockPanel extends ConsumerWidget {
               label: p.name,
               unit: p.unit,
               valueText: p.textFor(v),
-              size: 44,
+              size: 32,
+              isDense: true,
               isEnabled: !isLoading,
               onChanged: (x) => set(p, x),
             ),
@@ -212,11 +223,33 @@ class BlockPanel extends ConsumerWidget {
                 : (a) => setModuleFootswitch(ref, physId, a),
           ),
         ),
+      // The switches two to a row.
+      for (var i = 0; i < toggles.length; i += 2)
+        Row(
+          children: [
+            Expanded(child: toggles[i]),
+            const SizedBox(width: 16),
+            Expanded(
+              child: i + 1 < toggles.length ? toggles[i + 1] : const SizedBox(),
+            ),
+          ],
+        ),
       ...params,
+      // The EQ bands side by side, small and dense.
       if (bands.isNotEmpty)
-        Wrap(alignment: .center, spacing: 4, runSpacing: 4, children: bands),
+        Row(
+          crossAxisAlignment: .start,
+          children: [
+            for (final b in bands)
+              Expanded(
+                child: FittedBox(fit: .scaleDown, child: b),
+              ),
+          ],
+        ),
       if (time != null)
         TapTempoControl(
+          key: tapTempoKey,
+          isPanel: true,
           timeMin: (time.min ?? 20).round(),
           timeMax: (time.max ?? 1000).round(),
           currentMs: (values[1] ?? time.defaultValue).round(),
@@ -230,7 +263,7 @@ class BlockPanel extends ConsumerWidget {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: Palette.outlineVariant),
       ),
-      child: Padding(padding: const EdgeInsets.all(14), child: child),
+      child: Padding(padding: const EdgeInsets.all(12), child: child),
     );
 
     return SizedBox(
@@ -245,20 +278,15 @@ class BlockPanel extends ConsumerWidget {
               children: [
                 Column(
                   crossAxisAlignment: .stretch,
-                  spacing: 16,
+                  spacing: 12,
                   children: controls,
                 ),
                 // CFW only (empty otherwise).
-                SceneControls(
-                  moduleId: physId,
-                  padding: const EdgeInsets.only(top: 16),
-                ),
+                SceneControls(moduleId: physId, isPanel: true),
                 ExpControls(
-                  padding: const EdgeInsets.only(top: 16),
-                  isModeExpanded: true,
-                  // A fresh state per module: it opens on that module's slot.
-                  key: ValueKey(physId),
+                  key: expControlsKey(physId),
                   moduleId: physId,
+                  isPanel: true,
                   params: [
                     for (final p in knobs)
                       if (p.widgetType == .knob || p.widgetType == .eqBand) p,

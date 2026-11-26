@@ -25,7 +25,12 @@ class TapTempoControl extends HookWidget {
     required this.currentMs,
     required this.onSend,
     this.trailing = const [],
+    this.isPanel = false,
   });
+
+  /// The block panel's two rows (TAP + BPM, division + readout) instead of
+  /// the knob-height cells of the control row.
+  final bool isPanel;
 
   final int timeMin;
   final int timeMax;
@@ -178,80 +183,117 @@ class TapTempoControl extends HookWidget {
     final shown = raw.clamp(timeMin, timeMax).round();
     final controlHeight = metrics.editorControlHeight;
 
+    final tapButton = SonicButton(
+      label: 'TAP',
+      height: isPanel ? 34 : 44,
+      minWidth: 92,
+      isLit: isBeatOn.value,
+      onPressed: tap,
+    );
+    final bpmField = SonicField(
+      controller: bpmCtl,
+      focusNode: bpmFocus,
+      textAlign: .center,
+      style: AppText.bpm,
+      isRecessed: false,
+      padding: EdgeInsets.zero,
+      keyboardType: numericKeyboardType(isSigned: false),
+      // Compact (phones): focusing selects the tempo (the web and
+      // desktop default already), and no autocorrect or suggestion
+      // strip over a number. Regular keeps today's options.
+      selectAllOnFocus: metrics.isCompact ? true : null,
+      autocorrect: !metrics.isCompact,
+      enableSuggestions: !metrics.isCompact,
+      onSubmitted: submitBpm,
+      // Compact: a tap anywhere else ends the edit, as a mobile
+      // browser does (the commit is the focus listener above).
+      // Regular: the platform default (desktop unfocuses).
+      onTapOutside: metrics.isCompact ? (_) => bpmFocus.unfocus() : null,
+    );
+    final division = SonicDropdown<double>(
+      value: multiplier.value,
+      width: 92,
+      height: isPanel ? 34 : controlHeight,
+      items: [
+        for (final (label, mult) in noteDivisions) (value: mult, label: label),
+      ],
+      onChanged: (m) {
+        multiplier.value = m;
+        send();
+      },
+    );
+    final readout = Text(
+      '$shown ms',
+      style: AppText.bpmDisplay.copyWith(
+        color: outOfRange ? Palette.error : Palette.textPrimary,
+      ),
+    );
+
+    // The block panel: TAP + BPM, then the division + the readout.
+    if (isPanel) {
+      return Column(
+        crossAxisAlignment: .stretch,
+        spacing: 8,
+        children: [
+          Row(
+            children: [
+              tapButton,
+              const SizedBox(width: 8),
+              Expanded(
+                child: SonicRecess(
+                  radius: 10,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(child: bpmField),
+                      Text(
+                        'BPM',
+                        style: AppText.section.copyWith(
+                          color: Palette.textMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              division,
+              const SizedBox(width: 8),
+              Expanded(
+                child: Align(alignment: .centerRight, child: readout),
+              ),
+            ],
+          ),
+        ],
+      );
+    }
+
     return Wrap(
       alignment: .center,
       spacing: 4,
       runSpacing: 4,
       children: [
         // TAP — push button; its label lights up on the beat.
-        PanelCell(
-          control: SonicButton(
-            label: 'TAP',
-            height: 44,
-            minWidth: 92,
-            isLit: isBeatOn.value,
-            onPressed: tap,
-          ),
-        ),
+        PanelCell(control: tapButton),
         // BPM — recessed well with an editable value, label below.
         PanelCell(
           label: 'BPM',
           control: SonicRecess(
             radius: 10,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-            child: SizedBox(
-              width: 60,
-              child: SonicField(
-                controller: bpmCtl,
-                focusNode: bpmFocus,
-                textAlign: .center,
-                style: AppText.bpm,
-                isRecessed: false,
-                padding: EdgeInsets.zero,
-                keyboardType: numericKeyboardType(isSigned: false),
-                // Compact (phones): focusing selects the tempo (the web and
-                // desktop default already), and no autocorrect or suggestion
-                // strip over a number. Regular keeps today's options.
-                selectAllOnFocus: metrics.isCompact ? true : null,
-                autocorrect: !metrics.isCompact,
-                enableSuggestions: !metrics.isCompact,
-                onSubmitted: submitBpm,
-                // Compact: a tap anywhere else ends the edit, as a mobile
-                // browser does (the commit is the focus listener above).
-                // Regular: the platform default (desktop unfocuses).
-                onTapOutside: metrics.isCompact
-                    ? (_) => bpmFocus.unfocus()
-                    : null,
-              ),
-            ),
+            child: SizedBox(width: 60, child: bpmField),
           ),
         ),
         // Note division — dropdown (was a segmented bar).
-        PanelCell(
-          label: 'Div',
-          control: SonicDropdown<double>(
-            value: multiplier.value,
-            width: 92,
-            height: controlHeight,
-            items: [
-              for (final (label, mult) in noteDivisions)
-                (value: mult, label: label),
-            ],
-            onChanged: (m) {
-              multiplier.value = m;
-              send();
-            },
-          ),
-        ),
+        PanelCell(label: 'Div', control: division),
         // Computed delay time — plain Oswald text, centered with the knobs.
-        PanelCell(
-          control: Text(
-            '$shown ms',
-            style: AppText.bpmDisplay.copyWith(
-              color: outOfRange ? Palette.error : Palette.textPrimary,
-            ),
-          ),
-        ),
+        PanelCell(control: readout),
         ...trailing,
       ],
     );

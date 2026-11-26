@@ -30,16 +30,12 @@ class ExpControls extends HookConsumerWidget {
     super.key,
     required this.moduleId,
     required this.params,
-    this.padding = const EdgeInsets.fromLTRB(12, 0, 12, 8),
-    this.isModeExpanded = false,
+    this.isPanel = false,
   });
 
-  /// The mode bar fills the width (the narrow block panel), its labels
-  /// scaled down to fit.
-  final bool isModeExpanded;
-
-  /// Around the controls (the block panel pads them itself).
-  final EdgeInsets padding;
+  /// The block panel's tight rows: label, slot and target, the mode across
+  /// the width, then the range ends.
+  final bool isPanel;
 
   /// Physical module id (0 NR … 8 RVB).
   final int moduleId;
@@ -69,8 +65,100 @@ class ExpControls extends HookConsumerWidget {
 
     void set(ExpAssign? a) => setExpAssign(ref, slot.value, a);
 
+    final h = isPanel ? 34.0 : height;
+    final slotPicker = SonicDropdown<int>(
+      value: slot.value,
+      width: 64,
+      height: h,
+      items: [
+        for (final (i, name) in _slotNames.indexed) (value: i, label: name),
+      ],
+      onChanged: (v) => slot.value = v,
+    );
+    final target = SonicDropdown<int>(
+      value: assign == null ? _none : (isKnown ? assign.algId : _elsewhere),
+      width: isPanel ? 100 : 132,
+      height: h,
+      isEnabled: !isLoading,
+      items: [
+        (value: _none, label: t.none),
+        if (assign != null && !isKnown)
+          (
+            value: _elsewhere,
+            label: isHere
+                ? t.knob(assign.algId)
+                : modules?.nameOf(assign.module) ?? t.module(assign.module),
+          ),
+        for (final p in params) (value: p.algId, label: p.name),
+      ],
+      onChanged: (v) {
+        if (v == _elsewhere) return;
+
+        set(v == _none ? null : ExpAssign(module: moduleId, algId: v));
+      },
+    );
+    final mode = isKnown
+        ? SonicSegmented<int>(
+            value: assign!.mode,
+            height: h,
+            isExpanded: isPanel,
+            segmentPadding: isPanel ? 4 : 16,
+            segments: [
+              (value: ExpAssign.continuous, label: t.continuous),
+              (value: ExpAssign.toggle, label: t.toggle),
+              (value: ExpAssign.momentary, label: t.momentary),
+            ],
+            onChanged: isLoading ? null : (v) => set(assign.copyWith(mode: v)),
+          )
+        : null;
+    final range = isKnown
+        ? [
+            _Percent(
+              value: assign!.min,
+              width: isPanel ? 100 : 84,
+              height: h,
+              isEnabled: !isLoading,
+              onChanged: (v) => set(assign.copyWith(min: v)),
+            ),
+            _Percent(
+              value: assign.max,
+              width: isPanel ? 100 : 84,
+              height: h,
+              isEnabled: !isLoading,
+              onChanged: (v) => set(assign.copyWith(max: v)),
+            ),
+          ]
+        : const <Widget>[];
+
+    if (isPanel) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 12),
+        child: Column(
+          crossAxisAlignment: .stretch,
+          spacing: 8,
+          children: [
+            Row(
+              children: [
+                Text(
+                  'EXP',
+                  style: AppText.section.copyWith(color: Palette.textMuted),
+                ),
+                const Spacer(),
+                slotPicker,
+                const SizedBox(width: 8),
+                target,
+              ],
+            ),
+            ?mode,
+            if (range.isNotEmpty)
+              Row(mainAxisAlignment: .spaceBetween, children: range),
+          ],
+        ),
+      );
+    }
+
     return Padding(
-      padding: padding,
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
       child: Wrap(
         alignment: .center,
         crossAxisAlignment: .center,
@@ -81,68 +169,10 @@ class ExpControls extends HookConsumerWidget {
             'EXP',
             style: AppText.dialogBody.copyWith(color: Palette.onSurfaceVariant),
           ),
-          SonicDropdown<int>(
-            value: slot.value,
-            width: 64,
-            height: height,
-            items: [
-              for (final (i, name) in _slotNames.indexed)
-                (value: i, label: name),
-            ],
-            onChanged: (v) => slot.value = v,
-          ),
-          SonicDropdown<int>(
-            value: assign == null
-                ? _none
-                : (isKnown ? assign.algId : _elsewhere),
-            width: 132,
-            height: height,
-            isEnabled: !isLoading,
-            items: [
-              (value: _none, label: t.none),
-              if (assign != null && !isKnown)
-                (
-                  value: _elsewhere,
-                  label: isHere
-                      ? t.knob(assign.algId)
-                      : modules?.nameOf(assign.module) ??
-                            t.module(assign.module),
-                ),
-              for (final p in params) (value: p.algId, label: p.name),
-            ],
-            onChanged: (v) {
-              if (v == _elsewhere) return;
-
-              set(v == _none ? null : ExpAssign(module: moduleId, algId: v));
-            },
-          ),
-          if (isKnown) ...[
-            SonicSegmented<int>(
-              value: assign!.mode,
-              height: height,
-              isExpanded: isModeExpanded,
-              segments: [
-                (value: ExpAssign.continuous, label: t.continuous),
-                (value: ExpAssign.toggle, label: t.toggle),
-                (value: ExpAssign.momentary, label: t.momentary),
-              ],
-              onChanged: isLoading
-                  ? null
-                  : (v) => set(assign.copyWith(mode: v)),
-            ),
-            _Percent(
-              value: assign.min,
-              height: height,
-              isEnabled: !isLoading,
-              onChanged: (v) => set(assign.copyWith(min: v)),
-            ),
-            _Percent(
-              value: assign.max,
-              height: height,
-              isEnabled: !isLoading,
-              onChanged: (v) => set(assign.copyWith(max: v)),
-            ),
-          ],
+          slotPicker,
+          target,
+          ?mode,
+          ...range,
         ],
       ),
     );
@@ -154,12 +184,14 @@ class ExpControls extends HookConsumerWidget {
 class _Percent extends StatelessWidget {
   const _Percent({
     required this.value,
+    required this.width,
     required this.height,
     required this.isEnabled,
     required this.onChanged,
   });
 
   final int value;
+  final double width;
   final double height;
   final bool isEnabled;
   final ValueChanged<int> onChanged;
@@ -167,7 +199,7 @@ class _Percent extends StatelessWidget {
   @override
   Widget build(BuildContext context) => SonicDropdown<int>(
     value: value,
-    width: 84,
+    width: width,
     height: height,
     isEnabled: isEnabled,
     items: [

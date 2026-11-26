@@ -18,14 +18,15 @@ class SceneControls extends ConsumerWidget {
   const SceneControls({
     super.key,
     required this.moduleId,
-    this.padding = const EdgeInsets.fromLTRB(12, 4, 12, 8),
+    this.isPanel = false,
   });
 
   /// Physical module id (0 NR … 8 RVB).
   final int moduleId;
 
-  /// Around the controls (the block panel pads them itself).
-  final EdgeInsets padding;
+  /// The block panel's tight rows: label, scene selector and switch on one
+  /// row, the scene state under it.
+  final bool isPanel;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -42,8 +43,76 @@ class SceneControls extends ConsumerWidget {
     final height = SonicMetrics.of(context).editorControlHeight;
     final isOn = record?.isOn(scene);
 
+    final switchIn = SonicToggle(
+      value: record != null,
+      height: isPanel ? 26 : height,
+      onChanged: isLoading
+          ? null
+          : (v) => setModuleInScenes(ref, moduleId, isIn: v),
+    );
+    final selectors = [
+      if (record != null)
+        SonicSegmented<int>(
+          value: scene,
+          height: isPanel ? 34 : height,
+          isExpanded: isPanel,
+          segmentPadding: isPanel ? 4 : 16,
+          segments: const [
+            (value: 0, label: 'Base'),
+            (value: 1, label: 'SC1'),
+            (value: 2, label: 'SC2'),
+          ],
+          onChanged: isLoading ? null : (v) => selectScene(ref, v),
+        ),
+      if (record != null && scene != 0)
+        SonicSegmented<int>(
+          value: isOn == null ? 0 : (isOn ? 1 : 2),
+          height: isPanel ? 34 : height,
+          isExpanded: isPanel,
+          segmentPadding: isPanel ? 4 : 16,
+          segments: [
+            (value: 0, label: t.follow),
+            (value: 1, label: t.on),
+            (value: 2, label: t.off),
+          ],
+          onChanged: isLoading
+              ? null
+              : (v) =>
+                    setSceneModuleState(ref, moduleId, v == 0 ? null : v == 1),
+        ),
+    ];
+
+    // The panel: label, live-scene selector and switch on one row; the
+    // module's state for SC1 / SC2 under it.
+    if (isPanel) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 12),
+        child: Column(
+          crossAxisAlignment: .stretch,
+          spacing: 8,
+          children: [
+            Row(
+              children: [
+                Text(
+                  t.scenes,
+                  style: AppText.ui.copyWith(color: Palette.textPrimary),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: selectors.isEmpty ? const SizedBox() : selectors[0],
+                ),
+                const SizedBox(width: 8),
+                switchIn,
+              ],
+            ),
+            ...selectors.skip(1),
+          ],
+        ),
+      );
+    }
+
     return Padding(
-      padding: padding,
+      padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
       child: Wrap(
         alignment: .center,
         crossAxisAlignment: .center,
@@ -60,43 +129,10 @@ class SceneControls extends ConsumerWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              SonicToggle(
-                value: record != null,
-                height: height,
-                onChanged: isLoading
-                    ? null
-                    : (v) => setModuleInScenes(ref, moduleId, isIn: v),
-              ),
+              switchIn,
             ],
           ),
-          if (record != null)
-            SonicSegmented<int>(
-              value: scene,
-              height: height,
-              segments: const [
-                (value: 0, label: 'Base'),
-                (value: 1, label: 'SC1'),
-                (value: 2, label: 'SC2'),
-              ],
-              onChanged: isLoading ? null : (v) => selectScene(ref, v),
-            ),
-          if (record != null && scene != 0)
-            SonicSegmented<int>(
-              value: isOn == null ? 0 : (isOn ? 1 : 2),
-              height: height,
-              segments: [
-                (value: 0, label: t.follow),
-                (value: 1, label: t.on),
-                (value: 2, label: t.off),
-              ],
-              onChanged: isLoading
-                  ? null
-                  : (v) => setSceneModuleState(
-                      ref,
-                      moduleId,
-                      v == 0 ? null : v == 1,
-                    ),
-            ),
+          ...selectors,
         ],
       ),
     );

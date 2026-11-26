@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sonicmaster/device/device_service.dart';
 import 'package:sonicmaster/gear/gear_piece.dart';
 import 'package:sonicmaster/l10n/shell_text.dart';
+import 'package:sonicmaster/model/effect_definition.dart';
+import 'package:sonicmaster/model/effect_parameter.dart';
 import 'package:sonicmaster/state/data_providers.dart';
 import 'package:sonicmaster/state/device_providers.dart';
 import 'package:sonicmaster/state/edit_providers.dart';
@@ -47,6 +49,8 @@ void main() {
 
     addTearDown(container.dispose);
     await container.read(dataAssetsProvider.future);
+    // A fresh tree: a second pump in the same test gets its own container.
+    await tester.pumpWidget(const SizedBox.shrink());
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
@@ -87,8 +91,14 @@ void main() {
     expect(find.text(ShellText.current.cloneMode), findsNothing);
   });
 
-  testWidgets('user slots button only on the cab', (tester) async {
+  // The cab's User IRs and, in clone mode, the amp's User Profiles.
+  testWidgets('user slots button only on the cab and the clone', (
+    tester,
+  ) async {
     await pumpPanel(tester, moduleId: 4, fxId: 410);
+    expect(find.text(ShellText.current.userSlots), findsOneWidget);
+
+    await pumpPanel(tester, moduleId: 9, fxId: 901);
     expect(find.text(ShellText.current.userSlots), findsOneWidget);
 
     await pumpPanel(tester, moduleId: 3, fxId: 308);
@@ -140,6 +150,39 @@ void main() {
       findsWidgets,
     );
     expect(find.text(select.options![0]), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a select with no options shows a dash', (tester) async {
+    // Touch Wah with its Mode select stripped of options.
+    final real = assets.effects.effects[103]!;
+
+    assets.effects.effects[103] = EffectDefinition(
+      id: 103,
+      name: real.name,
+      descriptionEn: real.descriptionEn,
+      params: [
+        for (final p in real.params)
+          p.widgetType == .select
+              ? EffectParameter.fromJson({
+                  'name': p.name,
+                  'algId': p.algId,
+                  'defaultValue': 0,
+                  'widgetType': 2,
+                })
+              : p,
+      ],
+    );
+    addTearDown(() => assets.effects.effects[103] = real);
+    await pumpPanel(tester, moduleId: 1, fxId: 103);
+
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('param:Mode')),
+        matching: find.text('—'),
+      ),
+      findsOneWidget,
+    );
     expect(tester.takeException(), isNull);
   });
 

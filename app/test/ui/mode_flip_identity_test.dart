@@ -2,11 +2,17 @@ import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sonicmaster/gear/gear_piece.dart';
+import 'package:sonicmaster/protocol/cfw_settings_decoder.dart';
+import 'package:sonicmaster/state/cfw_providers.dart';
 import 'package:sonicmaster/state/edit_providers.dart';
 import 'package:sonicmaster/ui/block_panel.dart';
 import 'package:sonicmaster/ui/chain_view.dart';
+import 'package:sonicmaster/ui/exp_controls.dart';
 import 'package:sonicmaster/ui/module_editor.dart';
+import 'package:sonicmaster/ui/sonic_controls.dart';
+import 'package:sonicmaster/ui/tap_tempo_control.dart';
 
+import '../fixtures/cfw_dumps.dart';
 import '../support/page_harness.dart';
 import '../support/view_helpers.dart';
 
@@ -94,6 +100,60 @@ void main() {
     expectNoOverflow(tester);
     expect(rebuiltKinds(before, editorElements()), isEmpty);
     expect(inEditor(find.byType(GearPiece)), findsOneWidget);
+  });
+
+  // DLY Pure (Sync off: tap tempo) on the CFW (EXP): the tap tempo and the
+  // EXP controls move between the control row and the block panel, keeping
+  // their state (tempo, beat, the picked EXP slot).
+  testWidgets('tap tempo and EXP keep their state across a live flip', (
+    tester,
+  ) async {
+    await pumpPage(
+      tester,
+      size: regular,
+      selectedEffects: const {7: 701},
+      parameters: const {
+        7: {1: 500, 3: 0},
+      },
+      overrides: [
+        selectedModuleProvider.overrideWith((_) => 7),
+        cfwInfoProvider.overrideWith(
+          (_) => decodeCfwSettingsFrame(cfwSettingsOriginal),
+        ),
+        expKnownProvider.overrideWith((_) => true),
+      ],
+    );
+
+    Map<String, List<Element>> moved() => {
+      'TapTempoControl': elementsOf(inEditor(find.byType(TapTempoControl))),
+      'ExpControls': elementsOf(inEditor(find.byType(ExpControls))),
+    };
+    Finder slotPicker() => find
+        .descendant(
+          of: find.byType(ExpControls),
+          matching: find.byType(SonicDropdown<int>),
+        )
+        .first;
+
+    final before = moved();
+
+    expect(before.values, everyElement(hasLength(1)));
+    tester.widget<SonicDropdown<int>>(slotPicker()).onChanged(2);
+    await tester.pump();
+
+    await flipTo(tester, compact);
+
+    expectNoOverflow(tester);
+    expect(rebuiltKinds(before, moved()), isEmpty);
+    expect(tester.widget<SonicDropdown<int>>(slotPicker()).value, 2);
+
+    await flipTo(tester, regular);
+
+    expect(rebuiltKinds(before, moved()), isEmpty);
+    expect(tester.widget<SonicDropdown<int>>(slotPicker()).value, 2);
+
+    // Cancels the beat timer.
+    await tester.pumpWidget(const SizedBox.shrink());
   });
 
   Map<String, List<Element>> chainElements() => {

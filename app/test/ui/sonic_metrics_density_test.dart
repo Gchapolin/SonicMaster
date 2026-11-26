@@ -33,8 +33,6 @@ void main() {
     );
     // module_editor.dart:144/:255, SonicDropdown's default height
     expect(metrics.editorControlHeight, 40);
-    // module_editor.dart:227
-    expect(metrics.isEffectDescriptionVisible, isTrue);
     // sonic_controls.dart:695
     expect(metrics.footswitchSegmentPadding, 16);
     // chain_view.dart:106 (min == max: the card width never varies)
@@ -77,7 +75,6 @@ void main() {
       const EdgeInsets.fromLTRB(12, 4, 12, 4),
     );
     expect(metrics.editorControlHeight, 32);
-    expect(metrics.isEffectDescriptionVisible, isFalse);
     expect(metrics.footswitchSegmentPadding, 10);
     expect(metrics.chainCardMinWidth, 54);
     expect(metrics.chainCardMaxWidth, 96);

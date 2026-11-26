@@ -41,6 +41,17 @@ const syncDivisions = <String>[
   '1/8', '1/8D', '1/8T', '1/16',
 ];
 
+/// The tap tempo and each module's EXP controls keep their state (tempo,
+/// beat, picked slot) across a regular/compact flip, where they move between
+/// the control row and the block panel: a GlobalKey carries them over.
+final tapTempoKey = GlobalKey();
+final _expKeys = <int, GlobalKey>{};
+
+/// The EXP controls' key for physical module [physId]: a fresh state per
+/// module, the same one in both layouts.
+GlobalKey expControlsKey(int physId) =>
+    _expKeys.putIfAbsent(physId, GlobalKey.new);
+
 /// The values [moduleId]'s editor shows: its params, with the live scene's
 /// over them on the CFW in SC1 / SC2 when the module takes part in scenes
 /// (values for knobs the effect lacks are never looked up).
@@ -139,10 +150,13 @@ class ModuleEditor extends ConsumerWidget {
           if (!p.isSynced(values)) p,
       ];
 
-      return Row(
-        crossAxisAlignment: .start,
+      // The header, piece and value line set the height; the panel lives
+      // beside them within it and scrolls on its own if ever taller, so the
+      // piece never leaves the screen.
+      return Stack(
         children: [
-          Expanded(
+          Padding(
+            padding: const EdgeInsets.only(right: blockPanelWidth + 16),
             child: Column(
               crossAxisAlignment: .stretch,
               mainAxisSize: .min,
@@ -176,9 +190,13 @@ class ModuleEditor extends ConsumerWidget {
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(0, 16, 16, 16),
-            child: BlockPanel(moduleId),
+          // Level with the header's 12-px top padding.
+          Positioned(
+            top: 12,
+            right: 16,
+            bottom: 12,
+            width: blockPanelWidth,
+            child: SingleChildScrollView(child: BlockPanel(moduleId)),
           ),
         ],
       );
@@ -360,6 +378,7 @@ class ModuleEditor extends ConsumerWidget {
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: timeParam != null
                   ? TapTempoControl(
+                      key: tapTempoKey,
                       timeMin: (timeParam.min ?? 20).round(),
                       timeMax: (timeParam.max ?? 1000).round(),
                       currentMs: (values[1] ?? timeParam.defaultValue).round(),
@@ -378,7 +397,7 @@ class ModuleEditor extends ConsumerWidget {
         SceneControls(moduleId: physId),
         ExpControls(
           // A fresh state per module: it opens on that module's own slot.
-          key: ValueKey(physId),
+          key: expControlsKey(physId),
           moduleId: physId,
           params: [
             for (final p in knobs)

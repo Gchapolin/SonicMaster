@@ -37,7 +37,6 @@ class SonicMetrics {
     required this.knobCellPadding,
     required this.editorHeaderPadding,
     required this.editorControlHeight,
-    required this.isEffectDescriptionVisible,
     required this.footswitchSegmentPadding,
     required this.chainCardMinWidth,
     required this.chainCardMaxWidth,
@@ -69,7 +68,6 @@ class SonicMetrics {
     knobCellPadding: 8,
     editorHeaderPadding: EdgeInsets.fromLTRB(16, 12, 16, 4),
     editorControlHeight: 40,
-    isEffectDescriptionVisible: true,
     footswitchSegmentPadding: 16,
     chainCardMinWidth: 96,
     chainCardMaxWidth: 96,
@@ -102,7 +100,6 @@ class SonicMetrics {
     knobCellPadding: 4,
     editorHeaderPadding: EdgeInsets.fromLTRB(12, 4, 12, 4),
     editorControlHeight: 32,
-    isEffectDescriptionVisible: false,
     footswitchSegmentPadding: 10,
     chainCardMinWidth: 54,
     chainCardMaxWidth: 96,
@@ -189,10 +186,6 @@ class SonicMetrics {
   /// select and sync-division dropdowns, the panel toggles, the IR/NAM buttons
   /// and the tap-tempo division dropdown.
   final double editorControlHeight;
-
-  /// Whether the module editor shows the effect description under its
-  /// controls.
-  final bool isEffectDescriptionVisible;
 
   /// Horizontal padding inside each FOOT SWITCH segment (None / FS1 / FS2).
   final double footswitchSegmentPadding;
