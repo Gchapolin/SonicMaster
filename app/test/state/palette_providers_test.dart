@@ -8,7 +8,6 @@ import 'package:sonicmaster/theme/app_colors.dart';
 import 'package:sonicmaster/theme/app_palettes.dart';
 import 'package:sonicmaster/ui/sonic_controls.dart';
 
-
 Future<ProviderContainer> _container(Map<String, Object> saved) async {
   SharedPreferences.setMockInitialValues(saved);
   final prefs = await SharedPreferences.getInstance();
@@ -58,7 +57,7 @@ void main() {
             builder: (context) {
               ctx = context;
 
-              return const SizedBox();
+              return const Text("x");
             },
           ),
         ),
@@ -78,6 +77,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('hi'), findsOneWidget);
+    expect(
+      DefaultTextStyle.of(tester.element(find.text('hi'))).style.color,
+      paletteById('p13').text,
+    );
     expect(
       tester.widget<Text>(find.text('hi')).style!.color,
       paletteById('p13').text,

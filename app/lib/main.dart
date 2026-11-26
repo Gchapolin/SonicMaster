@@ -96,7 +96,7 @@ Future<void> main() async {
   );
 }
 
-class SonicMasterApp extends StatelessWidget {
+class SonicMasterApp extends ConsumerWidget {
   const SonicMasterApp({super.key, this.home = const PresetBrowserPage()});
 
   /// The first route. The app always opens the preset browser; tests pass
@@ -104,20 +104,25 @@ class SonicMasterApp extends StatelessWidget {
   final Widget home;
 
   @override
-  Widget build(BuildContext context) => WidgetsApp(
-    title: 'SonicMaster',
-    debugShowCheckedModeBanner: false,
-    color: Palette.background,
-    // Oswald is the app's display font everywhere; there is no Material theme.
-    textStyle: TextStyle(fontFamily: 'Oswald', color: Palette.textPrimary),
-    pageRouteBuilder: <T>(RouteSettings settings, WidgetBuilder builder) =>
-        PageRouteBuilder<T>(
-          settings: settings,
-          pageBuilder: (context, _, _) => builder(context),
-        ),
-    builder: (context, child) => _AppFrame(child: child!),
-    home: home,
-  );
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Watched only so the root's Palette reads (color, textStyle) refresh.
+    ref.watch(paletteIdProvider);
+
+    return WidgetsApp(
+      title: 'SonicMaster',
+      debugShowCheckedModeBanner: false,
+      color: Palette.background,
+      // Oswald is the app's display font everywhere; there is no Material theme.
+      textStyle: TextStyle(fontFamily: 'Oswald', color: Palette.textPrimary),
+      pageRouteBuilder: <T>(RouteSettings settings, WidgetBuilder builder) =>
+          PageRouteBuilder<T>(
+            settings: settings,
+            pageBuilder: (context, _, _) => builder(context),
+          ),
+      builder: (context, child) => _AppFrame(child: child!),
+      home: home,
+    );
+  }
 }
 
 /// The app-wide frame around the Navigator: WidgetsApp hands its FocusScope +
