@@ -13,28 +13,39 @@ double contrast(Color a, Color b) {
 }
 
 void main() {
-  test('the Material 3 roles match ColorScheme.fromSeed (dark tonalSpot)', () {
-    final s = ColorScheme.fromSeed(
-      seedColor: const Color(0xFFEF8A24),
-      brightness: Brightness.dark,
-    );
+  test('the Material 3 roles are the Vintage Neutral - Muted palette', () {
+    // Adobe Color "Vintage Neutral - Muted" (6A736F A4A698 D9D0C7 D9AB9A
+    // D98977), turned into a dark UI the way the HTML prototype does it.
+    expect(Palette.primary, const Color(0xFFDF9D8E));
+    expect(Palette.onPrimary, const Color(0xFF312320));
+    expect(Palette.primaryContainer, const Color(0xFF7A4A40));
+    expect(Palette.onPrimaryContainer, const Color(0xFFFFDAD2));
+    expect(Palette.secondaryContainer, const Color(0xFF835E56));
+    expect(Palette.onSecondaryContainer, const Color(0xFFFFFFFF));
+    expect(Palette.surface, const Color(0xFF3E2C28));
+    expect(Palette.surfaceContainerLowest, const Color(0xFF352521));
+    expect(Palette.surfaceContainerLow, const Color(0xFF45322D));
+    expect(Palette.surfaceContainer, const Color(0xFF4A3530));
+    expect(Palette.surfaceContainerHigh, const Color(0xFF513A35));
+    expect(Palette.surfaceContainerHighest, const Color(0xFF5E443E));
+    expect(Palette.onSurface, const Color(0xFFF0ECE9));
+    expect(Palette.onSurfaceVariant, const Color(0xFFE1D9D2));
+    expect(Palette.outline, const Color(0xFFCDBEB8));
+    expect(Palette.outlineVariant, const Color(0xFF694B45));
+  });
 
-    expect(Palette.primary, s.primary);
-    expect(Palette.onPrimary, s.onPrimary);
-    expect(Palette.primaryContainer, s.primaryContainer);
-    expect(Palette.onPrimaryContainer, s.onPrimaryContainer);
-    expect(Palette.secondaryContainer, s.secondaryContainer);
-    expect(Palette.onSecondaryContainer, s.onSecondaryContainer);
-    expect(Palette.surface, s.surface);
-    expect(Palette.surfaceContainerLowest, s.surfaceContainerLowest);
-    expect(Palette.surfaceContainerLow, s.surfaceContainerLow);
-    expect(Palette.surfaceContainer, s.surfaceContainer);
-    expect(Palette.surfaceContainerHigh, s.surfaceContainerHigh);
-    expect(Palette.surfaceContainerHighest, s.surfaceContainerHighest);
-    expect(Palette.onSurface, s.onSurface);
-    expect(Palette.onSurfaceVariant, s.onSurfaceVariant);
-    expect(Palette.outline, s.outline);
-    expect(Palette.outlineVariant, s.outlineVariant);
+  test('the surfaces step up from the window background', () {
+    final steps = [
+      Palette.surfaceContainerLowest,
+      Palette.surface,
+      Palette.surfaceContainerLow,
+      Palette.surfaceContainer,
+      Palette.surfaceContainerHigh,
+      Palette.surfaceContainerHighest,
+    ].map((c) => c.computeLuminance()).toList();
+    for (var i = 1; i < steps.length; i++) {
+      expect(steps[i], greaterThan(steps[i - 1]));
+    }
   });
 
   test('the legacy names point at the roles', () {
@@ -81,7 +92,15 @@ void main() {
       greaterThanOrEqualTo(4.5),
     );
     expect(
+      contrast(Palette.outline, Palette.surfaceContainerHighest),
+      greaterThanOrEqualTo(4.5),
+    );
+    expect(
       contrast(Palette.onPrimary, Palette.primary),
+      greaterThanOrEqualTo(4.5),
+    );
+    expect(
+      contrast(Palette.primary, Palette.surfaceContainerHigh),
       greaterThanOrEqualTo(4.5),
     );
   });

@@ -2,33 +2,35 @@ import 'package:flutter/painting.dart';
 
 /// The app's single source of color: a Material 3 dark scheme.
 ///
-/// The roles are the values `ColorScheme.fromSeed(seedColor: 0xFFEF8A24,
-/// brightness: dark)` produces (default tonalSpot variant), written as consts
-/// so `lib/` stays free of `package:flutter/material.dart`; palette_test.dart
-/// checks them against fromSeed. The look is flat: no widget keeps gradients,
-/// shadows or inline colors of its own (flat_style_test.dart).
+/// The roles hold the Adobe Color palette "Vintage Neutral - Muted"
+/// (6A736F A4A698 D9D0C7 D9AB9A D98977) as a dark UI, the same values as the
+/// HTML prototype: warm terracotta surfaces, light warm text and the
+/// terracotta accent. They are written as consts so `lib/` stays free of
+/// `package:flutter/material.dart`; palette_test.dart pins them and their
+/// contrast. The look is flat: no widget keeps gradients, shadows or inline
+/// colors of its own (flat_style_test.dart).
 ///
 /// The legacy names below map onto the roles, so call sites keep their
 /// meaning. Colors that carry a meaning of their own (error, connection
 /// status, scrim) keep their values.
 abstract final class Palette {
   // Material 3 roles.
-  static const Color primary = Color(0xFFFFB77C);
-  static const Color onPrimary = Color(0xFF4D2600);
-  static const Color primaryContainer = Color(0xFF6C3A06);
-  static const Color onPrimaryContainer = Color(0xFFFFDCC3);
-  static const Color secondaryContainer = Color(0xFF5A422E);
-  static const Color onSecondaryContainer = Color(0xFFFFDCC3);
-  static const Color surface = Color(0xFF19120C);
-  static const Color surfaceContainerLowest = Color(0xFF140D08);
-  static const Color surfaceContainerLow = Color(0xFF221A14);
-  static const Color surfaceContainer = Color(0xFF261E18);
-  static const Color surfaceContainerHigh = Color(0xFF312822);
-  static const Color surfaceContainerHighest = Color(0xFF3C332C);
-  static const Color onSurface = Color(0xFFEFE0D6);
-  static const Color onSurfaceVariant = Color(0xFFD6C3B6);
-  static const Color outline = Color(0xFF9E8E82);
-  static const Color outlineVariant = Color(0xFF51443B);
+  static const Color primary = Color(0xFFDF9D8E);
+  static const Color onPrimary = Color(0xFF312320);
+  static const Color primaryContainer = Color(0xFF7A4A40);
+  static const Color onPrimaryContainer = Color(0xFFFFDAD2);
+  static const Color secondaryContainer = Color(0xFF835E56);
+  static const Color onSecondaryContainer = Color(0xFFFFFFFF);
+  static const Color surface = Color(0xFF3E2C28);
+  static const Color surfaceContainerLowest = Color(0xFF352521);
+  static const Color surfaceContainerLow = Color(0xFF45322D);
+  static const Color surfaceContainer = Color(0xFF4A3530);
+  static const Color surfaceContainerHigh = Color(0xFF513A35);
+  static const Color surfaceContainerHighest = Color(0xFF5E443E);
+  static const Color onSurface = Color(0xFFF0ECE9);
+  static const Color onSurfaceVariant = Color(0xFFE1D9D2);
+  static const Color outline = Color(0xFFCDBEB8);
+  static const Color outlineVariant = Color(0xFF694B45);
 
   /// The window background.
   static const Color background = surface;
