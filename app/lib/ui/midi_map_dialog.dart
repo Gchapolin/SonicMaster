@@ -105,7 +105,7 @@ class MidiMapDialog extends HookConsumerWidget {
             Container(
               padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
               decoration: BoxDecoration(
-                color: Palette.surfaceContainerLow,
+                color: Palette.surfaceContainer,
                 border: Border.all(color: Palette.outlineVariant),
                 borderRadius: BorderRadius.circular(14),
               ),
@@ -145,92 +145,116 @@ class MidiMapDialog extends HookConsumerWidget {
               runSpacing: 8,
               crossAxisAlignment: .end,
               children: [
-                SonicDropdown<int>(
-                  value: d.trigger,
-                  width: 76,
-                  items: const [
-                    (value: MidiMapEntry.cc, label: 'CC'),
-                    (value: MidiMapEntry.pc, label: 'PC'),
-                  ],
-                  // A PC carries no value: the condition goes with the CC.
-                  onChanged: (v) => draft.value = d.copyWith(
-                    trigger: v,
-                    value: v == MidiMapEntry.pc ? 0 : d.value,
+                _Field(
+                  label: t.typeLabel,
+                  child: SonicDropdown<int>(
+                    value: d.trigger,
+                    width: 76,
+                    items: const [
+                      (value: MidiMapEntry.cc, label: 'CC'),
+                      (value: MidiMapEntry.pc, label: 'PC'),
+                    ],
+                    // A PC carries no value: the condition goes with the CC.
+                    onChanged: (v) => draft.value = d.copyWith(
+                      trigger: v,
+                      value: v == MidiMapEntry.pc ? 0 : d.value,
+                    ),
                   ),
                 ),
-                _Number(
-                  value: d.from,
-                  prefix: t.from,
-                  onChanged: (v) => draft.value = d.copyWith(
-                    from: v,
-                    to: v > d.to ? v : d.to,
+                _Field(
+                  label: t.from,
+                  child: _Number(
+                    value: d.from,
+                    prefix: t.from,
+                    onChanged: (v) => draft.value = d.copyWith(
+                      from: v,
+                      to: v > d.to ? v : d.to,
+                    ),
                   ),
                 ),
-                _Number(
-                  value: d.to,
-                  prefix: t.to,
-                  min: d.from,
-                  onChanged: (v) => draft.value = d.copyWith(to: v),
+                _Field(
+                  label: t.to,
+                  child: _Number(
+                    value: d.to,
+                    prefix: t.to,
+                    min: d.from,
+                    onChanged: (v) => draft.value = d.copyWith(to: v),
+                  ),
                 ),
-                SonicDropdown<int>(
-                  value: d.channel,
-                  width: 112,
-                  items: [
-                    (value: 0, label: 'MIDI CH'),
-                    for (var ch = 1; ch <= 16; ch++)
-                      (value: ch, label: 'Ch $ch'),
-                  ],
-                  onChanged: (v) => draft.value = d.copyWith(channel: v),
+                _Field(
+                  label: t.channelLabel,
+                  child: SonicDropdown<int>(
+                    value: d.channel,
+                    width: 112,
+                    items: [
+                      (value: 0, label: 'MIDI CH'),
+                      for (var ch = 1; ch <= 16; ch++)
+                        (value: ch, label: 'Ch $ch'),
+                    ],
+                    onChanged: (v) => draft.value = d.copyWith(channel: v),
+                  ),
                 ),
                 if (d.trigger == MidiMapEntry.cc)
-                  SonicDropdown<int>(
-                    value: d.value,
-                    width: 100,
-                    items: [
-                      for (final v in {0, 1, 2, d.value})
-                        (value: v, label: MidiMapEntry.valueLabel(v)),
-                    ],
-                    onChanged: (v) => draft.value = d.copyWith(value: v),
+                  _Field(
+                    label: t.valueLabel,
+                    child: SonicDropdown<int>(
+                      value: d.value,
+                      width: 100,
+                      items: [
+                        for (final v in {0, 1, 2, d.value})
+                          (value: v, label: MidiMapEntry.valueLabel(v)),
+                      ],
+                      onChanged: (v) => draft.value = d.copyWith(value: v),
+                    ),
                   ),
-                SonicDropdown<int>(
-                  value: d.function,
-                  width: 230,
-                  items: [
-                    for (final f in MidiMapEntry.functions.entries)
-                      (value: f.key, label: f.value),
-                    if (!MidiMapEntry.functions.containsKey(d.function))
-                      (value: d.function, label: t.function(d.function)),
-                  ],
-                  onChanged: (v) => draft.value = d.copyWith(
-                    function: v,
-                    which: 0,
-                    switchMode: MidiMapEntry(function: v).hasSwitch
-                        ? d.switchMode
-                        : 0,
+                _Field(
+                  label: t.functionLabel,
+                  child: SonicDropdown<int>(
+                    value: d.function,
+                    width: 230,
+                    items: [
+                      for (final f in MidiMapEntry.functions.entries)
+                        (value: f.key, label: f.value),
+                      if (!MidiMapEntry.functions.containsKey(d.function))
+                        (value: d.function, label: t.function(d.function)),
+                    ],
+                    onChanged: (v) => draft.value = d.copyWith(
+                      function: v,
+                      which: 0,
+                      switchMode: MidiMapEntry(function: v).hasSwitch
+                          ? d.switchMode
+                          : 0,
+                    ),
                   ),
                 ),
                 if (options.isNotEmpty)
-                  SonicDropdown<int>(
-                    value: d.which,
-                    width: 170,
-                    items: [
-                      for (final (i, o) in options.indexed)
-                        (value: i, label: o),
-                      if (d.which >= options.length)
-                        (value: d.which, label: t.option(d.which)),
-                    ],
-                    onChanged: (v) => draft.value = d.copyWith(which: v),
+                  _Field(
+                    label: t.optionLabel,
+                    child: SonicDropdown<int>(
+                      value: d.which,
+                      width: 170,
+                      items: [
+                        for (final (i, o) in options.indexed)
+                          (value: i, label: o),
+                        if (d.which >= options.length)
+                          (value: d.which, label: t.option(d.which)),
+                      ],
+                      onChanged: (v) => draft.value = d.copyWith(which: v),
+                    ),
                   ),
                 if (d.hasSwitch)
-                  SonicDropdown<int>(
-                    value: d.switchMode & 3,
-                    width: 130,
-                    items: [
-                      (value: 0, label: t.onAt64),
-                      (value: 1, label: t.toggle),
-                      (value: 2, label: t.momentary),
-                    ],
-                    onChanged: (v) => draft.value = d.copyWith(switchMode: v),
+                  _Field(
+                    label: t.modeLabel,
+                    child: SonicDropdown<int>(
+                      value: d.switchMode & 3,
+                      width: 130,
+                      items: [
+                        (value: 0, label: t.onAt64),
+                        (value: 1, label: t.toggle),
+                        (value: 2, label: t.momentary),
+                      ],
+                      onChanged: (v) => draft.value = d.copyWith(switchMode: v),
+                    ),
                   ),
                 SonicButton(
                   label: editing.value == null ? t.addRow : t.updateRow,
@@ -316,15 +340,8 @@ class _RowLine extends StatelessWidget {
         '${e.trigger == MidiMapEntry.pc ? 'PC' : 'CC'} ${e.from}'
         '${e.to == e.from ? '' : '–${e.to}'}';
     final name = MidiMapEntry.functions[e.function] ?? t.function(e.function);
-    // describe() is "SRC → NAME[: picked]" or "SRC → picked".
-    final tail = e.describe().split(' → ').last;
-    final picked = tail == name
-        ? null
-        : tail.startsWith('$name: ')
-        ? tail.substring(name.length + 2)
-        : tail;
     final option = [
-      ?picked,
+      ?e.optionLabel(),
       if (e.channel != 0) 'ch ${e.channel}',
       if (e.value != 0) MidiMapEntry.valueLabel(e.value),
       if (e.hasSwitch)
@@ -408,5 +425,30 @@ class _Number extends StatelessWidget {
       if (value < min) (value: value, label: '$prefix $value'),
     ],
     onChanged: onChanged,
+  );
+}
+
+/// A form control with its small caption above.
+class _Field extends StatelessWidget {
+  const _Field({required this.label, required this.child});
+
+  final String label;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    mainAxisSize: .min,
+    crossAxisAlignment: .start,
+    children: [
+      Text(
+        label,
+        style: AppText.ui.copyWith(
+          fontSize: 12,
+          color: Palette.onSurfaceVariant,
+        ),
+      ),
+      const SizedBox(height: 4),
+      child,
+    ],
   );
 }

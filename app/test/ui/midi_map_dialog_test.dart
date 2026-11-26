@@ -12,9 +12,11 @@ import 'package:sonicmaster/protocol/sysex_write_frame.dart';
 import 'package:sonicmaster/state/cfw_providers.dart';
 import 'package:sonicmaster/state/device_providers.dart';
 import 'package:sonicmaster/ui/midi_map_dialog.dart';
+import 'package:sonicmaster/ui/preset_browser_page.dart';
 import 'package:sonicmaster/ui/sonic_controls.dart';
 
 import '../fixtures/cfw_dumps.dart';
+import '../support/page_harness.dart';
 import '../support/silent_transport.dart';
 import '../support/sonic_host.dart';
 import '../support/view_helpers.dart';
@@ -85,6 +87,34 @@ class _MapPedal extends DeviceService {
 }
 
 void main() {
+  testWidgets('golden: the dialog over the main screen', (tester) async {
+    final pedal = _MapPedal(const [_bank, _freeze]);
+    appLang = Lang.pt;
+    addTearDown(() => appLang = Lang.en);
+    await pumpPage(
+      tester,
+      size: const Size(1180, 820),
+      overrides: [
+        deviceServiceProvider.overrideWithValue(pedal),
+        cfwInfoProvider.overrideWith(
+          (_) => decodeCfwSettingsFrame(cfwSettingsOriginal)!,
+        ),
+      ],
+    );
+    unawaited(
+      showSonicDialog<void>(
+        context: tester.element(find.byType(PresetBrowserPage)),
+        builder: (_) => const MidiMapDialog(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await expectLater(
+      find.byType(Navigator).first,
+      matchesGoldenFile('goldens/midi_map_dialog_1180x820.png'),
+    );
+  });
+
   final cfw = decodeCfwSettingsFrame(cfwSettingsOriginal)!;
 
   Future<_MapPedal> open(
@@ -150,11 +180,26 @@ void main() {
     await open(tester, const []);
 
     expect(find.text('NEW ROW'), findsOneWidget);
+    for (final label in ['Type', 'from', 'to', 'Value', 'Function']) {
+      expect(find.text(label), findsOneWidget);
+    }
+    expect(find.text('MIDI CH'), findsWidgets);
 
     await tapText(tester, 'Add row');
 
-    expect(find.text('CC 0'), findsOneWidget);
-    expect(find.text('Tap tempo'), findsWidgets);
+    // The new row's cells are in the rows panel, not just in the form.
+    final panel = find.ancestor(
+      of: find.text('SOURCE'),
+      matching: find.byType(Column),
+    );
+    expect(
+      find.descendant(of: panel.first, matching: find.text('CC 0')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: panel.first, matching: find.text('Tap tempo')),
+      findsOneWidget,
+    );
   });
 
   testWidgets('status shows count of 64 and unsaved', (tester) async {

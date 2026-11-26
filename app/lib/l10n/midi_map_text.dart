@@ -30,6 +30,12 @@ abstract class MidiMapText {
   String get colFunction;
   String get colOption;
   String get newRow;
+  String get typeLabel;
+  String get valueLabel;
+  String get modeLabel;
+  String get channelLabel;
+  String get functionLabel;
+  String get optionLabel;
   String get editRow;
   String removeRow(String source);
 
@@ -90,6 +96,18 @@ class _En extends MidiMapText {
   String get colOption => 'OPTION';
   @override
   String get newRow => 'NEW ROW';
+  @override
+  String get typeLabel => 'Type';
+  @override
+  String get valueLabel => 'Value';
+  @override
+  String get modeLabel => 'Mode';
+  @override
+  String get channelLabel => 'MIDI CH';
+  @override
+  String get functionLabel => 'Function';
+  @override
+  String get optionLabel => 'Option';
   @override
   String get editRow => 'EDIT ROW';
   @override
@@ -182,6 +200,18 @@ class _Pt extends MidiMapText {
   String get colOption => 'OPÇÃO';
   @override
   String get newRow => 'NOVA LINHA';
+  @override
+  String get typeLabel => 'Tipo';
+  @override
+  String get valueLabel => 'Valor';
+  @override
+  String get modeLabel => 'Modo';
+  @override
+  String get channelLabel => 'MIDI CH';
+  @override
+  String get functionLabel => 'Função';
+  @override
+  String get optionLabel => 'Opção';
   @override
   String get editRow => 'EDITAR LINHA';
   @override
