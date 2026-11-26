@@ -139,17 +139,22 @@ class ModuleEditor extends ConsumerWidget {
           }
         : const <int, String>{};
 
+    // The effect's knobs live on the piece; a synced Rate / Time holds a
+    // note division, not a position: it stays off the piece and keeps its
+    // division dropdown in the panel.
+    final onPiece = [
+      for (final p in pieceKnobs(def, isCfw: isCfw))
+        if (!p.isSynced(values)) p,
+    ];
+
+    // A compact tablet (shortest side 600+; phones have no room) draws the
+    // piece too, and its knobs live there instead of in the control row.
+    final showPiece =
+        metrics.isCompact && MediaQuery.sizeOf(context).shortestSide >= 600;
+
     // Regular (prototype N_Principal): the header, the big piece and its
     // value line, beside the block panel holding every other control.
     if (!metrics.isCompact) {
-      // The effect's knobs live on the piece; a synced Rate / Time holds a
-      // note division, not a position: it stays off the piece and keeps its
-      // division dropdown in the panel.
-      final onPiece = [
-        for (final p in pieceKnobs(def, isCfw: isCfw))
-          if (!p.isSynced(values)) p,
-      ];
-
       // The header, piece and value line set the height; the panel lives
       // beside them within it and scrolls on its own if ever taller, so the
       // piece never leaves the screen.
@@ -271,6 +276,19 @@ class ModuleEditor extends ConsumerWidget {
             ],
           ),
         ),
+        // The effect's piece, scaled to the width (compact tablet only).
+        if (showPiece)
+          _PieceEditor(
+            key: ValueKey(def.id),
+            model: def.name,
+            kind: gearKindForModule(physId),
+            knobs: onPiece,
+            values: values,
+            isOn: moduleOn,
+            isEnabled: !isLoading,
+            onSet: (p, v) => setParameter(ref, moduleId, p.algId, v),
+            onSwitch: () => toggleModule(ref, physId, !moduleOn),
+          ),
         // Every control — knobs, toggles, dropdowns — flows in ONE horizontal
         // Wrap like a hardware unit's front panel (always a single row that
         // wraps; never separate full-width rows). DLY (module 7) prepends its
@@ -336,14 +354,15 @@ class ModuleEditor extends ConsumerWidget {
                     ),
                   ),
               for (final p in knobs)
-                _control(
-                  context,
-                  ref,
-                  p,
-                  values[p.algId] ?? p.defaultValue,
-                  isLoading,
-                  values,
-                ),
+                if (!showPiece || !onPiece.contains(p))
+                  _control(
+                    context,
+                    ref,
+                    p,
+                    values[p.algId] ?? p.defaultValue,
+                    isLoading,
+                    values,
+                  ),
               // Per-module footswitch assignment (None/FS1/FS2). Keyed on the
               // physical slot so the clone-amp editor (id 9) drives the amp's.
               if (state != null)

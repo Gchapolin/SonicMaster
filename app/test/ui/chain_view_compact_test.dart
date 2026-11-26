@@ -1,7 +1,9 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sonicmaster/device/device_service.dart';
+import 'package:sonicmaster/gear/gear_piece.dart';
 import 'package:sonicmaster/model/decoded_preset_state.dart';
 import 'package:sonicmaster/state/data_providers.dart';
 import 'package:sonicmaster/state/device_providers.dart';
@@ -95,6 +97,7 @@ void main() {
     required double width,
     bool isCompact = true,
     DecodedPresetState state = loadedPresetState,
+    Map<int, int> selected = const {},
   }) async {
     final context = await pumpSonicHost(
       tester,
@@ -105,6 +108,8 @@ void main() {
           DeviceService(SilentTransport()),
         ),
         currentPresetStateProvider.overrideWith((_) => state),
+        if (selected.isNotEmpty)
+          currentSelectedEffectsProvider.overrideWith((_) => selected),
       ],
       home: Align(
         alignment: Alignment.topLeft,
@@ -218,7 +223,7 @@ void main() {
         metrics.chainCardPadding.vertical +
         10 + // DragGrip: two rows of 5-px dots
         metrics.chainGripGap +
-        metrics.chainIconSize +
+        compactPieceHeight +
         metrics.chainIconGap +
         name.height +
         effect.height +
@@ -236,6 +241,55 @@ void main() {
       tester.getSize(find.byType(ChainConnector).first).width,
       metrics.chainConnectorWidth,
     );
+  });
+
+  testWidgets('compact chain shows mini pieces', (tester) async {
+    await pumpChain(tester, width: 836, selected: {3: 307});
+
+    final pieces = find.byKey(const Key('compact-piece'));
+    final card = chainCardWidth(
+      SonicMetrics.compact,
+      availableWidth: 836,
+      cardCount: 9,
+      hasAmpBlock: true,
+    );
+
+    expect(pieces, findsWidgets);
+    expect(
+      find.descendant(of: pieces.first, matching: find.byType(GearPiece)),
+      findsOneWidget,
+    );
+    // Every piece sits inside its card: no overflow, narrower than the card.
+    for (final e in pieces.evaluate()) {
+      expect(e.size!.width, lessThanOrEqualTo(card));
+      expect(e.size!.height, compactPieceHeight);
+    }
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('compact: a card without a model keeps its icon, level', (
+    tester,
+  ) async {
+    await pumpChain(tester, width: 836, selected: {3: 307});
+
+    // Only the AMP has a model: one piece, the other eight cards their SVG.
+    expect(find.byKey(const Key('compact-piece')), findsOneWidget);
+    expect(find.byType(SvgPicture), findsNWidgets(8));
+
+    final slot = find.descendant(
+      of: find.byType(ModuleCard).at(1),
+      matching: find.byType(SvgPicture),
+    );
+    final slotBox = find.ancestor(
+      of: slot,
+      matching: find.byWidgetPredicate(
+        (w) => w is SizedBox && w.height == compactPieceHeight,
+      ),
+    );
+
+    expect(slotBox, findsOneWidget);
+    // Level up to the selected card's 1-px thicker border.
+    expect(spread(cardTops(tester)), lessThanOrEqualTo(1));
   });
 
   for (final isCompact in const [true, false]) {

@@ -30,7 +30,8 @@ void main() {
     await pumpAnalog(tester, isCfw: true);
 
     expect(find.text('TONE'), findsOneWidget);
-    expect(find.text('Flat'), findsOneWidget); // Tone = 0
+    // Knob-type params live on the piece (tablet), with its value line.
+    expect(find.byKey(const Key('piece-value')), findsOneWidget);
     expect(find.text('DUCK'), findsOneWidget);
     expect(find.text('TRAILS'), findsOneWidget);
     expect(find.text('TRAIL'), findsNothing); // the slot-4 toggle

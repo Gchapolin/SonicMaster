@@ -32,7 +32,7 @@ import '../support/view_helpers.dart';
 /// 0.289) is what makes a line taller.
 void main() {
   const regular = Size(1614, 900);
-  const compact = Size(898, 600);
+  const compact = Size(898, 599); // a phone: under the 600 tablet gate
 
   // Registers the fixture under [family]. Like the web's fallback fetch, the
   // load sends `fontsChange` to the framework.
