@@ -14,7 +14,6 @@ import 'package:sonicmaster/state/preset_providers.dart';
 import 'package:sonicmaster/ui/knob_control.dart';
 import 'package:sonicmaster/ui/preset_rail.dart';
 
-import '../support/fonts.dart';
 import '../support/silent_transport.dart';
 import '../support/test_assets.dart';
 
@@ -41,10 +40,6 @@ void main() {
   );
 
   testWidgets('renders tabs, search, and User chips', (tester) async {
-    final fl = FontLoader('Oswald')
-      ..addFont(rootBundle.load('assets/fonts/Oswald.ttf'));
-
-    await fl.load();
     tester.view.physicalSize = const Size(600, 1000);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -62,10 +57,6 @@ void main() {
   testWidgets(
     'shows the browser only when connected; no connect button in rail',
     (tester) async {
-      final fl = FontLoader('Oswald')
-        ..addFont(rootBundle.load('assets/fonts/Oswald.ttf'));
-
-      await fl.load();
       tester.view.physicalSize = const Size(600, 1000);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.reset);
@@ -99,10 +90,6 @@ void main() {
   );
 
   testWidgets('switching the tab shows the Factory bank', (tester) async {
-    final fl = FontLoader('Oswald')
-      ..addFont(rootBundle.load('assets/fonts/Oswald.ttf'));
-
-    await fl.load();
     tester.view.physicalSize = const Size(600, 1000);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -116,10 +103,6 @@ void main() {
   });
 
   testWidgets('typing in search filters the chip list', (tester) async {
-    final fl = FontLoader('Oswald')
-      ..addFont(rootBundle.load('assets/fonts/Oswald.ttf'));
-
-    await fl.load();
     tester.view.physicalSize = const Size(600, 1000);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -141,10 +124,6 @@ void main() {
   testWidgets('the Master volume knob shows in the rail only when connected', (
     tester,
   ) async {
-    final fl = FontLoader('Oswald')
-      ..addFont(rootBundle.load('assets/fonts/Oswald.ttf'));
-
-    await fl.load();
     tester.view.physicalSize = const Size(600, 1000);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -195,7 +174,6 @@ void main() {
   testWidgets('the search box shows the active filter after a remount', (
     tester,
   ) async {
-    await loadOswald();
     tester.view.physicalSize = const Size(600, 1000);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -234,7 +212,6 @@ void main() {
   testWidgets('a filter survives a reconnect and can still be cleared', (
     tester,
   ) async {
-    await loadOswald();
     tester.view.physicalSize = const Size(600, 1000);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -279,7 +256,6 @@ void main() {
   });
 
   testWidgets('tapping a row hands its preset to onPick', (tester) async {
-    await loadOswald();
     tester.view.physicalSize = const Size(600, 1000);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -309,7 +285,6 @@ void main() {
   testWidgets(
     'the rail pieces stand alone; currentRowKey tags the loaded row',
     (tester) async {
-      await loadOswald();
       tester.view.physicalSize = const Size(600, 3000);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.reset);

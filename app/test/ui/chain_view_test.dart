@@ -10,11 +10,6 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('renders all nine module names in one row', (tester) async {
-    final fl = FontLoader('Oswald')
-      ..addFont(rootBundle.load('assets/fonts/Oswald.ttf'));
-
-    await fl.load();
-
     // The chain is wider than the default 800px test surface; widen it so
     // every group (including the trailing DLY/RVB singletons) is actually
     // laid out by the lazily-built ReorderableListView instead of being

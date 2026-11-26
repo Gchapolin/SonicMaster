@@ -21,7 +21,6 @@ import 'package:sonicmaster/ui/sonic_metrics.dart';
 import 'package:sonicmaster/ui/top_bar.dart';
 import 'package:sonicmaster/ui/window_controls.dart';
 
-import '../support/fonts.dart';
 import '../support/page_harness.dart';
 import '../support/silent_transport.dart';
 
@@ -286,8 +285,6 @@ void main() {
     testWidgets(
       'large text: the preset name ellipsizes instead of overflowing',
       (tester) async {
-        await loadOswald();
-
         final container = ProviderContainer(
           overrides: [
             connectionStateProvider.overrideWith((_) => true),

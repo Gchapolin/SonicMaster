@@ -3,8 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sonicmaster/main.dart';
 
-import 'fonts.dart';
-
 /// Pumps [home] as the first route of the real app shell ([SonicMasterApp]:
 /// its WidgetsApp, routes, default text style and frame, so the
 /// SonicMetricsScope too) under a ProviderScope with [overrides], at [size]
@@ -20,7 +18,6 @@ Future<BuildContext> pumpSonicHost(
   double keyboard = 0,
   List<Override> overrides = const [],
 }) async {
-  await loadOswald();
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
   tester.view.viewInsets = FakeViewPadding(bottom: keyboard);

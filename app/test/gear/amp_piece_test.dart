@@ -22,16 +22,6 @@ const _models = [
   'A BassVT', 'Voks Bass', 'Calif Bass',
 ];
 
-// flutter_test does not walk fontFamilyFallback, so the bundled Oswald
-// stands in for Barlow Condensed (not bundled yet).
-Future<void> _loadFont() async {
-  for (final family in const ['Oswald', 'Barlow Condensed']) {
-    final fl = FontLoader(family)
-      ..addFont(rootBundle.load('assets/fonts/Oswald.ttf'));
-    await fl.load();
-  }
-}
-
 Widget _host(Widget child) => Directionality(
   textDirection: TextDirection.ltr,
   child: Align(alignment: Alignment.topLeft, child: child),
@@ -90,7 +80,6 @@ void main() {
   });
 
   testWidgets('every amp lays out without overflow', (tester) async {
-    await _loadFont();
     for (final m in _models) {
       for (final lit in const [true, false]) {
         await tester.pumpWidget(_host(_amp(m, lit: lit)));
@@ -246,7 +235,6 @@ void main() {
   });
 
   testWidgets('amps golden (38 amps, clean to bass)', (tester) async {
-    await _loadFont();
     tester.view.physicalSize = const Size(1360, 1700);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);

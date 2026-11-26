@@ -9,7 +9,6 @@ import 'package:sonicmaster/ui/module_editor.dart';
 import 'package:sonicmaster/ui/sonic_controls.dart';
 import 'package:sonicmaster/ui/sonic_metrics.dart';
 
-import '../support/fonts.dart';
 import '../support/test_assets.dart';
 import '../support/view_helpers.dart';
 
@@ -22,8 +21,6 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   final assets = loadTestDataAssets();
-
-  setUpAll(loadOswald);
 
   Future<void> pumpTwoPanels(
     WidgetTester tester, {

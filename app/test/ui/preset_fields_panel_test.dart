@@ -6,7 +6,6 @@ import 'package:sonicmaster/ui/knob_control.dart';
 import 'package:sonicmaster/ui/preset_fields_panel.dart';
 import 'package:sonicmaster/ui/sonic_metrics.dart';
 
-import '../support/fonts.dart';
 import '../support/view_helpers.dart';
 
 void main() {
@@ -16,7 +15,6 @@ void main() {
     bool isLoading = false,
     double textScale = 1,
   }) async {
-    await loadOswald();
     await tester.pumpWidget(
       Directionality(
         textDirection: TextDirection.ltr,

@@ -7,16 +7,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sonicmaster/gear/cab_piece.dart';
 import 'package:sonicmaster/gear/gear_specs.dart';
 
-// flutter_test does not walk fontFamilyFallback, so the bundled Oswald also
-// stands in for Barlow Condensed (not bundled yet).
-Future<void> _loadFont() async {
-  for (final family in const ['Oswald', 'Barlow Condensed']) {
-    final fl = FontLoader(family)
-      ..addFont(rootBundle.load('assets/fonts/Oswald.ttf'));
-    await fl.load();
-  }
-}
-
 Widget _host(Widget child) => Directionality(
   textDirection: TextDirection.ltr,
   child: Align(alignment: Alignment.topLeft, child: child),
@@ -78,7 +68,6 @@ void main() {
   testWidgets('the badge plate is text + 12 padding + 2 border, even if long', (
     tester,
   ) async {
-    await _loadFont();
     for (final m in const ['Mark 2x10', 'User IR 10']) {
       await tester.pumpWidget(
         _host(CabPiece(spec: cabSpecs[m] ?? cabSpecs['User IR 1']!, model: m)),
@@ -160,7 +149,6 @@ void main() {
   });
 
   testWidgets('every cab lays out without overflow', (tester) async {
-    await _loadFont();
     for (final m in cabSpecs.keys) {
       await tester.pumpWidget(_host(_cab(m)));
       expect(tester.takeException(), isNull, reason: m);
@@ -168,7 +156,6 @@ void main() {
   });
 
   testWidgets('cabs golden (18 prototype cabs and a User IR)', (tester) async {
-    await _loadFont();
     tester.view.physicalSize = const Size(1100, 640);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);

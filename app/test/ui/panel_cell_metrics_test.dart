@@ -5,7 +5,6 @@ import 'package:sonicmaster/ui/preset_rail.dart';
 import 'package:sonicmaster/ui/sonic_controls.dart';
 import 'package:sonicmaster/ui/sonic_metrics.dart';
 
-import '../support/fonts.dart';
 import '../support/sonic_host.dart';
 
 /// KnobControl and PanelCell form one grid: a PanelCell is exactly as tall as a
@@ -13,8 +12,6 @@ import '../support/sonic_host.dart';
 /// Heights use Oswald's 1.482-em lines.
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-
-  setUpAll(loadOswald);
 
   Future<void> pumpCells(WidgetTester tester, SonicMetrics metrics) async {
     await tester.pumpWidget(

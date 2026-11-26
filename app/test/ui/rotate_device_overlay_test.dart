@@ -11,7 +11,6 @@ import 'package:sonicmaster/ui/sonic_controls.dart';
 import 'package:sonicmaster/ui/sonic_metrics.dart';
 
 import '../support/fake_mobile_screen.dart';
-import '../support/fonts.dart';
 import '../support/view_helpers.dart';
 
 const portrait = Size(390, 844);
@@ -26,7 +25,6 @@ Future<void> pumpApp(
   required Size size,
   required Widget home,
 }) async {
-  await loadOswald();
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
