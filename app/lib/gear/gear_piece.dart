@@ -36,19 +36,65 @@ const _genericCab = CabSpec(
 );
 
 /// Plain grey placeholder for a model with no table entry, drawn with the
-/// regular painters.
+/// regular painters. [knobNames] (non-empty) sets the knob count and labels;
+/// otherwise the placeholder count is used.
 class GenericPiece extends StatelessWidget {
-  const GenericPiece({super.key, required this.spec, required this.model});
+  const GenericPiece({
+    super.key,
+    required this.spec,
+    required this.model,
+    this.values,
+    this.onKnob,
+    this.onSwitch,
+    this.lit = true,
+    this.knobNames,
+  });
 
   final GenericSpec spec;
   final String model;
+  final List<double?>? values;
+  final ValueChanged<(int, double)>? onKnob;
+  final VoidCallback? onSwitch;
+  final bool lit;
+  final List<String>? knobNames;
 
   @override
-  Widget build(BuildContext context) => switch (spec.kind) {
-    GearKind.pedal => PedalPiece(spec: _genericPedal, model: model),
-    GearKind.amp => AmpPiece(spec: _genericAmp, model: model),
-    GearKind.cab => CabPiece(spec: _genericCab, model: model),
-  };
+  Widget build(BuildContext context) {
+    final names = knobNames == null || knobNames!.isEmpty ? null : knobNames;
+    return switch (spec.kind) {
+      GearKind.pedal => PedalPiece(
+        spec: PedalSpec(
+          _genericPedal.family,
+          _genericPedal.body,
+          _genericPedal.label,
+          _genericPedal.knob,
+          names ?? _genericPedal.knobNames,
+        ),
+        model: model,
+        values: values,
+        onKnob: onKnob,
+        onSwitch: onSwitch,
+        lit: lit,
+      ),
+      GearKind.amp => AmpPiece(
+        spec: AmpSpec(
+          _genericAmp.isHead,
+          _genericAmp.tolex,
+          _genericAmp.grille,
+          _genericAmp.panel,
+          _genericAmp.knob,
+          _genericAmp.piping,
+          names ?? _genericAmp.knobNames,
+        ),
+        model: model,
+        values: values,
+        onKnob: onKnob,
+        onSwitch: onSwitch,
+        lit: lit,
+      ),
+      GearKind.cab => CabPiece(spec: _genericCab, model: model),
+    };
+  }
 }
 
 /// Any piece for [model], scaled to fit inside [fit]. [knobNames], when given,
@@ -76,7 +122,8 @@ class GearPiece extends StatelessWidget {
   final List<String>? knobNames;
 
   Widget _piece() {
-    final names = knobNames;
+    // An empty list would make the pedal layout divide by zero: use the spec.
+    final names = knobNames == null || knobNames!.isEmpty ? null : knobNames;
     return switch (gearFor(model, kind)) {
       final PedalSpec s => PedalPiece(
         spec: names == null
@@ -107,7 +154,15 @@ class GearPiece extends StatelessWidget {
         lit: lit,
       ),
       final CabSpec s => CabPiece(spec: s, model: model),
-      final GenericSpec s => GenericPiece(spec: s, model: model),
+      final GenericSpec s => GenericPiece(
+        spec: s,
+        model: model,
+        values: values,
+        onKnob: onKnob,
+        onSwitch: onSwitch,
+        lit: lit,
+        knobNames: names,
+      ),
     };
   }
 
