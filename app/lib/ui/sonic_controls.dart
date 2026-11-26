@@ -23,11 +23,16 @@ class SonicToggle extends StatelessWidget {
     required this.value,
     required this.onChanged,
     this.height = 26,
+    this.touchHeight = 0,
   });
 
   final bool value;
   final ValueChanged<bool>? onChanged;
   final double height;
+
+  /// The tap target's height when it is taller than the drawn track: the track
+  /// stays [height] high, centred in the taller hit area.
+  final double touchHeight;
 
   @override
   Widget build(BuildContext context) {
@@ -48,39 +53,45 @@ class SonicToggle extends StatelessWidget {
           onTap: isEnabled ? () => onChanged!(!value) : null,
           child: SizedBox(
             width: w,
-            height: h,
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: AnimatedContainer(
-                    duration: duration,
-                    curve: curve,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(h / 2),
-                      color: value
-                          ? Palette.primary
-                          : Palette.surfaceContainerHighest,
-                      border: Border.all(
-                        color: value ? Palette.primary : Palette.outline,
-                        width: 2,
+            height: math.max(h, touchHeight),
+            child: Center(
+              child: SizedBox(
+                width: w,
+                height: h,
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: AnimatedContainer(
+                        duration: duration,
+                        curve: curve,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(h / 2),
+                          color: value
+                              ? Palette.primary
+                              : Palette.surfaceContainerHighest,
+                          border: Border.all(
+                            color: value ? Palette.primary : Palette.outline,
+                            width: 2,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-                AnimatedPositioned(
-                  duration: duration,
-                  curve: curve,
-                  top: inset,
-                  left: value ? w - inset - thumb : inset,
-                  width: thumb,
-                  height: thumb,
-                  child: CustomPaint(
-                    painter: _ToggleKnobPainter(
-                      value ? Palette.onPrimary : Palette.outline,
+                    AnimatedPositioned(
+                      duration: duration,
+                      curve: curve,
+                      top: inset,
+                      left: value ? w - inset - thumb : inset,
+                      width: thumb,
+                      height: thumb,
+                      child: CustomPaint(
+                        painter: _ToggleKnobPainter(
+                          value ? Palette.onPrimary : Palette.outline,
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),

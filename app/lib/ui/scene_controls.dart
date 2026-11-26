@@ -10,6 +10,9 @@ import '../theme/app_text.dart';
 import 'sonic_controls.dart';
 import 'sonic_metrics.dart';
 
+/// The panel's control height: a 44pt touch target.
+const _touch = 44.0;
+
 /// The CFW scene controls of one module, under its knobs: a Scenes switch
 /// (the module takes part in scenes), the live-scene selector BASE / SC1 / SC2
 /// and, in SC1 or SC2, the module's on/off for that scene (BASE follows the
@@ -24,8 +27,8 @@ class SceneControls extends ConsumerWidget {
   /// Physical module id (0 NR … 8 RVB).
   final int moduleId;
 
-  /// The block panel's tight rows: label, scene selector and switch on one
-  /// row, the scene state under it.
+  /// The block panel's tight rows: label and switch on one row, the scene
+  /// selector and the scene state under it.
   final bool isPanel;
 
   @override
@@ -46,6 +49,7 @@ class SceneControls extends ConsumerWidget {
     final switchIn = SonicToggle(
       value: record != null,
       height: isPanel ? 26 : height,
+      touchHeight: isPanel ? _touch : 0,
       onChanged: isLoading
           ? null
           : (v) => setModuleInScenes(ref, moduleId, isIn: v),
@@ -54,7 +58,7 @@ class SceneControls extends ConsumerWidget {
       if (record != null)
         SonicSegmented<int>(
           value: scene,
-          height: isPanel ? 34 : height,
+          height: isPanel ? _touch : height,
           isExpanded: isPanel,
           segmentPadding: isPanel ? 4 : 16,
           segments: const [
@@ -67,7 +71,7 @@ class SceneControls extends ConsumerWidget {
       if (record != null && scene != 0)
         SonicSegmented<int>(
           value: isOn == null ? 0 : (isOn ? 1 : 2),
-          height: isPanel ? 34 : height,
+          height: isPanel ? _touch : height,
           isExpanded: isPanel,
           segmentPadding: isPanel ? 4 : 16,
           segments: [
@@ -82,11 +86,12 @@ class SceneControls extends ConsumerWidget {
         ),
     ];
 
-    // The panel: label, live-scene selector and switch on one row; the
-    // module's state for SC1 / SC2 under it.
+    // The panel: label and switch on one row; the live-scene selector (its
+    // labels need the full width to keep one size) and the module's state for
+    // SC1 / SC2 under it.
     if (isPanel) {
       return Padding(
-        padding: const EdgeInsets.only(top: 12),
+        padding: const EdgeInsets.only(top: 6),
         child: Column(
           crossAxisAlignment: .stretch,
           spacing: 8,
@@ -97,15 +102,11 @@ class SceneControls extends ConsumerWidget {
                   t.scenes,
                   style: AppText.ui.copyWith(color: Palette.textPrimary),
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: selectors.isEmpty ? const SizedBox() : selectors[0],
-                ),
-                const SizedBox(width: 8),
+                const Spacer(),
                 switchIn,
               ],
             ),
-            ...selectors.skip(1),
+            ...selectors,
           ],
         ),
       );

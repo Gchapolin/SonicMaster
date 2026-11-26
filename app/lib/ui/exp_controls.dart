@@ -21,6 +21,9 @@ const _slotNames = ['A', 'B', 'C', 'D'];
 const _elsewhere = -2;
 const _none = -1;
 
+/// The panel's control height: a 44pt touch target.
+const _touch = 44.0;
+
 /// The CFW's EXP A-D assignment for one module, under its scene controls:
 /// pick a slot, the knob of this module it moves, how (continuous, toggle,
 /// momentary) and between which ends of the knob's range. The slots belong to
@@ -65,7 +68,7 @@ class ExpControls extends HookConsumerWidget {
 
     void set(ExpAssign? a) => setExpAssign(ref, slot.value, a);
 
-    final h = isPanel ? 34.0 : height;
+    final h = isPanel ? _touch : height;
     final slotPicker = SonicDropdown<int>(
       value: slot.value,
       width: 64,
@@ -75,9 +78,10 @@ class ExpControls extends HookConsumerWidget {
       ],
       onChanged: (v) => slot.value = v,
     );
-    final target = SonicDropdown<int>(
+    Widget targetAt(double? width) => SonicDropdown<int>(
       value: assign == null ? _none : (isKnown ? assign.algId : _elsewhere),
-      width: isPanel ? 100 : 132,
+      width: width,
+      fitLabels: isPanel,
       height: h,
       isEnabled: !isLoading,
       items: [
@@ -115,14 +119,14 @@ class ExpControls extends HookConsumerWidget {
         ? [
             _Percent(
               value: assign!.min,
-              width: isPanel ? 100 : 84,
+              width: 84,
               height: h,
               isEnabled: !isLoading,
               onChanged: (v) => set(assign.copyWith(min: v)),
             ),
             _Percent(
               value: assign.max,
-              width: isPanel ? 100 : 84,
+              width: 84,
               height: h,
               isEnabled: !isLoading,
               onChanged: (v) => set(assign.copyWith(max: v)),
@@ -132,26 +136,36 @@ class ExpControls extends HookConsumerWidget {
 
     if (isPanel) {
       return Padding(
-        padding: const EdgeInsets.only(top: 12),
+        padding: const EdgeInsets.only(top: 6),
         child: Column(
           crossAxisAlignment: .stretch,
           spacing: 8,
           children: [
-            Row(
+            // One row while the target is "None"; a longer knob name grows the
+            // target past the row and wraps it under the slot.
+            Wrap(
+              crossAxisAlignment: .center,
+              spacing: 6,
+              runSpacing: 8,
               children: [
                 Text(
                   'EXP',
                   style: AppText.section.copyWith(color: Palette.textMuted),
                 ),
-                const Spacer(),
                 slotPicker,
-                const SizedBox(width: 8),
-                target,
+                targetAt(100),
               ],
             ),
             ?mode,
             if (range.isNotEmpty)
-              Row(mainAxisAlignment: .spaceBetween, children: range),
+              // The ends grow to show "100 %" whole; two do not share the
+              // panel's width, so the second wraps under the first.
+              Wrap(
+                alignment: .spaceBetween,
+                runSpacing: 8,
+                spacing: 8,
+                children: range,
+              ),
           ],
         ),
       );
@@ -170,7 +184,7 @@ class ExpControls extends HookConsumerWidget {
             style: AppText.dialogBody.copyWith(color: Palette.onSurfaceVariant),
           ),
           slotPicker,
-          target,
+          targetAt(132),
           ?mode,
           ...range,
         ],
@@ -202,6 +216,7 @@ class _Percent extends StatelessWidget {
     width: width,
     height: height,
     isEnabled: isEnabled,
+    fitLabels: true,
     items: [
       for (final v in {
         for (var i = 0; i <= 100; i += 5) i,
