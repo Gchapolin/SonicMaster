@@ -73,10 +73,67 @@ class AmpSpec extends GearSpec {
   final bool isHead;
   final Color tolex;
   final Color grille;
-  final Color panel;
+  final AmpPanel panel;
   final KnobStyle knob;
   final bool piping;
   final List<String> knobNames;
+}
+
+/// The prototype's PANEL table: a vertical gradient [top] to [bottom], the
+/// [ink] of the knob labels, a lower [band] (the two-tone bass panel, from 70%
+/// down) and whether it shows [worn] wear (gold and copper only).
+class AmpPanel {
+  const AmpPanel(
+    this.top,
+    this.bottom,
+    this.ink, {
+    this.band,
+    this.worn = false,
+  });
+  final Color top;
+  final Color bottom;
+  final Color ink;
+  final Color? band;
+  final bool worn;
+
+  static const _dark = Color(0xFF1A1A1A);
+  static const gold = AmpPanel(
+    Color(0xFFDCC27F),
+    Color(0xFFC2A35C),
+    _dark,
+    worn: true,
+  );
+  static const brass = AmpPanel(
+    Color(0xFF2A2621),
+    Color(0xFF1C1915),
+    Color(0xFFD7B76A),
+  );
+  static const chrome = AmpPanel(Color(0xFFE4E6E8), Color(0xFFA9ACB0), _dark);
+  static const silver = AmpPanel(Color(0xFFCFD2D5), Color(0xFF9DA1A6), _dark);
+  static const alu = AmpPanel(Color(0xFFD8DADD), Color(0xFFB3B7BC), _dark);
+  static const copper = AmpPanel(
+    Color(0xFFC98B5A),
+    Color(0xFF9C6338),
+    _dark,
+    worn: true,
+  );
+  static const blackface = AmpPanel(
+    Color(0xFF1A1A1A),
+    Color(0xFF0F0F0F),
+    Color(0xFFEDEDED),
+  );
+  static const black = AmpPanel(
+    Color(0xFF202124),
+    Color(0xFF141517),
+    Color(0xFFD8D8D8),
+  );
+  static const white = AmpPanel(Color(0xFFF2F0EA), Color(0xFFDDD9CF), _dark);
+  static const svt = AmpPanel(
+    Color(0xFFC9CDD2),
+    Color(0xFFC9CDD2),
+    _dark,
+    band: Color(0xFF2C4F8C),
+  );
 }
 
 class CabSpec extends GearSpec {
@@ -714,7 +771,7 @@ const Map<String, AmpSpec> ampSpecs = {
     false,
     Color(0xFFD2B47A),
     Color(0xFF5A261D),
-    Color(0xFFE4E6E8),
+    AmpPanel.chrome,
     KnobStyle.chickenBrown,
     false,
     ['Gain', 'Tone', 'Vol'],
@@ -723,7 +780,7 @@ const Map<String, AmpSpec> ampSpecs = {
     false,
     Color(0xFFD2B47A),
     Color(0xFF5A261D),
-    Color(0xFFE4E6E8),
+    AmpPanel.chrome,
     KnobStyle.chickenBrown,
     false,
     ['Gain', 'Pres', 'Vol', 'Bass', 'Middle', 'Treble'],
@@ -732,7 +789,7 @@ const Map<String, AmpSpec> ampSpecs = {
     false,
     Color(0xFFD2B47A),
     Color(0xFF5A261D),
-    Color(0xFFE4E6E8),
+    AmpPanel.chrome,
     KnobStyle.chickenBrown,
     false,
     ['Gain', 'Pres', 'Vol', 'Bass', 'Middle', 'Treble'],
@@ -741,7 +798,7 @@ const Map<String, AmpSpec> ampSpecs = {
     false,
     Color(0xFF1C1C1C),
     Color(0xFFA9ABAE),
-    Color(0xFF1A1A1A),
+    AmpPanel.blackface,
     KnobStyle.skirt,
     true,
     ['Gain', 'Vol', 'Bass', 'Middle', 'Treble'],
@@ -750,7 +807,7 @@ const Map<String, AmpSpec> ampSpecs = {
     false,
     Color(0xFF1C1C1C),
     Color(0xFF2A1D13),
-    Color(0xFFC98B5A),
+    AmpPanel.copper,
     KnobStyle.chickenCream,
     true,
     ['Gain', 'Cut', 'Vol'],
@@ -759,7 +816,7 @@ const Map<String, AmpSpec> ampSpecs = {
     false,
     Color(0xFF1C1C1C),
     Color(0xFF2A1D13),
-    Color(0xFFC98B5A),
+    AmpPanel.copper,
     KnobStyle.chickenCream,
     true,
     ['Gain', 'Cut', 'Vol', 'Bass', 'Treble'],
@@ -768,7 +825,7 @@ const Map<String, AmpSpec> ampSpecs = {
     false,
     Color(0xFF1C1C1C),
     Color(0xFFB9BBBE),
-    Color(0xFFCFD2D5),
+    AmpPanel.silver,
     KnobStyle.blackFlat,
     false,
     ['Vol', 'Bass', 'Middle', 'Treble'],
@@ -777,7 +834,7 @@ const Map<String, AmpSpec> ampSpecs = {
     false,
     Color(0xFF1C1C1C),
     Color(0xFFB59B74),
-    Color(0xFF1A1A1A),
+    AmpPanel.blackface,
     KnobStyle.chrome,
     false,
     ['Gain', 'Pres', 'Vol', 'Bass', 'Middle', 'Treble'],
@@ -786,7 +843,7 @@ const Map<String, AmpSpec> ampSpecs = {
     false,
     Color(0xFF1C1C1C),
     Color(0xFF222222),
-    Color(0xFF1A1A1A),
+    AmpPanel.blackface,
     KnobStyle.chrome,
     false,
     ['Gain', 'Pres', 'Vol', 'Bass', 'Middle', 'Treble'],
@@ -795,7 +852,7 @@ const Map<String, AmpSpec> ampSpecs = {
     false,
     Color(0xFF1C1C1C),
     Color(0xFF222222),
-    Color(0xFF1A1A1A),
+    AmpPanel.blackface,
     KnobStyle.chrome,
     false,
     ['Gain', 'Pres', 'Vol', 'Bass', 'Middle', 'Treble'],
@@ -804,7 +861,7 @@ const Map<String, AmpSpec> ampSpecs = {
     false,
     Color(0xFF2F5D8A),
     Color(0xFFE3D9C2),
-    Color(0xFFE4E6E8),
+    AmpPanel.chrome,
     KnobStyle.cream,
     false,
     ['Gain', 'Pres', 'Vol', 'Bass', 'Middle', 'Treble'],
@@ -813,7 +870,7 @@ const Map<String, AmpSpec> ampSpecs = {
     false,
     Color(0xFF2F5D8A),
     Color(0xFFE3D9C2),
-    Color(0xFFE4E6E8),
+    AmpPanel.chrome,
     KnobStyle.cream,
     false,
     ['Gain', 'Pres', 'Vol', 'Bass', 'Middle', 'Treble'],
@@ -822,7 +879,7 @@ const Map<String, AmpSpec> ampSpecs = {
     false,
     Color(0xFFE9DCC0),
     Color(0xFF5A261D),
-    Color(0xFFE4E6E8),
+    AmpPanel.chrome,
     KnobStyle.chickenBlack,
     false,
     ['Gain', 'Pres', 'Vol', 'Bass', 'Middle', 'Treble'],
@@ -831,7 +888,7 @@ const Map<String, AmpSpec> ampSpecs = {
     false,
     Color(0xFFE9DCC0),
     Color(0xFF5A261D),
-    Color(0xFFE4E6E8),
+    AmpPanel.chrome,
     KnobStyle.chickenBlack,
     false,
     ['Gain', 'Pres', 'Vol', 'Bass', 'Middle', 'Treble'],
@@ -840,7 +897,7 @@ const Map<String, AmpSpec> ampSpecs = {
     true,
     Color(0xFF1C1C1C),
     Color(0xFF5C5C5C),
-    Color(0xFFDCC27F),
+    AmpPanel.gold,
     KnobStyle.goldcap,
     true,
     ['Gain', 'Pres', 'Vol', 'Bass', 'Middle', 'Treble'],
@@ -849,7 +906,7 @@ const Map<String, AmpSpec> ampSpecs = {
     true,
     Color(0xFF1C1C1C),
     Color(0xFF5C5C5C),
-    Color(0xFFDCC27F),
+    AmpPanel.gold,
     KnobStyle.goldcap,
     true,
     ['Gain', 'Pres', 'Vol', 'Bass', 'Middle', 'Treble'],
@@ -858,7 +915,7 @@ const Map<String, AmpSpec> ampSpecs = {
     true,
     Color(0xFF1C1C1C),
     Color(0xFF5C5C5C),
-    Color(0xFFDCC27F),
+    AmpPanel.gold,
     KnobStyle.goldcap,
     true,
     ['Gain', 'Pres', 'Vol', 'Bass', 'Middle', 'Treble'],
@@ -867,7 +924,7 @@ const Map<String, AmpSpec> ampSpecs = {
     true,
     Color(0xFF1C1C1C),
     Color(0xFF222222),
-    Color(0xFFDCC27F),
+    AmpPanel.gold,
     KnobStyle.goldcap,
     true,
     ['Gain', 'Pres', 'Vol', 'Bass', 'Middle', 'Treble'],
@@ -876,7 +933,7 @@ const Map<String, AmpSpec> ampSpecs = {
     true,
     Color(0xFF1C1C1C),
     Color(0xFF222222),
-    Color(0xFFDCC27F),
+    AmpPanel.gold,
     KnobStyle.goldcap,
     true,
     ['Gain', 'Pres', 'Vol', 'Bass', 'Middle', 'Treble'],
@@ -885,7 +942,7 @@ const Map<String, AmpSpec> ampSpecs = {
     true,
     Color(0xFF1C1C1C),
     Color(0xFF222222),
-    Color(0xFFE4E6E8),
+    AmpPanel.chrome,
     KnobStyle.blackFlat,
     false,
     ['Gain', 'Pres', 'Vol', 'Bass', 'Middle', 'Treble'],
@@ -894,7 +951,7 @@ const Map<String, AmpSpec> ampSpecs = {
     true,
     Color(0xFF1C1C1C),
     Color(0xFF222222),
-    Color(0xFFE4E6E8),
+    AmpPanel.chrome,
     KnobStyle.blackFlat,
     false,
     ['Gain1', 'Tone1', 'Gain2', 'Tone2', 'Vol'],
@@ -903,7 +960,7 @@ const Map<String, AmpSpec> ampSpecs = {
     true,
     Color(0xFF1C1C1C),
     Color(0xFF222222),
-    Color(0xFFE4E6E8),
+    AmpPanel.chrome,
     KnobStyle.blackFlat,
     false,
     ['Gain', 'Pres', 'Vol', 'Bass', 'Middle', 'Treble'],
@@ -912,7 +969,7 @@ const Map<String, AmpSpec> ampSpecs = {
     true,
     Color(0xFF1C1C1C),
     Color(0xFF222222),
-    Color(0xFFD8DADD),
+    AmpPanel.alu,
     KnobStyle.blackFlat,
     false,
     ['Gain', 'Pres', 'Vol', 'Bass', 'Middle', 'Treble'],
@@ -921,7 +978,7 @@ const Map<String, AmpSpec> ampSpecs = {
     true,
     Color(0xFF1C1C1C),
     Color(0xFF222222),
-    Color(0xFFD8DADD),
+    AmpPanel.alu,
     KnobStyle.blackFlat,
     false,
     ['Gain', 'Pres', 'Vol', 'Bass', 'Middle', 'Treble'],
@@ -930,7 +987,7 @@ const Map<String, AmpSpec> ampSpecs = {
     true,
     Color(0xFF1C1C1C),
     Color(0xFF222222),
-    Color(0xFF202124),
+    AmpPanel.black,
     KnobStyle.silvercap,
     false,
     ['Gain', 'Pres', 'Vol', 'Bass', 'Middle', 'Treble'],
@@ -939,7 +996,7 @@ const Map<String, AmpSpec> ampSpecs = {
     true,
     Color(0xFF1C1C1C),
     Color(0xFF222222),
-    Color(0xFF202124),
+    AmpPanel.black,
     KnobStyle.silvercap,
     false,
     ['Gain', 'Pres', 'Vol', 'Bass', 'Middle', 'Treble'],
@@ -948,7 +1005,7 @@ const Map<String, AmpSpec> ampSpecs = {
     true,
     Color(0xFF1C1C1C),
     Color(0xFF222222),
-    Color(0xFF202124),
+    AmpPanel.black,
     KnobStyle.blackFlat,
     false,
     ['Gain', 'Pres', 'Vol', 'Bass', 'Middle', 'Treble'],
@@ -957,7 +1014,7 @@ const Map<String, AmpSpec> ampSpecs = {
     true,
     Color(0xFF1C1C1C),
     Color(0xFFA2A6AC),
-    Color(0xFF202124),
+    AmpPanel.black,
     KnobStyle.chrome,
     false,
     ['Gain', 'Pres', 'Vol', 'Bass', 'Middle', 'Treble'],
@@ -966,7 +1023,7 @@ const Map<String, AmpSpec> ampSpecs = {
     true,
     Color(0xFF1C1C1C),
     Color(0xFFA2A6AC),
-    Color(0xFF202124),
+    AmpPanel.black,
     KnobStyle.chrome,
     false,
     ['Gain', 'Pres', 'Vol', 'Bass', 'Middle', 'Treble'],
@@ -975,7 +1032,7 @@ const Map<String, AmpSpec> ampSpecs = {
     true,
     Color(0xFF1C1C1C),
     Color(0xFF222222),
-    Color(0xFF2A2621),
+    AmpPanel.brass,
     KnobStyle.goldcap,
     true,
     ['Gain', 'Pres', 'Vol', 'Bass', 'Middle', 'Treble'],
@@ -984,7 +1041,7 @@ const Map<String, AmpSpec> ampSpecs = {
     true,
     Color(0xFF1C1C1C),
     Color(0xFF222222),
-    Color(0xFF2A2621),
+    AmpPanel.brass,
     KnobStyle.goldcap,
     true,
     ['Gain', 'Pres', 'Vol', 'Bass', 'Middle', 'Treble'],
@@ -993,7 +1050,7 @@ const Map<String, AmpSpec> ampSpecs = {
     true,
     Color(0xFF1C1C1C),
     Color(0xFF222222),
-    Color(0xFFE4E6E8),
+    AmpPanel.chrome,
     KnobStyle.blackFlat,
     false,
     ['Gain', 'Pres', 'Vol', 'Bass', 'Middle', 'Treble'],
@@ -1002,7 +1059,7 @@ const Map<String, AmpSpec> ampSpecs = {
     true,
     Color(0xFF1C1C1C),
     Color(0xFF222222),
-    Color(0xFFE4E6E8),
+    AmpPanel.chrome,
     KnobStyle.blackFlat,
     false,
     ['Gain', 'Pres', 'Vol', 'Bass', 'Middle', 'Treble'],
@@ -1011,7 +1068,7 @@ const Map<String, AmpSpec> ampSpecs = {
     true,
     Color(0xFF1C1C1C),
     Color(0xFF222222),
-    Color(0xFFCFD2D5),
+    AmpPanel.silver,
     KnobStyle.blackFlat,
     false,
     ['Gain', 'Pres', 'Vol', 'Bass', 'Middle', 'Treble'],
@@ -1020,7 +1077,7 @@ const Map<String, AmpSpec> ampSpecs = {
     true,
     Color(0xFFE8761E),
     Color(0xFFC1AC82),
-    Color(0xFFF2F0EA),
+    AmpPanel.white,
     KnobStyle.blackFlat,
     false,
     ['Gain', 'Vol', 'Bass', 'Middle', 'Treble'],
@@ -1029,7 +1086,7 @@ const Map<String, AmpSpec> ampSpecs = {
     true,
     Color(0xFF1C1C1C),
     Color(0xFF222222),
-    Color(0xFFC9CDD2),
+    AmpPanel.svt,
     KnobStyle.blackFlat,
     false,
     ['Gain', 'Bass', 'Middle', 'Treble', 'Vol'],
@@ -1038,7 +1095,7 @@ const Map<String, AmpSpec> ampSpecs = {
     true,
     Color(0xFF1C1C1C),
     Color(0xFF2A1D13),
-    Color(0xFFC98B5A),
+    AmpPanel.copper,
     KnobStyle.chickenCream,
     true,
     ['Vol', 'Bass', 'Treble'],
@@ -1047,7 +1104,7 @@ const Map<String, AmpSpec> ampSpecs = {
     true,
     Color(0xFF1C1C1C),
     Color(0xFF222222),
-    Color(0xFF1A1A1A),
+    AmpPanel.blackface,
     KnobStyle.chrome,
     false,
     ['Gain', 'Vol', 'Bass', 'Middle', 'Treble'],

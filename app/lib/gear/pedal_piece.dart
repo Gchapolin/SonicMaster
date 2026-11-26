@@ -85,7 +85,7 @@ class PedalPiece extends StatelessWidget {
   TextStyle _labelStyle(double size) =>
       _font(size, spec.label, spacing: 0.5, height: 1.2);
 
-  Widget _knob(int i, double size, double lbl) => _Drag(
+  Widget _knob(int i, double size, double lbl) => KnobDrag(
     value: _value(i),
     perPx: 0.5,
     onChanged: _report(i),
@@ -180,13 +180,13 @@ class PedalPiece extends StatelessWidget {
   );
 
   Widget _led() =>
-      _Paint(7, 7, (c, s) => paintLed(c, s.center(Offset.zero), 7, lit));
+      PaintBox(7, 7, (c, s) => paintLed(c, s.center(Offset.zero), 7, lit));
 
   Widget _footswitch(int i, double s) => GestureDetector(
     key: Key(i == 0 ? 'footswitch' : 'footswitch-$i'),
     behavior: HitTestBehavior.opaque,
     onTap: onSwitch,
-    child: _Paint(
+    child: PaintBox(
       s + 12,
       s + 12,
       (c, z) => paintFootswitch(c, z.center(Offset.zero), s),
@@ -195,7 +195,7 @@ class PedalPiece extends StatelessWidget {
 
   // Recessed plate under the knobs (compact and graphic families).
   Widget _plate(double w, double? h) {
-    final plate = _Paint(w, h ?? 0, (c, s) {
+    final plate = PaintBox(w, h ?? 0, (c, s) {
       final rr = RRect.fromRectAndRadius(
         Offset.zero & s,
         const Radius.circular(4),
@@ -269,7 +269,7 @@ class PedalPiece extends StatelessWidget {
         sizeOf = (i) => i == 1 ? 16 : 24;
         switches = [];
         tail.addAll([
-          _Paint(86, 62, (c, s) {
+          PaintBox(86, 62, (c, s) {
             final rr = RRect.fromRectAndRadius(
               Offset.zero & s,
               const Radius.circular(6),
@@ -336,7 +336,7 @@ class PedalPiece extends StatelessWidget {
             children: [
               for (var i = 0; i < math.min(nk, 6); i++) ...[
                 if (i > 0) const SizedBox(width: 8),
-                _Drag(
+                KnobDrag(
                   value: _value(i, _sliderVals),
                   perPx: 100 / 66,
                   onChanged: _report(i),
@@ -465,7 +465,7 @@ class PedalPiece extends StatelessWidget {
     );
   }
 
-  Widget _slider(double p) => _Paint(11, 66, (c, s) {
+  Widget _slider(double p) => PaintBox(11, 66, (c, s) {
     c.drawRRect(
       RRect.fromRectAndRadius(
         Rect.fromLTWH(4, 0, 3, s.height),
@@ -489,7 +489,7 @@ class PedalPiece extends StatelessWidget {
   Widget _rack() {
     final rack = spec.family == PedalFamily.rack;
     final nk = spec.knobNames.length;
-    Widget ear() => _Paint(14, double.infinity, (c, s) {
+    Widget ear() => PaintBox(14, double.infinity, (c, s) {
       final r = Offset.zero & s;
       c.drawRect(
         r,
@@ -557,7 +557,7 @@ class PedalPiece extends StatelessWidget {
       padding: const EdgeInsets.all(10),
       child: Row(
         children: [
-          _Paint(120, 96, (c, s) {
+          PaintBox(120, 96, (c, s) {
             final rr = RRect.fromRectAndRadius(
               Offset.zero & s,
               const Radius.circular(6),
@@ -627,7 +627,7 @@ class PedalPiece extends StatelessWidget {
     Column(
       children: [
         const SizedBox(height: 10),
-        _Paint(78, 128, (c, s) {
+        PaintBox(78, 128, (c, s) {
           final rr = RRect.fromRectAndCorners(
             Offset.zero & s,
             topLeft: const Radius.circular(10),
@@ -644,7 +644,7 @@ class PedalPiece extends StatelessWidget {
         }),
         Padding(padding: const EdgeInsets.only(top: 8), child: _title(12)),
         const Spacer(),
-        _Paint(78, 26, (c, s) {
+        PaintBox(78, 26, (c, s) {
           final r = Offset.zero & s;
           c.drawRRect(
             RRect.fromRectAndRadius(r, const Radius.circular(4)),
@@ -662,8 +662,9 @@ class PedalPiece extends StatelessWidget {
 }
 
 /// Vertical drag on a knob or slider: up raises the value, [perPx] per pixel.
-class _Drag extends StatefulWidget {
-  const _Drag({
+class KnobDrag extends StatefulWidget {
+  const KnobDrag({
+    super.key,
     required this.value,
     required this.perPx,
     required this.onChanged,
@@ -676,10 +677,10 @@ class _Drag extends StatefulWidget {
   final Widget child;
 
   @override
-  State<_Drag> createState() => _DragState();
+  State<KnobDrag> createState() => _KnobDragState();
 }
 
-class _DragState extends State<_Drag> {
+class _KnobDragState extends State<KnobDrag> {
   double _v = 0;
 
   @override
@@ -699,8 +700,8 @@ class _DragState extends State<_Drag> {
 }
 
 /// A fixed-size box drawn by [fn].
-class _Paint extends StatelessWidget {
-  const _Paint(this.w, this.h, this.fn);
+class PaintBox extends StatelessWidget {
+  const PaintBox(this.w, this.h, this.fn, {super.key});
   final double w;
   final double h;
   final void Function(Canvas, Size) fn;
