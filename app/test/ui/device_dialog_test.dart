@@ -10,6 +10,8 @@ import '../support/sonic_host.dart';
 import '../support/view_helpers.dart';
 
 void main() {
+  pickerTests();
+
   // [isRescanEnabled] false is the web Bluetooth picker: the browser scans.
   Future<void> openShell(
     WidgetTester tester,
@@ -142,7 +144,7 @@ void main() {
     expect(
       tester.getRect(find.text('Select Bluetooth device')),
       rectMoreOrLessEquals(
-        const Rect.fromLTRB(545.7, 467.5, 734.3, 490.5),
+        const Rect.fromLTRB(545.6, 469.5, 734.4, 492.5),
         epsilon: 0.1,
       ),
     );
@@ -189,5 +191,92 @@ void main() {
     await tester.pumpAndSettle();
 
     expectWithin(tester.getRect(find.text('Cancel')), visible, 'Cancel');
+  });
+}
+
+// Picker behaviour: toggle, selection, empty state.
+class _Result {
+  String? value;
+  bool done = false;
+}
+
+void pickerTests() {
+  Future<_Result> openPicker(
+    WidgetTester tester,
+    Future<List<DeviceEntry>> Function(TransportKind) scanner,
+  ) async {
+    final context = await pumpSonicHost(tester);
+    final result = _Result();
+
+    unawaited(
+      showSonicDialog<String>(
+        context: context,
+        builder: (_) => DeviceDialog(scanner: scanner),
+      ).then((v) {
+        result
+          ..value = v
+          ..done = true;
+      }),
+    );
+    await tester.pumpAndSettle();
+
+    return result;
+  }
+
+  testWidgets('Bluetooth/USB switch', (tester) async {
+    final kinds = <TransportKind>[];
+
+    await openPicker(tester, (k) async {
+      kinds.add(k);
+
+      return const [];
+    });
+
+    expect(find.text('BLUETOOTH'), findsOneWidget);
+    expect(find.text('USB'), findsOneWidget);
+
+    final first = kinds.length;
+
+    await tester.tap(find.text('BLUETOOTH'));
+    await tester.pumpAndSettle();
+
+    expect(kinds.length, first + 1);
+    expect(kinds.last, TransportKind.ble);
+
+    await tester.tap(find.text('USB'));
+    await tester.pumpAndSettle();
+
+    expect(kinds.last, TransportKind.usb);
+  });
+
+  testWidgets('the found device is selectable', (tester) async {
+    final result = await openPicker(
+      tester,
+      (k) async => [
+        const DeviceEntry(
+          name: 'Sonic Master BLE',
+          subtitle: 'Pocket Master',
+          isEnabled: true,
+        ),
+      ],
+    );
+
+    // Nothing selected: Connect does nothing.
+    await tester.tap(find.text('Connect'));
+    await tester.pumpAndSettle();
+    expect(result.done, isFalse);
+
+    await tester.tap(find.text('Sonic Master BLE'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Connect'));
+    await tester.pumpAndSettle();
+
+    expect(result.value, 'Sonic Master BLE');
+  });
+
+  testWidgets('USB with nothing found shows the empty message', (tester) async {
+    await openPicker(tester, (k) async => const []); // USB is the default
+
+    expect(find.text('No USB MIDI devices found'), findsOneWidget);
   });
 }

@@ -65,16 +65,21 @@ Future<void> pickAndConnect(BuildContext context, WidgetRef ref) async {
 /// to the toggled transport, and pops the chosen device name (the connect
 /// target) — or null on cancel.
 class DeviceDialog extends HookConsumerWidget {
-  const DeviceDialog({super.key});
+  /// [scanner] replaces the platform scan (tests).
+  const DeviceDialog({super.key, this.scanner});
+
+  final Future<List<DeviceEntry>> Function(TransportKind kind)? scanner;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final rows = useState<List<_DevRow>?>(null); // null = scanning
+    final rows = useState<List<DeviceEntry>?>(null); // null = scanning
+    final selected = useState<String?>(null);
     final error = useState<String?>(null);
 
     Future<void> scan() async {
       rows.value = null;
       error.value = null;
+      selected.value = null;
 
       final kind = ref.read(transportKindProvider);
 
@@ -101,10 +106,12 @@ class DeviceDialog extends HookConsumerWidget {
       }
 
       try {
-        final scanned = kind == .usb
+        final scanned = scanner != null
+            ? await scanner!(kind)
+            : kind == .usb
             ? [
                 for (final d in await enumerateMidiDevices())
-                  _DevRow(
+                  DeviceEntry(
                     name: d.name,
                     subtitle: d.connectable
                         ? ConnectionText.current.usbInOut
@@ -112,16 +119,14 @@ class DeviceDialog extends HookConsumerWidget {
                         ? ConnectionText.current.inputOnly
                         : ConnectionText.current.outputOnly,
                     isEnabled: d.connectable,
-                    isUsb: true,
                   ),
               ]
             : [
                 for (final d in await enumerateBleDevices())
-                  _DevRow(
+                  DeviceEntry(
                     name: d.name,
                     subtitle: '${d.address}   rssi ${d.rssi}',
                     isEnabled: d.name.isNotEmpty,
-                    isUsb: false,
                   ),
               ];
 
@@ -170,7 +175,14 @@ class DeviceDialog extends HookConsumerWidget {
           )
         : ListView(
             padding: EdgeInsets.zero,
-            children: [for (final r in currentRows) _DeviceRow(r)],
+            children: [
+              for (final r in currentRows)
+                _DeviceRow(
+                  r,
+                  isSelected: r.name == selected.value,
+                  onTap: () => selected.value = r.name,
+                ),
+            ],
           );
 
     return DeviceDialogShell(
@@ -178,6 +190,9 @@ class DeviceDialog extends HookConsumerWidget {
       transport: kind,
       onTransport: setKind,
       onRescan: isWebBle || currentRows == null ? null : scan,
+      onConnect: selected.value == null
+          ? null
+          : () => Navigator.pop(context, selected.value),
     );
   }
 }
@@ -197,6 +212,7 @@ class DeviceDialogShell extends StatelessWidget {
     required this.transport,
     required this.onTransport,
     required this.onRescan,
+    this.onConnect,
   });
 
   final Widget content;
@@ -204,11 +220,13 @@ class DeviceDialogShell extends StatelessWidget {
   final ValueChanged<TransportKind> onTransport;
   final VoidCallback? onRescan;
 
+  /// Null (nothing selected) dims the Connect button.
+  final VoidCallback? onConnect;
+
   @override
   Widget build(BuildContext context) {
     return SonicDialog(
-      maxWidth: 440,
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
+      maxWidth: 460,
       isScrollable: false,
       child: LayoutBuilder(
         builder: (context, constraints) => SingleChildScrollView(
@@ -226,34 +244,44 @@ class DeviceDialogShell extends StatelessWidget {
               children: [
                 Text(
                   ConnectionText.current.selectDevice,
-                  style: AppText.dialogTitle,
+                  style: AppText.title.copyWith(color: Palette.onSurface),
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 16),
                 SonicSegmented<TransportKind>(
                   value: transport,
                   isExpanded: true,
-                  height: 36,
+                  height: 40,
                   segments: const [
+                    (value: .ble, label: 'Bluetooth'),
                     (value: .usb, label: 'USB'),
-                    (value: .ble, label: 'BLE'),
                   ],
                   onChanged: onTransport,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 Flexible(child: SizedBox(height: 300, child: content)),
                 Padding(
-                  padding: const EdgeInsets.only(top: 10),
+                  padding: const EdgeInsets.only(top: 20),
                   child: Row(
-                    mainAxisAlignment: .end,
                     children: [
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: _RescanLink(onTap: onRescan),
+                        ),
+                      ),
                       SonicButton(
-                        label: ConnectionText.current.rescan,
-                        onPressed: onRescan,
+                        label: CommonText.current.cancel,
+                        height: 40,
+                        minWidth: 100,
+                        onPressed: () => Navigator.pop(context),
                       ),
                       const SizedBox(width: 10),
                       SonicButton(
-                        label: CommonText.current.cancel,
-                        onPressed: () => Navigator.pop(context),
+                        label: ConnectionText.current.connect,
+                        height: 40,
+                        minWidth: 100,
+                        isAccent: true,
+                        onPressed: onConnect,
                       ),
                     ],
                   ),
@@ -277,10 +305,50 @@ class DeviceStateMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _CenteredScroll(
-      child: Text(text, textAlign: .center, style: AppText.dialogBody),
+    return CustomPaint(
+      foregroundPainter: _DashedBorderPainter(color: Palette.line2),
+      child: SizedBox.expand(
+        child: _CenteredScroll(
+          child: Text(
+            text,
+            textAlign: .center,
+            style: AppText.ui.copyWith(color: Palette.outline),
+          ),
+        ),
+      ),
     );
   }
+}
+
+/// A 1px dashed rounded border (the prototype's empty-state box).
+class _DashedBorderPainter extends CustomPainter {
+  const _DashedBorderPainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path()
+      ..addRRect(
+        RRect.fromRectAndRadius(
+          Offset.zero & size,
+          const Radius.circular(14),
+        ).deflate(0.5),
+      );
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+
+    for (final m in path.computeMetrics()) {
+      for (var d = 0.0; d < m.length; d += 6) {
+        canvas.drawPath(m.extractPath(d, math.min(d + 3, m.length)), paint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DashedBorderPainter old) => old.color != color;
 }
 
 /// Web BLE content: a prompt plus a button that hands off to the browser's own
@@ -314,7 +382,7 @@ class WebBleChooser extends StatelessWidget {
                   Text(
                     ConnectionText.current.browserPicksBluetooth,
                     textAlign: .center,
-                    style: AppText.dialogBody,
+                    style: AppText.ui.copyWith(color: Palette.outline),
                   ),
                 ],
               ),
@@ -344,46 +412,38 @@ class _CenteredScroll extends StatelessWidget {
   }
 }
 
-/// A single tappable device entry in the picker list.
-class _DeviceRow extends StatelessWidget {
-  const _DeviceRow(this.row);
+/// The "search again" text button, left of the actions.
+class _RescanLink extends StatelessWidget {
+  const _RescanLink({required this.onTap});
 
-  final _DevRow row;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: .opaque,
-      onTap: row.isEnabled ? () => Navigator.pop(context, row.name) : null,
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
+    return MouseRegion(
+      cursor: onTap == null ? MouseCursor.defer : SystemMouseCursors.click,
+      child: GestureDetector(
+        behavior: .opaque,
+        onTap: onTap,
         child: Opacity(
-          opacity: row.isEnabled ? 1 : 0.5,
+          opacity: onTap == null ? 0.4 : 1,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
             child: Row(
+              mainAxisSize: .min,
               children: [
-                Icon(
-                  row.isUsb ? Icons.usb : Icons.bluetooth,
-                  color: Palette.onSurfaceVariant,
-                  size: 22,
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: .start,
-                    children: [
-                      Text(
-                        row.name.isEmpty
-                            ? ConnectionText.current.unnamed
-                            : row.name,
-                        maxLines: 1,
-                        overflow: .ellipsis,
-                        style: AppText.deviceRowTitle,
-                      ),
-                      const SizedBox(height: 2),
-                      Text(row.subtitle, style: AppText.deviceRowSub),
-                    ],
+                Icon(Icons.refresh, size: 16, color: Palette.primary),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    ConnectionText.current.rescan,
+                    maxLines: 1,
+                    overflow: .ellipsis,
+                    style: AppText.ui.copyWith(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Palette.primary,
+                    ),
                   ),
                 ),
               ],
@@ -395,16 +455,87 @@ class _DeviceRow extends StatelessWidget {
   }
 }
 
-class _DevRow {
-  const _DevRow({
+/// A selectable device entry in the picker list.
+class _DeviceRow extends StatelessWidget {
+  const _DeviceRow(this.row, {required this.isSelected, required this.onTap});
+
+  final DeviceEntry row;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: GestureDetector(
+        behavior: .opaque,
+        onTap: row.isEnabled ? onTap : null,
+        child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: Opacity(
+            opacity: row.isEnabled ? 1 : 0.5,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? Palette.primary.withValues(alpha: 0.10)
+                    : Palette.field,
+                border: Border.all(
+                  color: isSelected ? Palette.primary : Palette.outlineVariant,
+                ),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: .start,
+                      children: [
+                        Text(
+                          row.name.isEmpty
+                              ? ConnectionText.current.unnamed
+                              : row.name,
+                          maxLines: 1,
+                          overflow: .ellipsis,
+                          style: AppText.uiStrong.copyWith(
+                            color: Palette.onSurface,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          row.subtitle,
+                          style: AppText.ui.copyWith(
+                            fontSize: 12,
+                            color: Palette.outline,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.signal_cellular_alt,
+                    size: 18,
+                    color: row.isEnabled ? Palette.ok : Palette.outline,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// One scanned device in the picker.
+class DeviceEntry {
+  const DeviceEntry({
     required this.name,
     required this.subtitle,
     required this.isEnabled,
-    required this.isUsb,
   });
 
   final String name;
   final String subtitle;
   final bool isEnabled;
-  final bool isUsb;
 }
