@@ -18,3 +18,18 @@ void expectNoTruncatedText(WidgetTester tester, Finder scope) {
     );
   }
 }
+
+/// [expectNoTruncatedText] for every dropdown (of any value type) under [scope].
+void expectDropdownsNotTruncated(WidgetTester tester, Finder scope) {
+  final dropdowns = find.descendant(
+    of: scope,
+    matching: find.byWidgetPredicate(
+      (w) => w.runtimeType.toString().startsWith('SonicDropdown'),
+    ),
+  );
+  expect(dropdowns, findsWidgets);
+
+  for (final d in dropdowns.evaluate()) {
+    expectNoTruncatedText(tester, find.byWidget(d.widget));
+  }
+}

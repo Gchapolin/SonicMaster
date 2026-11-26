@@ -19,6 +19,7 @@ import 'package:sonicmaster/ui/sonic_controls.dart';
 
 import '../fixtures/cfw_dumps.dart';
 import '../support/page_harness.dart';
+import '../support/text_fit.dart';
 
 /// Ajustes over the main screen at the prototype's 1180x820 (N_Ajustes), in
 /// Portuguese with the prototype's faces: the typical CFW state, which fits
@@ -81,6 +82,9 @@ void main() {
       // No pumpAndSettle: the connected page's heartbeat (see pumpPage).
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
+
+      // Every select shows its value whole ("Todos os canais" once did not).
+      expectDropdownsNotTruncated(tester, find.byType(GlobalSettingsDialog));
 
       await expectLater(
         find.byType(SonicMasterApp),

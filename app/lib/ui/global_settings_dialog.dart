@@ -661,6 +661,7 @@ class _MidiSection extends ConsumerWidget {
           child: SonicDropdown<int>(
             value: cfw.midiChannel,
             width: _controlWidth,
+            fitLabels: true,
             height: _controlHeight,
             items: [
               (value: 0, label: t.allChannels),
