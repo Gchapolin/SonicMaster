@@ -31,27 +31,62 @@ class EmptyBoard extends StatelessWidget {
     final t = ShellText.current;
 
     return Column(
-      mainAxisSize: .min,
-      crossAxisAlignment: .center,
+      crossAxisAlignment: .stretch,
       children: [
-        // Scaled down to fit when the work area is narrower than the row.
-        FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Row(
-            crossAxisAlignment: .start,
-            children: [for (final (tag, w, h) in _slots) _Slot(tag, w, h)],
+        // The prototype's band: the slots centred in a 210-px plate with a
+        // hairline under it. Scaled down to fit a narrower work area.
+        Container(
+          key: const ValueKey('empty-band'),
+          height: 210,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: Palette.surfaceContainerLow,
+            border: Border(bottom: BorderSide(color: Palette.outlineVariant)),
+          ),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              crossAxisAlignment: .center,
+              children: [
+                for (final (i, (tag, w, h)) in _slots.indexed) ...[
+                  if (i > 0) const SizedBox(width: 12),
+                  _Slot(tag, w, h),
+                ],
+              ],
+            ),
           ),
         ),
-        const SizedBox(height: 40),
-        Icon(Icons.power_off_outlined, size: 56, color: Palette.outline),
-        const SizedBox(height: 18),
-        Text(
-          t.noDeviceConnected,
-          textAlign: .center,
-          style: AppText.title.copyWith(color: Palette.onSurface),
+        // Scrolls when the work area is too short for the message (phones).
+        Expanded(
+          child: LayoutBuilder(
+            builder: (context, box) => SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: box.maxHeight),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: .min,
+                    children: [
+                      Icon(
+                        Icons.power_off_outlined,
+                        size: 56,
+                        color: Palette.outline,
+                      ),
+                      const SizedBox(height: 18),
+                      Text(
+                        t.noDeviceConnected,
+                        textAlign: .center,
+                        style: AppText.title.copyWith(color: Palette.onSurface),
+                      ),
+                      const SizedBox(height: 18),
+                      SonicButton(label: t.tryDemo, onPressed: onDemo),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
         ),
-        const SizedBox(height: 18),
-        SonicButton(label: t.tryDemo, onPressed: onDemo),
       ],
     );
   }

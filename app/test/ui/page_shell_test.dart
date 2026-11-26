@@ -506,6 +506,7 @@ void main() {
 
         // startDemo: the page's own demo path (the harness swaps the
         // transport for a silent one, so only the mode flag is observable).
+        await tester.ensureVisible(find.text('Testar demo'));
         await tester.tap(find.text('Testar demo'));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 1100));
@@ -513,5 +514,24 @@ void main() {
         expect(c.read(demoModeProvider), isTrue);
       });
     }
+  });
+
+  testWidgets('the empty board is the prototype band: centred slots, 12 px '
+      'apart, 210 px tall and full width', (tester) async {
+    await pumpPage(tester, size: const Size(1180, 820), isConnected: false);
+
+    final slots = find.byKey(const ValueKey('empty-slot'));
+    final first = tester.getRect(slots.at(0));
+    final amp = tester.getRect(slots.at(3));
+    final second = tester.getRect(slots.at(1));
+    final band = tester.getRect(find.byKey(const ValueKey('empty-band')));
+
+    // AMP (shorter) is centred on the others' middle line.
+    expect(amp.center.dy, closeTo(first.center.dy, 1.5));
+    // 6 + 12 + 6 between neighbouring boxes.
+    expect(second.left - first.right, closeTo(24, 0.5));
+    expect(band.height, 210);
+    expect(band.width, 1180 - railWidth);
+    expect(band.top, closeTo(60, 1)); // right under the top bar
   });
 }

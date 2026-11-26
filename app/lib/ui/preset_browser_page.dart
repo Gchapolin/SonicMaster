@@ -199,80 +199,85 @@ class PresetBrowserPage extends HookConsumerWidget {
                                     Expanded(
                                       child: Stack(
                                         children: [
-                                          LayoutBuilder(
-                                            builder: (context, constraints) => SingleChildScrollView(
-                                              padding: EdgeInsets.all(
-                                                metrics.workPadding,
+                                          if (!isConnected)
+                                            Positioned.fill(
+                                              // No pedal at hand: a virtual one, nothing is sent anywhere.
+                                              child: EmptyBoard(
+                                                onDemo: () => startDemo(ref),
                                               ),
-                                              // Center the work-area content vertically (grows past
-                                              // the viewport → scrolls). Clone Mode moved into the
-                                              // AMP editor, matching the web app.
-                                              child: ConstrainedBox(
-                                                constraints: BoxConstraints(
-                                                  // Never negative: the soft
-                                                  // keyboard can leave the work
-                                                  // area shorter than its
-                                                  // padding.
-                                                  minHeight: math.max(
-                                                    0,
-                                                    constraints.maxHeight -
-                                                        2 * metrics.workPadding,
-                                                  ),
+                                            )
+                                          else
+                                            LayoutBuilder(
+                                              builder: (context, constraints) => SingleChildScrollView(
+                                                padding: EdgeInsets.all(
+                                                  metrics.workPadding,
                                                 ),
-                                                child: Column(
-                                                  mainAxisAlignment: .center,
-                                                  crossAxisAlignment: .stretch,
-                                                  children: [
-                                                    if (!isConnected)
-                                                      EmptyBoard(
-                                                        // No pedal at hand: a virtual one, nothing is sent anywhere.
-                                                        onDemo: () =>
-                                                            startDemo(ref),
-                                                      )
-                                                    else if (emptyMessage !=
-                                                        null)
-                                                      Text(
-                                                        emptyMessage,
-                                                        textAlign: .center,
-                                                        style: AppText
-                                                            .dialogTitle
-                                                            .copyWith(
-                                                              color: Palette
-                                                                  .textDim,
+                                                // Center the work-area content vertically (grows past
+                                                // the viewport → scrolls). Clone Mode moved into the
+                                                // AMP editor, matching the web app.
+                                                child: ConstrainedBox(
+                                                  constraints: BoxConstraints(
+                                                    // Never negative: the soft
+                                                    // keyboard can leave the work
+                                                    // area shorter than its
+                                                    // padding.
+                                                    minHeight: math.max(
+                                                      0,
+                                                      constraints.maxHeight -
+                                                          2 *
+                                                              metrics
+                                                                  .workPadding,
+                                                    ),
+                                                  ),
+                                                  child: Column(
+                                                    mainAxisAlignment: .center,
+                                                    crossAxisAlignment:
+                                                        .stretch,
+                                                    children: [
+                                                      if (emptyMessage != null)
+                                                        Text(
+                                                          emptyMessage,
+                                                          textAlign: .center,
+                                                          style: AppText
+                                                              .dialogTitle
+                                                              .copyWith(
+                                                                color: Palette
+                                                                    .textDim,
+                                                              ),
+                                                        )
+                                                      else if (state !=
+                                                          null) ...[
+                                                        const ChainView(),
+                                                        SizedBox(
+                                                          height: metrics
+                                                              .chainPanelsGap,
+                                                        ),
+                                                        // The effect editor across the whole
+                                                        // work area (Preset Vol and BPM live in
+                                                        // the top bar); it scrolls if a
+                                                        // param-heavy effect is taller.
+                                                        ConstrainedBox(
+                                                          constraints: BoxConstraints(
+                                                            minHeight: metrics
+                                                                .minPanelHeight,
+                                                          ),
+                                                          child: SonicSurface(
+                                                            radius: 24,
+                                                            padding:
+                                                                EdgeInsets.zero,
+                                                            // Always a selection (default NR).
+                                                            child: ModuleEditor(
+                                                              selectedModule ??
+                                                                  0,
                                                             ),
-                                                      )
-                                                    else if (state != null) ...[
-                                                      const ChainView(),
-                                                      SizedBox(
-                                                        height: metrics
-                                                            .chainPanelsGap,
-                                                      ),
-                                                      // The effect editor across the whole
-                                                      // work area (Preset Vol and BPM live in
-                                                      // the top bar); it scrolls if a
-                                                      // param-heavy effect is taller.
-                                                      ConstrainedBox(
-                                                        constraints:
-                                                            BoxConstraints(
-                                                              minHeight: metrics
-                                                                  .minPanelHeight,
-                                                            ),
-                                                        child: SonicSurface(
-                                                          radius: 24,
-                                                          padding:
-                                                              EdgeInsets.zero,
-                                                          // Always a selection (default NR).
-                                                          child: ModuleEditor(
-                                                            selectedModule ?? 0,
                                                           ),
                                                         ),
-                                                      ),
+                                                      ],
                                                     ],
-                                                  ],
+                                                  ),
                                                 ),
                                               ),
                                             ),
-                                          ),
                                         ],
                                       ),
                                     ),
