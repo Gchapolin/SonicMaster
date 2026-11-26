@@ -246,9 +246,15 @@ class SonicMetrics {
   /// A [SonicDialog]'s inner padding when its caller passes none.
   final EdgeInsets dialogPadding;
 
-  /// Width of one chevron connector between two chain cards.
-  double get chainConnectorWidth =>
-      chainConnectorIconSize + 2 * chainConnectorPadding;
+  /// Width of one connector between two chain units: compact draws the
+  /// chevron plus both insets; regular is the prototype pedalboard's plain
+  /// 12-px gap (its chevron tokens are unused there).
+  double get chainConnectorWidth => isCompact
+      ? chainConnectorIconSize + 2 * chainConnectorPadding
+      : regularUnitGap;
+
+  /// The gap between two regular pedalboard units (prototype N_Principal).
+  static const double regularUnitGap = 12;
 
   /// The token set for a viewport of [size].
   static SonicMetrics forSize(Size size) =>

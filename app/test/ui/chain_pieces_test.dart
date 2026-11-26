@@ -8,7 +8,9 @@ import 'package:sonicmaster/state/data_providers.dart';
 import 'package:sonicmaster/state/preset_providers.dart';
 import 'package:sonicmaster/theme/app_colors.dart';
 import 'package:sonicmaster/ui/chain_view.dart';
+import 'package:sonicmaster/ui/sonic_metrics.dart';
 
+import '../support/page_harness.dart';
 import '../support/test_assets.dart';
 
 final _assets = loadTestDataAssets();
@@ -37,9 +39,22 @@ void main() {
     home: Scaffold(body: Center(child: child)),
   );
 
-  testWidgets('ChainConnector shows a chevron icon', (tester) async {
-    await tester.pumpWidget(host(const ChainConnector()));
+  testWidgets('compact: ChainConnector shows a chevron icon', (tester) async {
+    await tester.pumpWidget(
+      host(
+        const SonicMetricsScope(
+          metrics: SonicMetrics.compact,
+          child: ChainConnector(),
+        ),
+      ),
+    );
     expect(find.byIcon(Icons.chevron_right), findsOneWidget);
+  });
+
+  testWidgets('regular: ChainConnector is a plain 12-px gap', (tester) async {
+    await tester.pumpWidget(host(const ChainConnector()));
+    expect(find.byIcon(Icons.chevron_right), findsNothing);
+    expect(tester.getSize(find.byType(ChainConnector)).width, 12);
   });
 
   testWidgets('AmpBlockBorder wraps its child without error', (tester) async {
@@ -132,18 +147,30 @@ void main() {
       ),
     );
 
-    final box = tester.widget<Container>(
-      find
-          .ancestor(
-            of: find.byType(GearPiece),
-            matching: find.byType(Container),
-          )
-          .last,
-    );
+    final box = tester.widget<Container>(find.byKey(const Key('regular-unit')));
     final deco = box.decoration! as BoxDecoration;
 
     expect(deco.color, Palette.surfaceContainerHigh);
     expect((deco.border! as Border).top.color, Palette.primary);
     expect(tester.widget<Text>(find.text('AMP')).style?.color, Palette.primary);
   });
+
+  // The prototype pedalboard is one row of nine units: at the iPad Pro 11
+  // landscape width and at 1280 every unit top is the same.
+  for (final size in const [Size(1194, 834), Size(1280, 800)]) {
+    testWidgets('regular ${size.width.toInt()}x${size.height.toInt()}: '
+        'the pedalboard is one row', (tester) async {
+      await pumpPage(tester, size: size, selectedEffects: fullPresetEffects);
+
+      final tops = find
+          .byType(ModuleCard)
+          .evaluate()
+          .map((e) => tester.getTopLeft(find.byWidget(e.widget)).dy)
+          .toList();
+
+      expect(tops, hasLength(9));
+      expect(tops, everyElement(closeTo(tops.first, 0.01)));
+      expect(find.byType(AmpBlockBorder), findsOneWidget);
+    });
+  }
 }

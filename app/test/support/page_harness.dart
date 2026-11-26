@@ -52,6 +52,20 @@ const regularUnitWidths = [
   81.0,
 ];
 
+/// A full preset's selected effects, so every regular unit draws its piece:
+/// Gate, COMP 1, Scream, Brit 800, BritGN 4x12, GT EQ 1, A-Chorus, Pure, Room.
+const fullPresetEffects = {
+  0: 1,
+  1: 101,
+  2: 201,
+  3: 308,
+  4: 410,
+  5: 501,
+  6: 106,
+  7: 701,
+  8: 802,
+};
+
 /// The bundled data tables, read from disk once per test file.
 final _assets = loadTestDataAssets();
 

@@ -96,8 +96,9 @@ void main() {
     expect(metrics.ampBlockPadding, 4);
   });
 
-  test('a connector is its chevron plus both insets', () {
-    expect(SonicMetrics.regular.chainConnectorWidth, 24);
+  test('compact: a connector is its chevron plus both insets; regular: a '
+      '12-px gap', () {
+    expect(SonicMetrics.regular.chainConnectorWidth, 12);
     expect(SonicMetrics.compact.chainConnectorWidth, 16);
   });
 

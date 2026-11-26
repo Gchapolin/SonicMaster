@@ -55,7 +55,13 @@ void main() {
     });
 
     test('one row is cards + connectors + amp-block padding', () {
-      expect(chainRowWidth(SonicMetrics.regular, cardWidth: 96), 1076);
+      // Regular: the piece-sized units plus 8 gaps of 12 and the amp block's
+      // padding, the prototype's one-row pedalboard.
+      expect(
+        chainRowWidth(SonicMetrics.regular, cardWidth: 0) +
+            regularUnitWidths.reduce((a, b) => a + b),
+        919,
+      );
       expect(chainRowWidth(SonicMetrics.compact, cardWidth: 54), 622);
       expect(
         chainRowWidth(
@@ -200,51 +206,44 @@ void main() {
   // The card height is derived, never a literal: Oswald lines are 1.482 em
   // laid out on whole pixels (12-px name 18, 10-px effect 15), so the compact
   // card is 101.
-  for (final isCompact in const [true]) {
-    final metrics = isCompact ? SonicMetrics.compact : SonicMetrics.regular;
-    final mode = isCompact ? 'compact' : 'regular';
+  testWidgets('compact: card internals follow the metrics', (tester) async {
+    const metrics = SonicMetrics.compact;
 
-    testWidgets('$mode: card internals follow the metrics', (tester) async {
-      await pumpChain(
-        tester,
-        width: isCompact ? 836 : 1200,
-        isCompact: isCompact,
-      );
+    await pumpChain(tester, width: 836);
 
-      final fx1 = find.byType(ModuleCard).at(1); // unselected: 1-px border
-      final name = tester.getSize(
-        find.descendant(of: fx1, matching: find.text('FX1')),
-      );
+    final fx1 = find.byType(ModuleCard).at(1); // unselected: 1-px border
+    final name = tester.getSize(
+      find.descendant(of: fx1, matching: find.text('FX1')),
+    );
 
-      final effect = tester.getSize(
-        find.descendant(of: fx1, matching: find.text('—')),
-      );
+    final effect = tester.getSize(
+      find.descendant(of: fx1, matching: find.text('—')),
+    );
 
-      final height =
-          2 +
-          metrics.chainCardPadding.vertical +
-          10 + // DragGrip: two rows of 5-px dots
-          metrics.chainGripGap +
-          metrics.chainIconSize +
-          metrics.chainIconGap +
-          name.height +
-          effect.height +
-          metrics.chainLedGap +
-          metrics.chainLedSize.height;
+    final height =
+        2 +
+        metrics.chainCardPadding.vertical +
+        10 + // DragGrip: two rows of 5-px dots
+        metrics.chainGripGap +
+        metrics.chainIconSize +
+        metrics.chainIconGap +
+        name.height +
+        effect.height +
+        metrics.chainLedGap +
+        metrics.chainLedSize.height;
 
-      expect(tester.getSize(fx1).height, closeTo(height, 0.01));
-      expect(
-        tester.getSize(
-          find.descendant(of: fx1, matching: find.byType(LedButton)),
-        ),
-        metrics.chainLedSize,
-      );
-      expect(
-        tester.getSize(find.byType(ChainConnector).first).width,
-        metrics.chainConnectorWidth,
-      );
-    });
-  }
+    expect(tester.getSize(fx1).height, closeTo(height, 0.01));
+    expect(
+      tester.getSize(
+        find.descendant(of: fx1, matching: find.byType(LedButton)),
+      ),
+      metrics.chainLedSize,
+    );
+    expect(
+      tester.getSize(find.byType(ChainConnector).first).width,
+      metrics.chainConnectorWidth,
+    );
+  });
 
   for (final isCompact in const [true, false]) {
     final mode = isCompact ? 'compact' : 'regular';

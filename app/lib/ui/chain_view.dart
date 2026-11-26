@@ -26,7 +26,8 @@ const moduleIconColor = Palette.moduleIcon;
 /// between each adjacent pair (inside the amp block too, so 8 for the 9-card
 /// chain in any order), plus the amp block's padding on both sides when the
 /// block is present. Its dashed border paints on that padding, and the drag
-/// wrappers add no size.
+/// wrappers add no size. Regular units are sized by their piece, not by
+/// [cardWidth]: pass 0 for the fixed part and add the unit widths.
 double chainRowWidth(
   SonicMetrics metrics, {
   required double cardWidth,
@@ -38,10 +39,10 @@ double chainRowWidth(
     (hasAmpBlock ? 2 * metrics.ampBlockPadding : 0);
 
 /// The widest whole-pixel card width that keeps [cardCount] cards on ONE row
-/// of [availableWidth], clamped to the metrics' card bounds. Regular pins both
-/// bounds to 96, so its cards never change; below the compact floor the chain's
-/// Wrap breaks rows as before. An empty chain or an unbounded width gets the
-/// widest card.
+/// of [availableWidth], clamped to the metrics' card bounds. Only compact
+/// cards use it (regular units are sized by their piece); below the compact
+/// floor the chain's Wrap breaks rows as before. An empty chain or an
+/// unbounded width gets the widest card.
 double chainCardWidth(
   SonicMetrics metrics, {
   required double availableWidth,
@@ -100,13 +101,14 @@ class ModuleCard extends StatelessWidget {
   /// The footswitch this module is assigned to, shown as a corner badge.
   final FootswitchAssignment footswitch;
 
-  /// Reorderable card → show the drag-handle grip. The fixed amp-block cards
-  /// aren't draggable, so their grip is hidden (its space is kept so the cards
-  /// stay the same height).
+  /// Reorderable card → the compact card shows the drag-handle grip. The fixed
+  /// amp-block cards aren't draggable, so their grip is hidden (its space is
+  /// kept so the cards stay the same height). The regular unit has no grip.
   final bool draggable;
 
-  /// The card's width; null means [SonicMetrics.chainCardMaxWidth]. ChainView
-  /// passes the width that keeps the chain on one row (chainCardWidth).
+  /// The compact card's width; null means [SonicMetrics.chainCardMaxWidth].
+  /// ChainView passes the width that keeps the chain on one row
+  /// (chainCardWidth). The regular unit ignores it: its piece sizes it.
   final double? width;
   final VoidCallback? onSelect;
   final VoidCallback? onToggle;
@@ -149,6 +151,7 @@ class ModuleCard extends StatelessWidget {
     };
 
     return Container(
+      key: const Key('regular-unit'),
       padding: const EdgeInsets.fromLTRB(6, 6, 6, 0),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(14),
@@ -316,13 +319,18 @@ class _FsBadge extends StatelessWidget {
   }
 }
 
-/// The signal-flow chevron drawn between adjacent cards.
+/// The signal-flow chevron drawn between adjacent compact cards; regular
+/// leaves a plain gap between the pedalboard units (prototype N_Principal).
 class ChainConnector extends StatelessWidget {
   const ChainConnector({super.key});
 
   @override
   Widget build(BuildContext context) {
     final metrics = SonicMetrics.of(context);
+
+    if (!metrics.isCompact) {
+      return SizedBox(width: metrics.chainConnectorWidth);
+    }
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: metrics.chainConnectorPadding),
@@ -535,9 +543,9 @@ class ChainView extends ConsumerWidget {
       );
     }
 
-    // The card width comes from the width actually available, so the
-    // LayoutBuilder is there in both modes (regular's bounds are equal, so its
-    // cards stay 96 and the tree keeps one shape across mode flips).
+    // The compact card width comes from the width actually available. The
+    // LayoutBuilder is there in both modes (regular units ignore the width),
+    // so the tree keeps one shape across mode flips.
     return LayoutBuilder(
       builder: (context, constraints) {
         final cardWidth = chainCardWidth(
