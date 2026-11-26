@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sonicmaster/theme/app_colors.dart';
+import 'package:sonicmaster/theme/app_palettes.dart';
 
 /// WCAG contrast ratio between two opaque colors.
 double contrast(Color a, Color b) {
@@ -13,6 +14,13 @@ double contrast(Color a, Color b) {
 }
 
 void main() {
+  tearDown(() => Palette.current = appPalettes.first);
+
+  test('Palette follows Palette.current', () {
+    Palette.current = paletteById('p13');
+    expect(Palette.surface, paletteById('p13').bg);
+  });
+
   test('the Material 3 roles are the Vintage Neutral - Muted palette', () {
     // Adobe Color "Vintage Neutral - Muted" (6A736F A4A698 D9D0C7 D9AB9A
     // D98977), turned into a dark UI the way the HTML prototype does it.

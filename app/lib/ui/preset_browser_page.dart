@@ -175,9 +175,7 @@ class PresetBrowserPage extends HookConsumerWidget {
                         Expanded(
                           // The work area: the flat app surface.
                           child: DecoratedBox(
-                            decoration: const BoxDecoration(
-                              color: Palette.surface,
-                            ),
+                            decoration: BoxDecoration(color: Palette.surface),
                             child: LayoutBuilder(
                               builder: (context, constraints) {
                                 const dividerHeight = 16.0;
@@ -364,7 +362,7 @@ class _ConsoleResizeHandle extends StatelessWidget {
       child: GestureDetector(
         behavior: .opaque,
         onVerticalDragUpdate: (d) => onDrag(d.delta.dy),
-        child: const DecoratedBox(
+        child: DecoratedBox(
           decoration: BoxDecoration(
             border: Border(top: BorderSide(color: Palette.railBorder)),
           ),

@@ -94,7 +94,7 @@ class _RotatePrompt extends StatelessWidget {
                 child: Column(
                   mainAxisSize: .min,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.screen_rotation,
                       size: 48,
                       color: Palette.accent,

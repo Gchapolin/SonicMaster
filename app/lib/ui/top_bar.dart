@@ -30,7 +30,7 @@ import 'window_controls.dart';
 /// compact preset drawer's header wears the same plate, so the open drawer
 /// reads as part of the bar. The 1-px top edge stays (in the surface color) so
 /// the bar's content keeps its position.
-const topBarDecoration = BoxDecoration(
+BoxDecoration get topBarDecoration => BoxDecoration(
   color: Palette.surface,
   border: Border(
     top: BorderSide(color: Palette.surface),
@@ -56,7 +56,7 @@ class SonicLogo extends StatelessWidget {
         'assets/images/logo.svg',
         fit: .contain,
         alignment: Alignment.centerLeft,
-        colorFilter: const ColorFilter.mode(Palette.textPrimary, .srcIn),
+        colorFilter: ColorFilter.mode(Palette.textPrimary, .srcIn),
       ),
     );
   }

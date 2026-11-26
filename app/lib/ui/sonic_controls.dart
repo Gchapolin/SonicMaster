@@ -517,7 +517,7 @@ class _Segment extends StatelessWidget {
           decoration: BoxDecoration(
             color: isActive ? Palette.secondaryContainer : null,
             border: hasDivider
-                ? const Border(left: BorderSide(color: Palette.outline))
+                ? Border(left: BorderSide(color: Palette.outline))
                 : null,
           ),
           // scaleDown shrinks a label that would otherwise overflow its (equal)
@@ -677,7 +677,7 @@ class _DropdownTrigger extends StatelessWidget {
           AnimatedRotation(
             turns: isOpen ? 0.5 : 0,
             duration: const Duration(milliseconds: 180),
-            child: const Icon(
+            child: Icon(
               Icons.keyboard_arrow_down,
               size: 22,
               color: Palette.onSurfaceVariant,
@@ -991,23 +991,25 @@ class SonicSurface extends StatelessWidget {
     required this.child,
     this.padding = const EdgeInsets.all(6),
     this.radius = 12,
-    this.color = Palette.surfaceContainer,
+    this.color,
   });
 
   final Widget child;
   final EdgeInsetsGeometry padding;
   final double radius;
-  final Color color;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
+    final fill = color ?? Palette.surfaceContainer;
+
     return Container(
       padding: padding,
       clipBehavior: .antiAlias,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(radius),
-        color: color,
-        border: Border.all(color: color),
+        color: fill,
+        border: Border.all(color: fill),
       ),
       child: child,
     );

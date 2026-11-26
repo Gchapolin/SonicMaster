@@ -227,7 +227,7 @@ class RailButton extends StatelessWidget {
 
 /// The rail's panel: the app surface with a hairline right edge. The compact
 /// preset drawer's panel wears it too.
-const railDecoration = BoxDecoration(
+BoxDecoration get railDecoration => BoxDecoration(
   color: Palette.surface,
   border: Border(right: BorderSide(color: Palette.railBorder)),
 );
@@ -462,7 +462,7 @@ class RailFooter extends HookWidget {
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         border: Border(top: BorderSide(color: Palette.railBorder)),
       ),
       child: Column(
@@ -507,7 +507,7 @@ class _PresetSearchField extends HookConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Row(
         children: [
-          const Icon(Icons.search, size: 18, color: Palette.onSurfaceVariant),
+          Icon(Icons.search, size: 18, color: Palette.onSurfaceVariant),
           const SizedBox(width: 8),
           Expanded(
             child: SonicField(

@@ -29,7 +29,7 @@ Finder get _drawerList => _inDrawer(find.byType(SingleChildScrollView));
 /// The drawer's header: it wears the title bar's plate.
 Finder get _drawerHeader => _inDrawer(
   find.byWidgetPredicate(
-    (w) => w is DecoratedBox && identical(w.decoration, topBarDecoration),
+    (w) => w is DecoratedBox && w.decoration == topBarDecoration,
   ),
 );
 

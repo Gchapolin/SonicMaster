@@ -305,7 +305,7 @@ class WebBleChooser extends StatelessWidget {
               child: Column(
                 mainAxisSize: .min,
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.bluetooth_searching,
                     color: Palette.onSurfaceVariant,
                     size: 40,

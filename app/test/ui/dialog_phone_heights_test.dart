@@ -225,7 +225,7 @@ final _cases = <DialogCase>[
       tester,
       context,
       _deviceShell(
-        const Center(
+        Center(
           child: Text('No USB MIDI devices found', style: AppText.dialogBody),
         ),
       ),
@@ -242,7 +242,7 @@ final _cases = <DialogCase>[
       tester,
       context,
       _deviceShell(
-        const Center(
+        Center(
           child: Text(
             'Web Bluetooth is not available.\n'
             'Use Chrome, Edge, or Opera. On Linux, enable\n'

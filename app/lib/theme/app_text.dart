@@ -92,21 +92,15 @@ abstract final class AppText {
   );
 
   /// Small effect sub-label in the chain view.
-  static const TextStyle chainSub = TextStyle(
-    fontFamily: _display,
-    fontSize: 10,
-    color: Palette.chainEffect,
-  );
+  static TextStyle get chainSub =>
+      TextStyle(fontFamily: _display, fontSize: 10, color: Palette.chainEffect);
 
   /// Connection well status label.
-  static const TextStyle connectionLabel = TextStyle(
-    fontFamily: _display,
-    fontSize: 14,
-    color: Palette.railText,
-  );
+  static TextStyle get connectionLabel =>
+      TextStyle(fontFamily: _display, fontSize: 14, color: Palette.railText);
 
   /// Tap-tempo BPM readout.
-  static const TextStyle bpm = TextStyle(
+  static TextStyle get bpm => TextStyle(
     fontFamily: _display,
     fontWeight: FontWeight.w600,
     fontSize: 18,
@@ -121,7 +115,7 @@ abstract final class AppText {
   );
 
   /// KnobControl / PanelCell value readout (12pt base × 1.5).
-  static const TextStyle knobValue = TextStyle(
+  static TextStyle get knobValue => TextStyle(
     fontFamily: _display,
     fontWeight: FontWeight.w600,
     fontSize: 18,
@@ -129,7 +123,7 @@ abstract final class AppText {
   );
 
   /// KnobControl / PanelCell caption under the knob (11pt base × 1.5).
-  static const TextStyle knobLabel = TextStyle(
+  static TextStyle get knobLabel => TextStyle(
     fontFamily: _display,
     fontWeight: FontWeight.w500,
     fontSize: 16.5,
@@ -139,7 +133,7 @@ abstract final class AppText {
 
   /// Compact [knobValue]: the readout over a 72-px panel knob. A full token,
   /// not a `copyWith`: SonicMetrics.compact is const.
-  static const TextStyle knobValueCompact = TextStyle(
+  static TextStyle get knobValueCompact => TextStyle(
     fontFamily: _display,
     fontWeight: FontWeight.w600,
     fontSize: 14,
@@ -148,7 +142,7 @@ abstract final class AppText {
 
   /// Compact [knobLabel]: the caption under a 72-px panel knob, with tracking
   /// tightened to match the smaller size.
-  static const TextStyle knobLabelCompact = TextStyle(
+  static TextStyle get knobLabelCompact => TextStyle(
     fontFamily: _display,
     fontWeight: FontWeight.w500,
     fontSize: 12,
@@ -157,26 +151,19 @@ abstract final class AppText {
   );
 
   /// Module help / description text.
-  static const TextStyle moduleDescription = TextStyle(
-    color: Palette.textDescription,
-    fontSize: 13,
-    height: 1.4,
-  );
+  static TextStyle get moduleDescription =>
+      TextStyle(color: Palette.textDescription, fontSize: 13, height: 1.4);
 
   /// Device-list row title.
-  static const TextStyle deviceRowTitle = TextStyle(
-    color: Palette.textPrimary,
-    fontSize: 16,
-  );
+  static TextStyle get deviceRowTitle =>
+      TextStyle(color: Palette.textPrimary, fontSize: 16);
 
   /// Device-list row subtitle.
-  static const TextStyle deviceRowSub = TextStyle(
-    color: Palette.textDim,
-    fontSize: 12,
-  );
+  static TextStyle get deviceRowSub =>
+      TextStyle(color: Palette.textDim, fontSize: 12);
 
   /// Dialog title.
-  static const TextStyle dialogTitle = TextStyle(
+  static TextStyle get dialogTitle => TextStyle(
     fontFamily: _display,
     color: Palette.textPrimary,
     fontSize: 20,
@@ -184,7 +171,7 @@ abstract final class AppText {
   );
 
   /// Dialog body copy.
-  static const TextStyle dialogBody = TextStyle(
+  static TextStyle get dialogBody => TextStyle(
     fontFamily: _display,
     color: Palette.textMuted,
     fontSize: 14,
@@ -194,16 +181,14 @@ abstract final class AppText {
   /// Text-field input text. Carries the display face explicitly: it is handed
   /// to a raw `EditableText`, which paints its style verbatim rather than
   /// merging the ambient `DefaultTextStyle` the way `Text` does.
-  static const TextStyle input = TextStyle(
-    fontFamily: _display,
-    color: Palette.textPrimary,
-  );
+  static TextStyle get input =>
+      TextStyle(fontFamily: _display, color: Palette.textPrimary);
 
   /// Text-field label.
-  static const TextStyle inputLabel = TextStyle(color: Palette.textMuted);
+  static TextStyle get inputLabel => TextStyle(color: Palette.textMuted);
 
   /// Text-field hint / counter / faint helper.
-  static const TextStyle inputHint = TextStyle(color: Palette.textDim);
+  static TextStyle get inputHint => TextStyle(color: Palette.textDim);
 
   /// Monospaced log line (dev console).
   static const TextStyle monoLog = TextStyle(

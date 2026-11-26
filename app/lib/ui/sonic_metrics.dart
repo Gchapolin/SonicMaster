@@ -35,8 +35,6 @@ class SonicMetrics {
     required this.presetPanelWidth,
     required this.panelKnobSize,
     required this.knobCellPadding,
-    required this.knobValueStyle,
-    required this.knobLabelStyle,
     required this.editorHeaderPadding,
     required this.editorControlHeight,
     required this.isEffectDescriptionVisible,
@@ -69,8 +67,6 @@ class SonicMetrics {
     presetPanelWidth: 360,
     panelKnobSize: 120,
     knobCellPadding: 8,
-    knobValueStyle: AppText.knobValue,
-    knobLabelStyle: AppText.knobLabel,
     editorHeaderPadding: EdgeInsets.fromLTRB(16, 12, 16, 4),
     editorControlHeight: 40,
     isEffectDescriptionVisible: true,
@@ -104,8 +100,6 @@ class SonicMetrics {
     presetPanelWidth: 194,
     panelKnobSize: 72,
     knobCellPadding: 4,
-    knobValueStyle: AppText.knobValueCompact,
-    knobLabelStyle: AppText.knobLabelCompact,
     editorHeaderPadding: EdgeInsets.fromLTRB(12, 4, 12, 4),
     editorControlHeight: 32,
     isEffectDescriptionVisible: false,
@@ -178,10 +172,12 @@ class SonicMetrics {
 
   /// A KnobControl's value readout and its edit field; also the height of
   /// PanelCell's reserved readout row.
-  final TextStyle knobValueStyle;
+  TextStyle get knobValueStyle =>
+      isCompact ? AppText.knobValueCompact : AppText.knobValue;
 
   /// The caption under a KnobControl or PanelCell.
-  final TextStyle knobLabelStyle;
+  TextStyle get knobLabelStyle =>
+      isCompact ? AppText.knobLabelCompact : AppText.knobLabel;
 
   /// Padding of the module editor's header row (title, effect, on/off). Its
   /// horizontal inset is the control row's 8 plus [knobCellPadding], so the

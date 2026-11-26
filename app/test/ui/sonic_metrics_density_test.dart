@@ -24,8 +24,8 @@ void main() {
     // knob_control.dart:141, sonic_controls.dart:517
     expect(metrics.knobCellPadding, 8);
     // knob_control.dart:123/:135/:154, sonic_controls.dart:521/:529
-    expect(metrics.knobValueStyle, same(AppText.knobValue));
-    expect(metrics.knobLabelStyle, same(AppText.knobLabel));
+    expect(metrics.knobValueStyle, equals(AppText.knobValue));
+    expect(metrics.knobLabelStyle, equals(AppText.knobLabel));
     // module_editor.dart:85
     expect(
       metrics.editorHeaderPadding,
@@ -70,8 +70,8 @@ void main() {
     expect(metrics.presetPanelWidth, 194);
     expect(metrics.panelKnobSize, 72);
     expect(metrics.knobCellPadding, 4);
-    expect(metrics.knobValueStyle, same(AppText.knobValueCompact));
-    expect(metrics.knobLabelStyle, same(AppText.knobLabelCompact));
+    expect(metrics.knobValueStyle, equals(AppText.knobValueCompact));
+    expect(metrics.knobLabelStyle, equals(AppText.knobLabelCompact));
     expect(
       metrics.editorHeaderPadding,
       const EdgeInsets.fromLTRB(12, 4, 12, 4),

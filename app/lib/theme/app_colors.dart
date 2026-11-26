@@ -1,69 +1,77 @@
 import 'package:flutter/painting.dart';
 
+import 'app_palettes.dart';
+
 /// The app's single source of color: a Material 3 dark scheme.
 ///
 /// The roles hold the Adobe Color palette "Vintage Neutral - Muted"
 /// (6A736F A4A698 D9D0C7 D9AB9A D98977) as a dark UI, the same values as the
 /// HTML prototype: warm terracotta surfaces, light warm text and the
-/// terracotta accent. They are written as consts so `lib/` stays free of
-/// `package:flutter/material.dart`; palette_test.dart pins them and their
-/// contrast. The look is flat: no widget keeps gradients, shadows or inline
+/// terracotta accent. They are read from [Palette.current] (see app_palettes.dart);
+/// palette_test.dart pins the default and its contrast. The look is flat: no widget keeps gradients, shadows or inline
 /// colors of its own (flat_style_test.dart).
 ///
 /// The legacy names below map onto the roles, so call sites keep their
 /// meaning. Colors that carry a meaning of their own (error, connection
 /// status, scrim) keep their values.
 abstract final class Palette {
+  /// The active palette; set it at startup or when the user picks one.
+  static AppPalette current = appPalettes.first;
+
+  static Color get field => current.field;
+  static Color get line2 => current.line2;
+  static Color get ok => current.ok;
+
   // Material 3 roles.
-  static const Color primary = Color(0xFFDF9D8E);
-  static const Color onPrimary = Color(0xFF312320);
-  static const Color primaryContainer = Color(0xFF7A4A40);
-  static const Color onPrimaryContainer = Color(0xFFFFDAD2);
-  static const Color secondaryContainer = Color(0xFF835E56);
-  static const Color onSecondaryContainer = Color(0xFFFFFFFF);
-  static const Color surface = Color(0xFF3E2C28);
-  static const Color surfaceContainerLowest = Color(0xFF352521);
-  static const Color surfaceContainerLow = Color(0xFF45322D);
-  static const Color surfaceContainer = Color(0xFF4A3530);
-  static const Color surfaceContainerHigh = Color(0xFF513A35);
-  static const Color surfaceContainerHighest = Color(0xFF5E443E);
-  static const Color onSurface = Color(0xFFF0ECE9);
-  static const Color onSurfaceVariant = Color(0xFFE1D9D2);
-  static const Color outline = Color(0xFFCDBEB8);
-  static const Color outlineVariant = Color(0xFF694B45);
+  static Color get primary => current.acc;
+  static Color get onPrimary => current.onAcc;
+  static Color get primaryContainer => current.accContainer;
+  static Color get onPrimaryContainer => current.onAccContainer;
+  static Color get secondaryContainer => current.sel;
+  static Color get onSecondaryContainer => current.strong;
+  static Color get surface => current.bg;
+  static Color get surfaceContainerLowest => current.lowest;
+  static Color get surfaceContainerLow => current.side;
+  static Color get surfaceContainer => current.head;
+  static Color get surfaceContainerHigh => current.card;
+  static Color get surfaceContainerHighest => current.ctrl;
+  static Color get onSurface => current.text;
+  static Color get onSurfaceVariant => current.text2;
+  static Color get outline => current.outline;
+  static Color get outlineVariant => current.line;
 
   /// The window background.
-  static const Color background = surface;
+  static Color get background => surface;
 
   /// Primary interactive accent (buttons, cursors, scan spinner, active menu).
-  static const Color accent = primary;
+  static Color get accent => primary;
 
   /// Warning / out-of-range red.
   static const Color error = Color(0xFFFF5449);
 
   /// Primary text.
-  static const Color textPrimary = onSurface;
+  static Color get textPrimary => onSurface;
 
   /// Secondary / body text.
-  static const Color textMuted = onSurfaceVariant;
+  static Color get textMuted => onSurfaceVariant;
 
   /// Dimmed text — hints, counters, sub-labels.
-  static const Color textDim = outline;
+  static Color get textDim => outline;
 
   /// Module help text.
-  static const Color textDescription = onSurfaceVariant;
+  static Color get textDescription => onSurfaceVariant;
 
   /// Field text on inputs.
-  static const Color fieldText = onSurface;
+  static Color get fieldText => onSurface;
 
   /// Preset-rail text tones and border.
-  static const Color railText = onSurface;
-  static const Color railMuted = onSurfaceVariant;
-  static const Color railBorder = outlineVariant;
+  static Color get railText => onSurface;
+  static Color get railMuted => onSurfaceVariant;
+  static Color get railBorder => outlineVariant;
 
   /// Chain-view icon and effect-label tones.
-  static const Color chainIcon = onSurfaceVariant;
-  static const Color chainEffect = onSurfaceVariant;
+  static Color get chainIcon => onSurfaceVariant;
+  static Color get chainEffect => onSurfaceVariant;
 
   /// Connection status LEDs.
   static const Color ledConnected = Color(0xFF44FF44);

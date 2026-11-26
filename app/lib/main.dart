@@ -106,10 +106,7 @@ class SonicMasterApp extends StatelessWidget {
     debugShowCheckedModeBanner: false,
     color: Palette.background,
     // Oswald is the app's display font everywhere; there is no Material theme.
-    textStyle: const TextStyle(
-      fontFamily: 'Oswald',
-      color: Palette.textPrimary,
-    ),
+    textStyle: TextStyle(fontFamily: 'Oswald', color: Palette.textPrimary),
     pageRouteBuilder: <T>(RouteSettings settings, WidgetBuilder builder) =>
         PageRouteBuilder<T>(
           settings: settings,
