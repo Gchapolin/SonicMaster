@@ -305,12 +305,8 @@ class DeviceStateMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ponytail: solid border; the prototype's dashed one needs a custom painter.
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        border: Border.all(color: Palette.line2),
-        borderRadius: BorderRadius.circular(14),
-      ),
+    return CustomPaint(
+      foregroundPainter: _DashedBorderPainter(color: Palette.line2),
       child: SizedBox.expand(
         child: _CenteredScroll(
           child: Text(
@@ -322,6 +318,37 @@ class DeviceStateMessage extends StatelessWidget {
       ),
     );
   }
+}
+
+/// A 1px dashed rounded border (the prototype's empty-state box).
+class _DashedBorderPainter extends CustomPainter {
+  const _DashedBorderPainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path()
+      ..addRRect(
+        RRect.fromRectAndRadius(
+          Offset.zero & size,
+          const Radius.circular(14),
+        ).deflate(0.5),
+      );
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+
+    for (final m in path.computeMetrics()) {
+      for (var d = 0.0; d < m.length; d += 6) {
+        canvas.drawPath(m.extractPath(d, math.min(d + 3, m.length)), paint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DashedBorderPainter old) => old.color != color;
 }
 
 /// Web BLE content: a prompt plus a button that hands off to the browser's own
