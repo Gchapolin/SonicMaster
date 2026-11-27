@@ -262,7 +262,8 @@ void main() {
       final bar = tester.element(find.byType(TopBar));
       final well = tester.element(find.byType(ConnectionControls));
 
-      // Regular -> compact -> below the compact minimum (the sideways scroll
+      // Regular -> compact -> stage mode (phone portrait: the app stays
+      // mounted, offstage) -> below the compact minimum (the sideways scroll
       // turns on) -> regular again.
       for (final size in const [
         Size(852, 393),
@@ -274,9 +275,13 @@ void main() {
         await tester.pump();
 
         expect(tester.takeException(), isNull, reason: '$size');
-        expect(tester.element(find.byType(TopBar)), same(bar), reason: '$size');
         expect(
-          tester.element(find.byType(ConnectionControls)),
+          tester.element(find.byType(TopBar, skipOffstage: false)),
+          same(bar),
+          reason: '$size',
+        );
+        expect(
+          tester.element(find.byType(ConnectionControls, skipOffstage: false)),
           same(well),
           reason: '$size',
         );

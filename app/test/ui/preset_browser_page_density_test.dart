@@ -330,9 +330,19 @@ void main() {
         await tester.pump();
         await tester.pump();
 
+        // Portrait is stage mode: the app lays out offstage under it.
         expect(
-          tester.getSize(editorSurface()).width,
-          tester.getSize(find.byType(ChainView)).width,
+          tester
+              .getSize(
+                find
+                    .ancestor(
+                      of: find.byType(ModuleEditor, skipOffstage: false),
+                      matching: find.byType(SonicSurface, skipOffstage: false),
+                    )
+                    .first,
+              )
+              .width,
+          tester.getSize(find.byType(ChainView, skipOffstage: false)).width,
         );
         expectNoOverflow(tester);
       }

@@ -24,6 +24,7 @@ import 'preset_drawer.dart';
 import 'preset_rail.dart';
 import 'sonic_controls.dart';
 import 'sonic_metrics.dart';
+import 'stage_panel.dart';
 import 'top_bar.dart';
 
 /// Browse the 100 presets and load one onto the pedal. The full pedalboard /
@@ -372,24 +373,39 @@ class PresetBrowserPage extends HookConsumerWidget {
             // fits) and the stack. Adding or removing one would remount the
             // whole app, and with it the title bar's ref in the middle of a
             // connect or an import.
-            return Padding(
-              padding: EdgeInsets.only(bottom: keyboardInset),
-              child: SingleChildScrollView(
-                scrollDirection: .horizontal,
-                physics: width > constraints.maxWidth
-                    ? null
-                    : const NeverScrollableScrollPhysics(),
-                // The app stays at index 0 in both layouts, so the title bar
-                // and the work area keep their elements when the drawer comes
-                // and goes. Compact: the preset drawer over the whole app,
-                // the title bar included.
-                child: Stack(
-                  children: [
-                    app,
-                    if (metrics.isCompact) Positioned.fill(child: drawer),
-                  ],
+            //
+            // Stage mode (a narrow Slide Over window) covers the app with
+            // its panel; the app stays mounted, offstage, so a flip never
+            // remounts it either.
+            final isStage = isStageViewport(MediaQuery.sizeOf(context));
+
+            return Stack(
+              fit: .expand,
+              children: [
+                Offstage(
+                  offstage: isStage,
+                  child: Padding(
+                    padding: EdgeInsets.only(bottom: keyboardInset),
+                    child: SingleChildScrollView(
+                      scrollDirection: .horizontal,
+                      physics: width > constraints.maxWidth
+                          ? null
+                          : const NeverScrollableScrollPhysics(),
+                      // The app stays at index 0 in both layouts, so the title bar
+                      // and the work area keep their elements when the drawer comes
+                      // and goes. Compact: the preset drawer over the whole app,
+                      // the title bar included.
+                      child: Stack(
+                        children: [
+                          app,
+                          if (metrics.isCompact) Positioned.fill(child: drawer),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+                if (isStage) StagePanel(onPick: pick),
+              ],
             );
           },
         ),

@@ -237,11 +237,9 @@ void main() {
     ) async {
       await openEffects(tester, size: const Size(852, 393));
 
+      // Portrait is stage mode: the app (and its menu) wait offstage.
       tester.view.physicalSize = const Size(393, 852);
       await tester.pumpAndSettle();
-
-      expect(find.text('COMP 2'), findsOneWidget);
-      expectPlaced(tester, const Rect.fromLTWH(0, 0, 393, 852));
 
       tester.view.physicalSize = const Size(852, 393);
       await tester.pumpAndSettle();

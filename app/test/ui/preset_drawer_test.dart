@@ -621,13 +621,19 @@ void main() {
       );
 
       await _openDrawer(tester);
+      // Portrait is stage mode now: the app (and the drawer) wait offstage.
       tester.view.physicalSize = const Size(393, 852);
+      await tester.pump();
+
+      expect(container.read(presetDrawerOpenProvider), isTrue);
+
+      tester.view.physicalSize = const Size(852, 393);
       await tester.pump();
 
       expect(container.read(presetDrawerOpenProvider), isTrue);
       expect(
         tester.getRect(_drawerList),
-        const Rect.fromLTRB(0, 48, drawerWidth, 852),
+        const Rect.fromLTRB(0, 48, drawerWidth, 393),
       );
     });
 

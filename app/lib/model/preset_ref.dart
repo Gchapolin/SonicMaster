@@ -10,6 +10,9 @@ class PresetRef {
   String get label =>
       '${bank == .user ? 'P' : 'F'}${number.toString().padLeft(2, '0')}';
 
+  /// The preset [by] slots away in the same bank, wrapping 1..50.
+  PresetRef neighbour(int by) => PresetRef(bank, (number - 1 + by) % 50 + 1);
+
   static List<PresetRef> all() => [
     for (final bank in PresetBank.values)
       ...List.generate(50, (i) => PresetRef(bank, i + 1)),

@@ -35,6 +35,9 @@ abstract class ShellText {
   String batteryEmpty(String volts);
   String batteryLow(String volts);
   String battery(int bars, String volts);
+  String get previous;
+  String get next;
+  String get stageMode;
 }
 
 class _En extends ShellText {
@@ -98,6 +101,12 @@ class _En extends ShellText {
   String batteryLow(String volts) => 'Battery low: 1 of 4 · $volts';
   @override
   String battery(int bars, String volts) => 'Battery: $bars of 4 · $volts';
+  @override
+  String get previous => 'Previous';
+  @override
+  String get next => 'Next';
+  @override
+  String get stageMode => 'stage mode';
 }
 
 class _Pt extends ShellText {
@@ -163,4 +172,10 @@ class _Pt extends ShellText {
   String batteryLow(String volts) => 'Bateria fraca: 1 de 4 · $volts';
   @override
   String battery(int bars, String volts) => 'Bateria: $bars de 4 · $volts';
+  @override
+  String get previous => 'Anterior';
+  @override
+  String get next => 'Próximo';
+  @override
+  String get stageMode => 'modo palco';
 }

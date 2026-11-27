@@ -9,6 +9,11 @@ import '../theme/app_text.dart';
 /// regular.
 bool isCompactViewport(Size size) => size.width < 960 || size.height < 600;
 
+/// Stage mode: a window narrower than 500 and taller than wide — an iPadOS
+/// Slide Over window (320-420 wide) over a sheet-music app. iPad portrait
+/// (820) and landscape, and phones in landscape, never match.
+bool isStageViewport(Size size) => size.width < 500 && size.height > size.width;
+
 /// Duration of the app's short UI motions (the drawer slide, its scrim, the
 /// toggle knob). Shared so every motion feels the same.
 const sonicMotionDuration = Duration(milliseconds: 160);

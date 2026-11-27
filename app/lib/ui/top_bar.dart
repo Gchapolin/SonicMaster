@@ -371,20 +371,12 @@ class _PresetStepper extends ConsumerWidget {
   final bool isCompact;
   final Widget well;
 
-  static const _presetsPerBank = 50;
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // The neighbour [by] steps away, 1..50 wrapping.
-    PresetRef neighbour(int by) => PresetRef(
-      current.bank,
-      (current.number - 1 + by) % _presetsPerBank + 1,
-    );
-
     // Regular: the prototype's 36-px filled buttons, inside 44-pt targets.
     Widget arrow(IconData icon, int by) {
       final onPressed = isEnabled
-          ? () => pickPreset(context, ref, neighbour(by))
+          ? () => pickPreset(context, ref, current.neighbour(by))
           : null;
 
       if (isCompact) {
