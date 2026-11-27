@@ -86,22 +86,22 @@ void main() {
       calls.lastWhere((c) => c.method == 'update').arguments
           as Map<Object?, Object?>;
 
-  group('stepPreset', () {
+  group('PresetRef.neighbour', () {
     test('steps within the bank and wraps at both ends', () {
       expect(
-        stepPreset(const PresetRef(.user, 7), 1),
+        const PresetRef(.user, 7).neighbour(1),
         const PresetRef(.user, 8),
       );
       expect(
-        stepPreset(const PresetRef(.user, 7), -1),
+        const PresetRef(.user, 7).neighbour(-1),
         const PresetRef(.user, 6),
       );
       expect(
-        stepPreset(const PresetRef(.user, 50), 1),
+        const PresetRef(.user, 50).neighbour(1),
         const PresetRef(.user, 1),
       );
       expect(
-        stepPreset(const PresetRef(.factory, 1), -1),
+        const PresetRef(.factory, 1).neighbour(-1),
         const PresetRef(.factory, 50),
       );
     });

@@ -18,10 +18,6 @@ import 'preset_providers.dart';
 /// `previous` (the PiP skip buttons).
 const pipChannel = MethodChannel('sonicmaster/pip');
 
-/// The preset [delta] slots away from [cur] in the same bank, wrapping 1..50.
-PresetRef stepPreset(PresetRef cur, int delta) =>
-    PresetRef(cur.bank, (cur.number - 1 + delta) % 50 + 1);
-
 /// What the PiP window shows; recomputed when any of it changes.
 final _pipInfoProvider = Provider<Map<String, Object?>>((ref) {
   ref.watch(paletteIdProvider); // the colors below follow the palette
@@ -92,7 +88,7 @@ class _PipBridgeState extends ConsumerState<PipBridge> {
     unawaited(
       loadPreset(
         ref,
-        cur == null ? const PresetRef(.user, 1) : stepPreset(cur, delta),
+        cur == null ? const PresetRef(.user, 1) : cur.neighbour(delta),
       ),
     );
   }
