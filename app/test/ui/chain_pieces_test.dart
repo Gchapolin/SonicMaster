@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sonicmaster/gear/gear_lookup.dart';
 import 'package:sonicmaster/gear/gear_piece.dart';
+import 'package:sonicmaster/gear/pedal_piece.dart';
 import 'package:sonicmaster/model/decoded_preset_state.dart';
 import 'package:sonicmaster/state/data_providers.dart';
 import 'package:sonicmaster/state/preset_providers.dart';
@@ -131,6 +132,37 @@ void main() {
       expect(find.text(m), findsOneWidget);
     }
   });
+
+  // A rack (250x74) in the pedal's 66x114 box drew a 66x19 sliver: wide
+  // units get the amp's 118x76 slot and fill most of its width.
+  for (final model in const ['Analog', 'Studio EQ', 'Echo']) {
+    testWidgets('a wide $model unit fills its slot', (tester) async {
+      await tester.pumpWidget(
+        host(
+          ModuleCard(
+            iconId: model == 'Studio EQ' ? 5 : 7,
+            name: 'DLY',
+            model: model,
+            isOn: true,
+            isSelected: false,
+            isEnabled: true,
+          ),
+        ),
+      );
+
+      final slot = tester.getSize(find.byType(GearPiece));
+      final piece = tester.getRect(
+        find.descendant(
+          of: find.byType(GearPiece),
+          matching: find.byType(PedalPiece),
+        ),
+      );
+
+      expect(slot.width, 118);
+      expect(piece.width, greaterThanOrEqualTo(0.8 * slot.width));
+      expect(piece.height, greaterThanOrEqualTo(30));
+    });
+  }
 
   testWidgets('a selected unit is filled with card and outlined in primary', (
     tester,

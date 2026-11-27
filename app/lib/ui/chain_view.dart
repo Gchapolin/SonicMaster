@@ -147,11 +147,8 @@ class ModuleCard extends StatelessWidget {
   /// outline; an off module draws its piece unlit.
   Widget _regularUnit(SonicMetrics metrics) {
     final kind = gearKindForModule(iconId);
-    final fit = switch (kind) {
-      GearKind.amp => const Size(118, 76),
-      GearKind.cab => const Size(88, 92),
-      GearKind.pedal => const Size(66, 114),
-    };
+    final slot = pedalboardSlot(model, kind);
+    final fit = Size(slot.width, slot.height);
 
     return Container(
       key: const Key('regular-unit'),
