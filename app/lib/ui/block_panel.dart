@@ -338,10 +338,10 @@ class BlockPanel extends ConsumerWidget {
               ],
             ),
           ),
-          if (def.descriptionEn.isNotEmpty)
+          if (def.description.isNotEmpty)
             card(
               Text(
-                def.descriptionEn,
+                def.description,
                 style: AppText.moduleDescription.copyWith(height: 1.55),
               ),
             ),

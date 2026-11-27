@@ -2,6 +2,7 @@
   "1": {
     "name": "Gate",
     "descriptionEn": "Based on the ISP\u00ae Decimator\u2122* noise gate.",
+    "descriptionPt": "Baseado no noise gate ISP\u00ae Decimator\u2122*.",
     "alg": [
       {
         "name": "THRE",
@@ -17,6 +18,7 @@
   "101": {
     "name": "COMP 1",
     "descriptionEn": "Based on the Ross\u00ae Compressor*.",
+    "descriptionPt": "Baseado no Ross\u00ae Compressor*.",
     "alg": [
       {
         "name": "Sustain",
@@ -41,6 +43,7 @@
   "102": {
     "name": "COMP 2",
     "descriptionEn": "Based on the Keeley\u00ae Compressor* (4-knob).",
+    "descriptionPt": "Baseado no Keeley\u00ae Compressor* (vers\u00e3o de 4 knobs).",
     "alg": [
       {
         "name": "Sustain",
@@ -83,6 +86,7 @@
   "103": {
     "name": "Touch Wah",
     "descriptionEn": "Wide-range envelope filter (touch wah) that follows your picking.",
+    "descriptionPt": "Filtro de envelope de ampla faixa (touch wah) que acompanha a sua palhetada.",
     "alg": [
       {
         "name": "Sense",
@@ -135,6 +139,7 @@
   "104": {
     "name": "Auto Wah",
     "descriptionEn": "Auto-wah with a continuous sweep, for guitar or bass.",
+    "descriptionPt": "Auto-wah com varredura cont\u00ednua, para guitarra ou baixo.",
     "alg": [
       {
         "name": "Depth",
@@ -203,6 +208,7 @@
   "105": {
     "name": "Boost",
     "descriptionEn": "Based on the Xotic\u00ae EP Booster*.",
+    "descriptionPt": "Baseado no Xotic\u00ae EP Booster*.",
     "alg": [
       {
         "name": "Gain",
@@ -230,6 +236,7 @@
   "106": {
     "name": "A-Chorus",
     "descriptionEn": "Based on the Arion\u00ae SCH-1 Stereo Chorus*.",
+    "descriptionPt": "Baseado no Arion\u00ae SCH-1 Stereo Chorus*.",
     "alg": [
       {
         "name": "Depth",
@@ -271,6 +278,7 @@
   "107": {
     "name": "B-Chorus",
     "descriptionEn": "Vintage ensemble chorus voiced for bass.",
+    "descriptionPt": "Chorus ensemble vintage, ajustado para baixo.",
     "alg": [
       {
         "name": "Depth",
@@ -312,6 +320,7 @@
   "108": {
     "name": "Flanger",
     "descriptionEn": "Classic flanger with a rich, swirling sweep.",
+    "descriptionPt": "Flanger cl\u00e1ssico com uma varredura rica e envolvente.",
     "alg": [
       {
         "name": "Depth",
@@ -362,6 +371,7 @@
   "109": {
     "name": "Phaser",
     "descriptionEn": "Based on the MXR\u00ae Phase 90* (M101).",
+    "descriptionPt": "Baseado no MXR\u00ae Phase 90* (M101).",
     "alg": [
       {
         "name": "Rate",
@@ -385,6 +395,7 @@
   "110": {
     "name": "Vibe",
     "descriptionEn": "Based on the Voodoo Lab\u00ae Micro Vibe*.",
+    "descriptionPt": "Baseado no Voodoo Lab\u00ae Micro Vibe*.",
     "alg": [
       {
         "name": "Depth",
@@ -417,6 +428,7 @@
   "111": {
     "name": "Vibrato",
     "descriptionEn": "Based on the Boss\u00ae VB-2 Vibrato*.",
+    "descriptionPt": "Baseado no Boss\u00ae VB-2 Vibrato*.",
     "alg": [
       {
         "name": "Depth",
@@ -449,6 +461,7 @@
   "112": {
     "name": "Tremolo",
     "descriptionEn": "Based on the Demeter\u00ae TRM-1 Tremulator*.",
+    "descriptionPt": "Baseado no Demeter\u00ae TRM-1 Tremulator*.",
     "alg": [
       {
         "name": "Depth",
@@ -481,6 +494,7 @@
   "113": {
     "name": "Sine Trem",
     "descriptionEn": "Sine-wave tremolo with a wide rate and depth range.",
+    "descriptionPt": "Tremolo de onda senoidal com ampla faixa de velocidade e profundidade.",
     "alg": [
       {
         "name": "Depth",
@@ -522,6 +536,7 @@
   "114": {
     "name": "Bias Trem",
     "descriptionEn": "Bias-modulated tremolo with a wide rate and depth range.",
+    "descriptionPt": "Tremolo por modula\u00e7\u00e3o de bias com ampla faixa de velocidade e profundidade.",
     "alg": [
       {
         "name": "Depth",
@@ -572,6 +587,7 @@
   "115": {
     "name": "AC G",
     "descriptionEn": "Electric-to-acoustic guitar simulator.",
+    "descriptionPt": "Simulador que transforma a guitarra el\u00e9trica em viol\u00e3o.",
     "alg": [
       {
         "name": "Body",
@@ -617,6 +633,7 @@
   "116": {
     "name": "Octave",
     "descriptionEn": "Polyphonic octave with sub and upper voices.",
+    "descriptionPt": "Oitavador polif\u00f4nico com vozes uma oitava abaixo e uma acima.",
     "alg": [
       {
         "name": "Low",
@@ -650,6 +667,7 @@
   "117": {
     "name": "Pitch",
     "descriptionEn": "Polyphonic pitch-shifter and harmonizer.",
+    "descriptionPt": "Pitch shifter e harmonizador polif\u00f4nico.",
     "alg": [
       {
         "name": "High",
@@ -701,6 +719,7 @@
   "118": {
     "name": "Detune",
     "descriptionEn": "Light detune that thickens the tone like a chorus.",
+    "descriptionPt": "Detune leve que encorpa o timbre como um chorus.",
     "alg": [
       {
         "name": "Detune",
@@ -735,6 +754,7 @@
   "201": {
     "name": "Scream",
     "descriptionEn": "Based on the Ibanez\u00ae TS-808 Tube Screamer\u00ae*.",
+    "descriptionPt": "Baseado no Ibanez\u00ae TS-808 Tube Screamer\u00ae*.",
     "alg": [
       {
         "name": "Gain",
@@ -768,6 +788,7 @@
   "202": {
     "name": "Butter OD",
     "descriptionEn": "Smooth 2-knob 'yellow box' overdrive.",
+    "descriptionPt": "Overdrive suave de 2 knobs, no estilo da 'caixinha amarela'.",
     "alg": [
       {
         "name": "Gain",
@@ -792,6 +813,7 @@
   "203": {
     "name": "JP Dist",
     "descriptionEn": "Punchy orange-box 3-knob distortion.",
+    "descriptionPt": "Distor\u00e7\u00e3o encorpada de 3 knobs, no estilo da caixinha laranja.",
     "alg": [
       {
         "name": "Gain",
@@ -825,6 +847,7 @@
   "204": {
     "name": "Shark",
     "descriptionEn": "Based on the MI Audio\u00ae Crunch Box\u00ae*.",
+    "descriptionPt": "Baseado no MI Audio\u00ae Crunch Box\u00ae*.",
     "alg": [
       {
         "name": "Gain",
@@ -858,6 +881,7 @@
   "205": {
     "name": "Dark Mouse",
     "descriptionEn": "Based on the ProCo\u00ae RAT\u2122* distortion.",
+    "descriptionPt": "Baseado na distor\u00e7\u00e3o ProCo\u00ae RAT\u2122*.",
     "alg": [
       {
         "name": "Gain",
@@ -891,6 +915,7 @@
   "206": {
     "name": "Grey Fuzz",
     "descriptionEn": "Based on the Sola Sound\u00ae Tone Bender Mk II\u00ae* fuzz.",
+    "descriptionPt": "Baseado no fuzz Sola Sound\u00ae Tone Bender Mk II\u00ae*.",
     "alg": [
       {
         "name": "Fuzz",
@@ -915,6 +940,7 @@
   "207": {
     "name": "Red Fuzz",
     "descriptionEn": "Based on the Dallas-Arbiter\u00ae Fuzz Face\u00ae* fuzz.",
+    "descriptionPt": "Baseado no fuzz Dallas-Arbiter\u00ae Fuzz Face\u00ae*.",
     "alg": [
       {
         "name": "Fuzz",
@@ -939,6 +965,7 @@
   "208": {
     "name": "Bass Drive",
     "descriptionEn": "Overdrive voiced for bass.",
+    "descriptionPt": "Overdrive ajustado para baixo.",
     "alg": [
       {
         "name": "Gain",
@@ -990,6 +1017,7 @@
   "301": {
     "name": "TWD Deluxe",
     "descriptionEn": "Based on Fender\u00ae Tweed Deluxe*.",
+    "descriptionPt": "Baseado no Fender\u00ae Tweed Deluxe*.",
     "alg": [
       {
         "name": "Gain",
@@ -1023,6 +1051,7 @@
   "302": {
     "name": "B-Man N",
     "descriptionEn": "Based on Fender\u00ae '59 Bassman\u00ae* (normal channel).",
+    "descriptionPt": "Baseado no Fender\u00ae '59 Bassman\u00ae* (canal normal).",
     "alg": [
       {
         "name": "Gain",
@@ -1083,6 +1112,7 @@
   "303": {
     "name": "Dark Twin",
     "descriptionEn": "Based on Fender\u00ae '65 Twin Reverb\u00ae*.",
+    "descriptionPt": "Baseado no Fender\u00ae '65 Twin Reverb\u00ae*.",
     "alg": [
       {
         "name": "Gain",
@@ -1140,6 +1170,7 @@
   "304": {
     "name": "Voks 30N",
     "descriptionEn": "Based on VOX\u00ae AC30HW* (normal channel).",
+    "descriptionPt": "Baseado no VOX\u00ae AC30HW* (canal normal).",
     "alg": [
       {
         "name": "Gain",
@@ -1179,6 +1210,7 @@
   "305": {
     "name": "Jazz 120",
     "descriptionEn": "Based on Roland\u00ae Jazz Chorus* (JC-120).",
+    "descriptionPt": "Baseado no Roland\u00ae Jazz Chorus* (JC-120).",
     "alg": [
       {
         "name": "Vol",
@@ -1227,6 +1259,7 @@
   "306": {
     "name": "Brit 45",
     "descriptionEn": "Based on Marshall\u00ae JTM45* (normal channel).",
+    "descriptionPt": "Baseado no Marshall\u00ae JTM45* (canal normal).",
     "alg": [
       {
         "name": "Gain",
@@ -1287,6 +1320,7 @@
   "307": {
     "name": "Brit 50JP",
     "descriptionEn": "Based on Marshall\u00ae JTM50* (jumped channels).",
+    "descriptionPt": "Baseado no Marshall\u00ae JTM50* (canais em jumper).",
     "alg": [
       {
         "name": "Gain 1",
@@ -1356,6 +1390,7 @@
   "308": {
     "name": "Brit 800",
     "descriptionEn": "Based on Marshall\u00ae JCM800*.",
+    "descriptionPt": "Baseado no Marshall\u00ae JCM800*.",
     "alg": [
       {
         "name": "Gain",
@@ -1416,6 +1451,7 @@
   "309": {
     "name": "B-Man B",
     "descriptionEn": "Based on Fender\u00ae '59 Bassman\u00ae* (bright channel).",
+    "descriptionPt": "Baseado no Fender\u00ae '59 Bassman\u00ae* (canal bright).",
     "alg": [
       {
         "name": "Gain",
@@ -1476,6 +1512,7 @@
   "310": {
     "name": "Voks 30TB",
     "descriptionEn": "Based on VOX\u00ae AC30HW* (Top Boost channel).",
+    "descriptionPt": "Baseado no VOX\u00ae AC30HW* (canal Top Boost).",
     "alg": [
       {
         "name": "Gain",
@@ -1537,6 +1574,7 @@
   "311": {
     "name": "Sol 100 OD",
     "descriptionEn": "Based on Soldano\u00ae SLO-100* (crunch tone).",
+    "descriptionPt": "Baseado no Soldano\u00ae SLO-100* (timbre crunch).",
     "alg": [
       {
         "name": "Gain",
@@ -1597,6 +1635,7 @@
   "312": {
     "name": "Dizzy VH",
     "descriptionEn": "Based on Diezel\u00ae VH4* (channel 3).",
+    "descriptionPt": "Baseado no Diezel\u00ae VH4* (canal 3).",
     "alg": [
       {
         "name": "Gain",
@@ -1657,6 +1696,7 @@
   "313": {
     "name": "Eng 120",
     "descriptionEn": "Based on ENGL\u00ae Savage 120*.",
+    "descriptionPt": "Baseado no ENGL\u00ae Savage 120*.",
     "alg": [
       {
         "name": "Gain",
@@ -1717,6 +1757,7 @@
   "314": {
     "name": "Halen 51",
     "descriptionEn": "Based on Peavey\u00ae 5150\u00ae* (lead channel).",
+    "descriptionPt": "Baseado no Peavey\u00ae 5150\u00ae* (canal lead).",
     "alg": [
       {
         "name": "Gain",
@@ -1777,6 +1818,7 @@
   "315": {
     "name": "Sol 100 LD",
     "descriptionEn": "Based on Soldano\u00ae SLO-100* (overdrive channel).",
+    "descriptionPt": "Baseado no Soldano\u00ae SLO-100* (canal overdrive).",
     "alg": [
       {
         "name": "Gain",
@@ -1837,6 +1879,7 @@
   "316": {
     "name": "Calif DualV",
     "descriptionEn": "Based on Mesa/Boogie\u00ae Dual Rectifier\u00ae* (vintage mode).",
+    "descriptionPt": "Baseado no Mesa/Boogie\u00ae Dual Rectifier\u00ae* (modo vintage).",
     "alg": [
       {
         "name": "Gain",
@@ -1897,6 +1940,7 @@
   "317": {
     "name": "Calif DualM",
     "descriptionEn": "Based on Mesa/Boogie\u00ae Dual Rectifier\u00ae* (modern mode).",
+    "descriptionPt": "Baseado no Mesa/Boogie\u00ae Dual Rectifier\u00ae* (modo modern).",
     "alg": [
       {
         "name": "Gain",
@@ -1957,6 +2001,7 @@
   "318": {
     "name": "Eng Power",
     "descriptionEn": "Based on ENGL\u00ae Powerball II* (lead channel).",
+    "descriptionPt": "Baseado no ENGL\u00ae Powerball II* (canal lead).",
     "alg": [
       {
         "name": "Gain",
@@ -2017,6 +2062,7 @@
   "319": {
     "name": "Flyman B1+",
     "descriptionEn": "Based on Friedman\u00ae BE-100* ('Brown Eye', HBE channel).",
+    "descriptionPt": "Baseado no Friedman\u00ae BE-100* ('Brown Eye', canal HBE).",
     "alg": [
       {
         "name": "Gain",
@@ -2077,6 +2123,7 @@
   "320": {
     "name": "Bog XT V",
     "descriptionEn": "Based on Bogner\u00ae Ecstasy* (red / high-gain channel).",
+    "descriptionPt": "Baseado no Bogner\u00ae Ecstasy* (canal vermelho / high gain).",
     "alg": [
       {
         "name": "Gain",
@@ -2137,6 +2184,7 @@
   "321": {
     "name": "A BassVT",
     "descriptionEn": "Based on Ampeg\u00ae SVT* bass amp.",
+    "descriptionPt": "Baseado no amplificador de baixo Ampeg\u00ae SVT*.",
     "alg": [
       {
         "name": "Gain",
@@ -2201,6 +2249,7 @@
   "322": {
     "name": "Voks Bass",
     "descriptionEn": "Based on VOX\u00ae AC100* bass amp.",
+    "descriptionPt": "Baseado no amplificador de baixo VOX\u00ae AC100*.",
     "alg": [
       {
         "name": "Vol",
@@ -2234,6 +2283,7 @@
   "401": {
     "name": "TWD 1x8",
     "descriptionEn": "1x8\" cabinet voiced after the Fender\u00ae Champ*.",
+    "descriptionPt": "Gabinete 1x8\" inspirado no Fender\u00ae Champ*.",
     "alg": [
       {
         "name": "Vol",
@@ -2249,6 +2299,7 @@
   "402": {
     "name": "TWD-P 1x10",
     "descriptionEn": "1x10\" cabinet voiced after the Fender\u00ae Princeton*.",
+    "descriptionPt": "Gabinete 1x10\" inspirado no Fender\u00ae Princeton*.",
     "alg": [
       {
         "name": "Vol",
@@ -2264,6 +2315,7 @@
   "403": {
     "name": "Viblux 1x12",
     "descriptionEn": "1x12\" cabinet voiced after the Fender\u00ae Vibrolux*.",
+    "descriptionPt": "Gabinete 1x12\" inspirado no Fender\u00ae Vibrolux*.",
     "alg": [
       {
         "name": "Vol",
@@ -2279,6 +2331,7 @@
   "404": {
     "name": "Voks 1x12",
     "descriptionEn": "1x12\" cabinet voiced after the VOX\u00ae AC15*.",
+    "descriptionPt": "Gabinete 1x12\" inspirado no VOX\u00ae AC15*.",
     "alg": [
       {
         "name": "Vol",
@@ -2294,6 +2347,7 @@
   "405": {
     "name": "TWD 2x12",
     "descriptionEn": "2x12\" cabinet voiced after a custom Fender\u00ae Tweed*.",
+    "descriptionPt": "Gabinete 2x12\" inspirado em um Fender\u00ae Tweed* customizado.",
     "alg": [
       {
         "name": "Vol",
@@ -2309,6 +2363,7 @@
   "406": {
     "name": "Double 2x12",
     "descriptionEn": "2x12\" cabinet voiced after the Fender\u00ae '65 Twin Reverb*.",
+    "descriptionPt": "Gabinete 2x12\" inspirado no Fender\u00ae '65 Twin Reverb*.",
     "alg": [
       {
         "name": "Vol",
@@ -2324,6 +2379,7 @@
   "407": {
     "name": "Star 2x12",
     "descriptionEn": "2x12\" cabinet voiced after the Mesa/Boogie\u00ae Lone Star*.",
+    "descriptionPt": "Gabinete 2x12\" inspirado no Mesa/Boogie\u00ae Lone Star*.",
     "alg": [
       {
         "name": "Vol",
@@ -2339,6 +2395,7 @@
   "408": {
     "name": "Jazz 2x12",
     "descriptionEn": "2x12\" cabinet voiced after the Roland\u00ae Jazz Chorus*.",
+    "descriptionPt": "Gabinete 2x12\" inspirado no Roland\u00ae Jazz Chorus*.",
     "alg": [
       {
         "name": "Vol",
@@ -2354,6 +2411,7 @@
   "409": {
     "name": "BritGN 2x12",
     "descriptionEn": "2x12\" Marshall\u00ae-style cabinet with Celestion\u00ae Greenback\u00ae* speakers.",
+    "descriptionPt": "Gabinete 2x12\" estilo Marshall\u00ae com alto-falantes Celestion\u00ae Greenback\u00ae*.",
     "alg": [
       {
         "name": "Vol",
@@ -2369,6 +2427,7 @@
   "410": {
     "name": "BritGN 4x12",
     "descriptionEn": "4x12\" Marshall\u00ae-style cabinet with Celestion\u00ae Greenback\u00ae* speakers.",
+    "descriptionPt": "Gabinete 4x12\" estilo Marshall\u00ae com alto-falantes Celestion\u00ae Greenback\u00ae*.",
     "alg": [
       {
         "name": "Vol",
@@ -2384,6 +2443,7 @@
   "411": {
     "name": "Bog 4x12",
     "descriptionEn": "4x12\" cabinet voiced after a Bogner\u00ae* cab.",
+    "descriptionPt": "Gabinete 4x12\" inspirado em um gabinete Bogner\u00ae*.",
     "alg": [
       {
         "name": "Vol",
@@ -2399,6 +2459,7 @@
   "412": {
     "name": "Dizzy 4x12",
     "descriptionEn": "4x12\" cabinet voiced after a Diezel\u00ae* cab.",
+    "descriptionPt": "Gabinete 4x12\" inspirado em um gabinete Diezel\u00ae*.",
     "alg": [
       {
         "name": "Vol",
@@ -2414,6 +2475,7 @@
   "413": {
     "name": "Halen 4x12",
     "descriptionEn": "4x12\" cabinet voiced after the Peavey\u00ae 6505*.",
+    "descriptionPt": "Gabinete 4x12\" inspirado no Peavey\u00ae 6505*.",
     "alg": [
       {
         "name": "Vol",
@@ -2429,6 +2491,7 @@
   "414": {
     "name": "Sol 4x12",
     "descriptionEn": "4x12\" cabinet voiced after a Soldano\u00ae* cab.",
+    "descriptionPt": "Gabinete 4x12\" inspirado em um gabinete Soldano\u00ae*.",
     "alg": [
       {
         "name": "Vol",
@@ -2444,6 +2507,7 @@
   "415": {
     "name": "Dual 4x12",
     "descriptionEn": "4x12\" cabinet voiced after the Mesa/Boogie\u00ae Rectifier\u00ae*.",
+    "descriptionPt": "Gabinete 4x12\" inspirado no Mesa/Boogie\u00ae Rectifier\u00ae*.",
     "alg": [
       {
         "name": "Vol",
@@ -2459,6 +2523,7 @@
   "416": {
     "name": "User IR 1",
     "descriptionEn": "User-loaded cabinet impulse response.",
+    "descriptionPt": "Resposta de impulso (IR) de gabinete carregada pelo usu\u00e1rio.",
     "alg": [
       {
         "name": "Vol",
@@ -2474,6 +2539,7 @@
   "417": {
     "name": "User IR 2",
     "descriptionEn": "User-loaded cabinet impulse response.",
+    "descriptionPt": "Resposta de impulso (IR) de gabinete carregada pelo usu\u00e1rio.",
     "alg": [
       {
         "name": "Vol",
@@ -2489,6 +2555,7 @@
   "418": {
     "name": "User IR 3",
     "descriptionEn": "User-loaded cabinet impulse response.",
+    "descriptionPt": "Resposta de impulso (IR) de gabinete carregada pelo usu\u00e1rio.",
     "alg": [
       {
         "name": "Vol",
@@ -2504,6 +2571,7 @@
   "419": {
     "name": "User IR 4",
     "descriptionEn": "User-loaded cabinet impulse response.",
+    "descriptionPt": "Resposta de impulso (IR) de gabinete carregada pelo usu\u00e1rio.",
     "alg": [
       {
         "name": "Vol",
@@ -2519,6 +2587,7 @@
   "420": {
     "name": "User IR 5",
     "descriptionEn": "User-loaded cabinet impulse response.",
+    "descriptionPt": "Resposta de impulso (IR) de gabinete carregada pelo usu\u00e1rio.",
     "alg": [
       {
         "name": "Vol",
@@ -2534,6 +2603,7 @@
   "501": {
     "name": "GT EQ 1",
     "descriptionEn": "5-band graphic EQ for guitar.",
+    "descriptionPt": "EQ gr\u00e1fico de 5 bandas para guitarra.",
     "alg": [
       {
         "name": "125Hz",
@@ -2594,6 +2664,7 @@
   "502": {
     "name": "GT EQ 2",
     "descriptionEn": "5-band graphic EQ for guitar.",
+    "descriptionPt": "EQ gr\u00e1fico de 5 bandas para guitarra.",
     "alg": [
       {
         "name": "100Hz",
@@ -2654,6 +2725,7 @@
   "503": {
     "name": "Bass EQ",
     "descriptionEn": "5-band graphic EQ for bass.",
+    "descriptionPt": "EQ gr\u00e1fico de 5 bandas para baixo.",
     "alg": [
       {
         "name": "50Hz",
@@ -2714,6 +2786,7 @@
   "701": {
     "name": "Pure",
     "descriptionEn": "Clean digital delay with clear, uncolored repeats.",
+    "descriptionPt": "Delay digital limpo, com repeti\u00e7\u00f5es claras e sem colora\u00e7\u00e3o.",
     "alg": [
       {
         "name": "Mix",
@@ -2761,6 +2834,7 @@
   "702": {
     "name": "Slap",
     "descriptionEn": "Short slapback echo for vintage bounce.",
+    "descriptionPt": "Eco slapback curto, com aquele balan\u00e7o vintage.",
     "alg": [
       {
         "name": "Mix",
@@ -2801,6 +2875,7 @@
   "703": {
     "name": "Warm",
     "descriptionEn": "Warm analog-voiced delay with darkening repeats.",
+    "descriptionPt": "Delay quente com voz anal\u00f3gica, com repeti\u00e7\u00f5es que v\u00e3o escurecendo.",
     "alg": [
       {
         "name": "Mix",
@@ -2848,6 +2923,7 @@
   "704": {
     "name": "Mag",
     "descriptionEn": "Solid-state tape-echo emulation.",
+    "descriptionPt": "Emula\u00e7\u00e3o de tape echo transistorizado.",
     "alg": [
       {
         "name": "Mix",
@@ -2895,6 +2971,7 @@
   "705": {
     "name": "Tube",
     "descriptionEn": "Tube tape-echo emulation with saturated repeats.",
+    "descriptionPt": "Emula\u00e7\u00e3o de tape echo valvulado, com repeti\u00e7\u00f5es saturadas.",
     "alg": [
       {
         "name": "Mix",
@@ -2942,6 +3019,7 @@
   "706": {
     "name": "Reverse",
     "descriptionEn": "Reverse delay for backwards, swelling trails.",
+    "descriptionPt": "Delay reverso, com repeti\u00e7\u00f5es ao contr\u00e1rio que crescem de volume.",
     "alg": [
       {
         "name": "Mix",
@@ -2989,6 +3067,7 @@
   "707": {
     "name": "Analog",
     "descriptionEn": "Reproduces the sound of a vintage 1980's rack-mount delay machine. Based on the Roland\u00ae SDE-3000*.",
+    "descriptionPt": "Reproduz o som de uma unidade de delay de rack vintage dos anos 1980. Baseado no Roland\u00ae SDE-3000*.",
     "alg": [
       {
         "name": "Mix",
@@ -3036,6 +3115,7 @@
   "708": {
     "name": "Sweep",
     "descriptionEn": "Delay with a filter sweeping across the repeats.",
+    "descriptionPt": "Delay com um filtro que varre as repeti\u00e7\u00f5es.",
     "alg": [
       {
         "name": "Mix",
@@ -3101,6 +3181,7 @@
   "709": {
     "name": "Ping Pong",
     "descriptionEn": "Stereo delay that bounces repeats left to right.",
+    "descriptionPt": "Delay est\u00e9reo que alterna as repeti\u00e7\u00f5es entre a esquerda e a direita.",
     "alg": [
       {
         "name": "Mix",
@@ -3148,6 +3229,7 @@
   "801": {
     "name": "Air",
     "descriptionEn": "Airy ambience with an open, natural tail.",
+    "descriptionPt": "Ambi\u00eancia arejada, com uma cauda aberta e natural.",
     "alg": [
       {
         "name": "Mix",
@@ -3181,6 +3263,7 @@
   "802": {
     "name": "Room",
     "descriptionEn": "Tight room reverb with a short decay.",
+    "descriptionPt": "Reverb de sala compacto, com decaimento curto.",
     "alg": [
       {
         "name": "Mix",
@@ -3205,6 +3288,7 @@
   "803": {
     "name": "Hall",
     "descriptionEn": "Concert-hall reverb with a long, smooth tail.",
+    "descriptionPt": "Reverb de sala de concerto, com cauda longa e suave.",
     "alg": [
       {
         "name": "Mix",
@@ -3229,6 +3313,7 @@
   "804": {
     "name": "Church",
     "descriptionEn": "Cathedral reverb with a long, resonant decay.",
+    "descriptionPt": "Reverb de catedral, com decaimento longo e ressonante.",
     "alg": [
       {
         "name": "Mix",
@@ -3253,6 +3338,7 @@
   "805": {
     "name": "Plate 1",
     "descriptionEn": "Dense, bright studio plate reverb.",
+    "descriptionPt": "Reverb de placa de est\u00fadio, denso e brilhante.",
     "alg": [
       {
         "name": "Mix",
@@ -3277,6 +3363,7 @@
   "806": {
     "name": "Plate 2",
     "descriptionEn": "Warmer, grainier vintage plate reverb.",
+    "descriptionPt": "Reverb de placa vintage, mais quente e granulado.",
     "alg": [
       {
         "name": "Mix",
@@ -3310,6 +3397,7 @@
   "807": {
     "name": "Spring",
     "descriptionEn": "Amp-style spring reverb with a lively drip.",
+    "descriptionPt": "Reverb de mola no estilo de amplificador, com um 'drip' vivo.",
     "alg": [
       {
         "name": "Mix",
@@ -3334,6 +3422,7 @@
   "808": {
     "name": "Light",
     "descriptionEn": "Bright, lush reverb with a shimmering top.",
+    "descriptionPt": "Reverb brilhante e exuberante, com agudos cintilantes.",
     "alg": [
       {
         "name": "Mix",
@@ -3358,6 +3447,7 @@
   "809": {
     "name": "Ocean",
     "descriptionEn": "Huge, deep reverb with a cavernous decay.",
+    "descriptionPt": "Reverb enorme e profundo, com decaimento cavernoso.",
     "alg": [
       {
         "name": "Mix",
@@ -3382,6 +3472,7 @@
   "810": {
     "name": "Dream",
     "descriptionEn": "Modulated reverb with a lush, swirling tail.",
+    "descriptionPt": "Reverb modulado, com uma cauda exuberante e envolvente.",
     "alg": [
       {
         "name": "Mix",
@@ -3424,6 +3515,7 @@
   "901": {
     "name": "User Profile 1",
     "descriptionEn": "Your own captured amp profile with a 3-band EQ.",
+    "descriptionPt": "Seu pr\u00f3prio perfil de amplificador capturado, com EQ de 3 bandas.",
     "alg": [
       {
         "name": "Gain",
@@ -3475,6 +3567,7 @@
   "902": {
     "name": "User Profile 2",
     "descriptionEn": "Your own captured amp profile with a 3-band EQ.",
+    "descriptionPt": "Seu pr\u00f3prio perfil de amplificador capturado, com EQ de 3 bandas.",
     "alg": [
       {
         "name": "Gain",
@@ -3526,6 +3619,7 @@
   "903": {
     "name": "User Profile 3",
     "descriptionEn": "Your own captured amp profile with a 3-band EQ.",
+    "descriptionPt": "Seu pr\u00f3prio perfil de amplificador capturado, com EQ de 3 bandas.",
     "alg": [
       {
         "name": "Gain",
@@ -3577,6 +3671,7 @@
   "904": {
     "name": "User Profile 4",
     "descriptionEn": "Your own captured amp profile with a 3-band EQ.",
+    "descriptionPt": "Seu pr\u00f3prio perfil de amplificador capturado, com EQ de 3 bandas.",
     "alg": [
       {
         "name": "Gain",
@@ -3628,6 +3723,7 @@
   "905": {
     "name": "User Profile 5",
     "descriptionEn": "Your own captured amp profile with a 3-band EQ.",
+    "descriptionPt": "Seu pr\u00f3prio perfil de amplificador capturado, com EQ de 3 bandas.",
     "alg": [
       {
         "name": "Gain",
@@ -3679,6 +3775,7 @@
   "119": {
     "name": "Fullchor",
     "descriptionEn": "Based on the Boss\u00ae CE-1 Chorus Ensemble*.",
+    "descriptionPt": "Baseado no Boss\u00ae CE-1 Chorus Ensemble*.",
     "alg": [
       {
         "name": "Depth",
@@ -3711,6 +3808,7 @@
   "710": {
     "name": "Flash",
     "descriptionEn": "Fast, bright delay voicing.",
+    "descriptionPt": "Voz de delay r\u00e1pida e brilhante.",
     "alg": [
       {
         "name": "Mix",
@@ -3758,6 +3856,7 @@
   "323": {
     "name": "Doctor CL",
     "descriptionEn": "Based on a Dr. Z\u00ae amp* (clean channel).",
+    "descriptionPt": "Baseado em um amplificador Dr. Z\u00ae* (canal clean).",
     "alg": [
       {
         "name": "Gain",
@@ -3818,6 +3917,7 @@
   "324": {
     "name": "Flyman B1",
     "descriptionEn": "Based on Friedman\u00ae BE-100* ('Brown Eye', BE channel).",
+    "descriptionPt": "Baseado no Friedman\u00ae BE-100* ('Brown Eye', canal BE).",
     "alg": [
       {
         "name": "Gain",
@@ -3878,6 +3978,7 @@
   "120": {
     "name": "Phaser ST",
     "descriptionEn": "Based on the MXR\u00ae Phase 90* (stereo).",
+    "descriptionPt": "Baseado no MXR\u00ae Phase 90* (est\u00e9reo).",
     "alg": [
       {
         "name": "Depth",
@@ -3910,6 +4011,7 @@
   "711": {
     "name": "Damage",
     "descriptionEn": "Lo-fi, broken-up delay voicing.",
+    "descriptionPt": "Voz de delay lo-fi e quebradi\u00e7a.",
     "alg": [
       {
         "name": "Mix",
@@ -3957,6 +4059,7 @@
   "325": {
     "name": "Calif IIC+",
     "descriptionEn": "Based on Mesa/Boogie\u00ae Mark IIC+*.",
+    "descriptionPt": "Baseado no Mesa/Boogie\u00ae Mark IIC+*.",
     "alg": [
       {
         "name": "Gain",
@@ -4017,6 +4120,7 @@
   "326": {
     "name": "Supero 2 OD",
     "descriptionEn": "Based on the Boss\u00ae SD-2 Dual OverDrive*. Two cascaded gain stages, each with its own tone control.",
+    "descriptionPt": "Baseado no Boss\u00ae SD-2 Dual OverDrive*. Dois est\u00e1gios de ganho em cascata, cada um com o seu pr\u00f3prio controle de tonalidade.",
     "alg": [
       {
         "name": "Gain1",
@@ -4068,6 +4172,7 @@
   "327": {
     "name": "Bog SV CL",
     "descriptionEn": "Based on Bogner\u00ae Shiva* (clean channel).",
+    "descriptionPt": "Baseado no Bogner\u00ae Shiva* (canal clean).",
     "alg": [
       {
         "name": "Gain",
@@ -4128,6 +4233,7 @@
   "328": {
     "name": "Bog XT M",
     "descriptionEn": "Based on Bogner\u00ae Ecstasy* (blue / mid-gain channel).",
+    "descriptionPt": "Baseado no Bogner\u00ae Ecstasy* (canal azul / ganho m\u00e9dio).",
     "alg": [
       {
         "name": "Gain",
@@ -4188,6 +4294,7 @@
   "329": {
     "name": "Superb CL",
     "descriptionEn": "Based on a Supro\u00ae amp* (clean channel).",
+    "descriptionPt": "Baseado em um amplificador Supro\u00ae* (canal clean).",
     "alg": [
       {
         "name": "Gain",
@@ -4248,6 +4355,7 @@
   "330": {
     "name": "Brit 900",
     "descriptionEn": "Based on Marshall\u00ae JCM900*.",
+    "descriptionPt": "Baseado no Marshall\u00ae JCM900*.",
     "alg": [
       {
         "name": "Gain",
@@ -4308,6 +4416,7 @@
   "331": {
     "name": "Calif Star CL",
     "descriptionEn": "Based on Mesa/Boogie\u00ae Lone Star* (clean channel).",
+    "descriptionPt": "Baseado no Mesa/Boogie\u00ae Lone Star* (canal clean).",
     "alg": [
       {
         "name": "Gain",
@@ -4368,6 +4477,7 @@
   "332": {
     "name": "Dizzy VH+",
     "descriptionEn": "Based on Diezel\u00ae VH4* (channel 4, high-gain lead).",
+    "descriptionPt": "Baseado no Diezel\u00ae VH4* (canal 4, lead de high gain).",
     "alg": [
       {
         "name": "Gain",
@@ -4428,6 +4538,7 @@
   "333": {
     "name": "Calif Bass",
     "descriptionEn": "Based on Mesa/Boogie\u00ae Bass 400+* bass amp.",
+    "descriptionPt": "Baseado no amplificador de baixo Mesa/Boogie\u00ae Bass 400+*.",
     "alg": [
       {
         "name": "Gain",
@@ -4479,6 +4590,7 @@
   "712": {
     "name": "Flutter",
     "descriptionEn": "Wobbly tape-flutter delay voicing.",
+    "descriptionPt": "Voz de delay com o vaiv\u00e9m do flutter de fita.",
     "alg": [
       {
         "name": "Mix",
@@ -4526,6 +4638,7 @@
   "713": {
     "name": "Glost",
     "descriptionEn": "Ghostly ambient delay voicing.",
+    "descriptionPt": "Voz de delay ambiente e fantasmag\u00f3rica.",
     "alg": [
       {
         "name": "Mix",
@@ -4573,6 +4686,7 @@
   "714": {
     "name": "Dark",
     "descriptionEn": "Dark, filtered delay voicing.",
+    "descriptionPt": "Voz de delay escura e filtrada.",
     "alg": [
       {
         "name": "Mix",
@@ -4620,6 +4734,7 @@
   "715": {
     "name": "Shiny",
     "descriptionEn": "Bright, shimmering delay voicing.",
+    "descriptionPt": "Voz de delay brilhante e cintilante.",
     "alg": [
       {
         "name": "Mix",
@@ -4667,6 +4782,7 @@
   "716": {
     "name": "Echo",
     "descriptionEn": "Based on the Maestro\u00ae Echoplex\u00ae EP-3* tape echo.",
+    "descriptionPt": "Baseado no tape echo Maestro\u00ae Echoplex\u00ae EP-3*.",
     "alg": [
       {
         "name": "Mix",
@@ -4714,6 +4830,7 @@
   "421": {
     "name": "Bass 4x10",
     "descriptionEn": "Based on an Ampeg\u00ae SVT-410* 4x10\" bass cabinet.",
+    "descriptionPt": "Baseado no gabinete de baixo 4x10\" Ampeg\u00ae SVT-410*.",
     "alg": [
       {
         "name": "Vol",
@@ -4729,6 +4846,7 @@
   "121": {
     "name": "Crystal Chorus",
     "descriptionEn": "Based on the Boss\u00ae CH-1 Super Chorus*.",
+    "descriptionPt": "Baseado no Boss\u00ae CH-1 Super Chorus*.",
     "alg": [
       {
         "name": "Depth",
@@ -4761,6 +4879,7 @@
   "601": {
     "name": "BBD Phaser",
     "descriptionEn": "Based on the Electro-Harmonix\u00ae Small Stone\u00ae* phaser.",
+    "descriptionPt": "Baseado no phaser Electro-Harmonix\u00ae Small Stone\u00ae*.",
     "alg": [
       {
         "name": "Depth",
@@ -4793,6 +4912,7 @@
   "602": {
     "name": "Lofi Vibrato",
     "descriptionEn": "Based on the Boss\u00ae VB-2 Vibrato* (lo-fi).",
+    "descriptionPt": "Baseado no Boss\u00ae VB-2 Vibrato* (lo-fi).",
     "alg": [
       {
         "name": "Depth",
@@ -4825,6 +4945,7 @@
   "603": {
     "name": "Flanger ST",
     "descriptionEn": "Based on the Boss\u00ae BF-2 Flanger* (stereo).",
+    "descriptionPt": "Baseado no Boss\u00ae BF-2 Flanger* (est\u00e9reo).",
     "alg": [
       {
         "name": "Depth",
@@ -4884,6 +5005,7 @@
   "334": {
     "name": "Calif IV LD",
     "descriptionEn": "Based on Mesa/Boogie\u00ae Mark IV* (lead channel).",
+    "descriptionPt": "Baseado no Mesa/Boogie\u00ae Mark IV* (canal lead).",
     "alg": [
       {
         "name": "Gain",
@@ -4944,6 +5066,7 @@
   "335": {
     "name": "Tanger R100",
     "descriptionEn": "Based on Orange\u00ae Rockerverb 100*.",
+    "descriptionPt": "Baseado no Orange\u00ae Rockerverb 100*.",
     "alg": [
       {
         "name": "Gain",
@@ -4995,6 +5118,7 @@
   "336": {
     "name": "Brit 50",
     "descriptionEn": "Based on Marshall\u00ae JTM50*.",
+    "descriptionPt": "Baseado no Marshall\u00ae JTM50*.",
     "alg": [
       {
         "name": "Gain",
@@ -5055,6 +5179,7 @@
   "337": {
     "name": "Superb OD",
     "descriptionEn": "Based on a Supro\u00ae amp* (overdrive channel).",
+    "descriptionPt": "Baseado em um amplificador Supro\u00ae* (canal overdrive).",
     "alg": [
       {
         "name": "Gain",
@@ -5115,6 +5240,7 @@
   "338": {
     "name": "Doctor OD",
     "descriptionEn": "Based on a Dr. Z\u00ae amp* (overdrive channel).",
+    "descriptionPt": "Baseado em um amplificador Dr. Z\u00ae* (canal overdrive).",
     "alg": [
       {
         "name": "Gain",
@@ -5175,6 +5301,7 @@
   "122": {
     "name": "C-Wah",
     "descriptionEn": "Based on the Dunlop\u00ae Cry Baby\u00ae* wah.",
+    "descriptionPt": "Baseado no wah Dunlop\u00ae Cry Baby\u00ae*.",
     "alg": [
       {
         "name": "Range",
@@ -5208,6 +5335,7 @@
   "123": {
     "name": "Whirlcho",
     "descriptionEn": "Based on a rotary speaker / Leslie\u00ae* simulation.",
+    "descriptionPt": "Baseado na simula\u00e7\u00e3o de um alto-falante rotativo / Leslie\u00ae*.",
     "alg": [
       {
         "name": "Depth",
@@ -5240,6 +5368,7 @@
   "124": {
     "name": "Jet",
     "descriptionEn": "Based on the A/DA\u00ae Flanger* (jet sweep).",
+    "descriptionPt": "Baseado no A/DA\u00ae Flanger* (varredura 'jato').",
     "alg": [
       {
         "name": "Depth",
@@ -5281,6 +5410,7 @@
   "125": {
     "name": "Flanser",
     "descriptionEn": "Based on the Boss\u00ae BF-2 Flanger*.",
+    "descriptionPt": "Baseado no Boss\u00ae BF-2 Flanger*.",
     "alg": [
       {
         "name": "Rate",
@@ -5322,6 +5452,7 @@
   "126": {
     "name": "Phaser M",
     "descriptionEn": "Based on the MXR\u00ae Phase 45*.",
+    "descriptionPt": "Baseado no MXR\u00ae Phase 45*.",
     "alg": [
       {
         "name": "Depth",
@@ -5363,6 +5494,7 @@
   "127": {
     "name": "Vibrato ST",
     "descriptionEn": "Based on the Boss\u00ae VB-2 Vibrato* (stereo).",
+    "descriptionPt": "Baseado no Boss\u00ae VB-2 Vibrato* (est\u00e9reo).",
     "alg": [
       {
         "name": "Depth",
@@ -5395,6 +5527,7 @@
   "422": {
     "name": "User IR 6",
     "descriptionEn": "User-loaded cabinet impulse response.",
+    "descriptionPt": "Resposta de impulso (IR) de gabinete carregada pelo usu\u00e1rio.",
     "alg": [
       {
         "name": "Vol",
@@ -5410,6 +5543,7 @@
   "423": {
     "name": "User IR 7",
     "descriptionEn": "User-loaded cabinet impulse response.",
+    "descriptionPt": "Resposta de impulso (IR) de gabinete carregada pelo usu\u00e1rio.",
     "alg": [
       {
         "name": "Vol",
@@ -5425,6 +5559,7 @@
   "424": {
     "name": "User IR 8",
     "descriptionEn": "User-loaded cabinet impulse response.",
+    "descriptionPt": "Resposta de impulso (IR) de gabinete carregada pelo usu\u00e1rio.",
     "alg": [
       {
         "name": "Vol",
@@ -5440,6 +5575,7 @@
   "425": {
     "name": "User IR 9",
     "descriptionEn": "User-loaded cabinet impulse response.",
+    "descriptionPt": "Resposta de impulso (IR) de gabinete carregada pelo usu\u00e1rio.",
     "alg": [
       {
         "name": "Vol",
@@ -5455,6 +5591,7 @@
   "426": {
     "name": "User IR 10",
     "descriptionEn": "User-loaded cabinet impulse response.",
+    "descriptionPt": "Resposta de impulso (IR) de gabinete carregada pelo usu\u00e1rio.",
     "alg": [
       {
         "name": "Vol",
@@ -5470,6 +5607,7 @@
   "906": {
     "name": "User Profile 6",
     "descriptionEn": "Your own captured amp profile with a 3-band EQ.",
+    "descriptionPt": "Seu pr\u00f3prio perfil de amplificador capturado, com EQ de 3 bandas.",
     "alg": [
       {
         "name": "Gain",
@@ -5521,6 +5659,7 @@
   "907": {
     "name": "User Profile 7",
     "descriptionEn": "Your own captured amp profile with a 3-band EQ.",
+    "descriptionPt": "Seu pr\u00f3prio perfil de amplificador capturado, com EQ de 3 bandas.",
     "alg": [
       {
         "name": "Gain",
@@ -5572,6 +5711,7 @@
   "908": {
     "name": "User Profile 8",
     "descriptionEn": "Your own captured amp profile with a 3-band EQ.",
+    "descriptionPt": "Seu pr\u00f3prio perfil de amplificador capturado, com EQ de 3 bandas.",
     "alg": [
       {
         "name": "Gain",
@@ -5623,6 +5763,7 @@
   "909": {
     "name": "User Profile 9",
     "descriptionEn": "Your own captured amp profile with a 3-band EQ.",
+    "descriptionPt": "Seu pr\u00f3prio perfil de amplificador capturado, com EQ de 3 bandas.",
     "alg": [
       {
         "name": "Gain",
@@ -5674,6 +5815,7 @@
   "910": {
     "name": "User Profile 10",
     "descriptionEn": "Your own captured amp profile with a 3-band EQ.",
+    "descriptionPt": "Seu pr\u00f3prio perfil de amplificador capturado, com EQ de 3 bandas.",
     "alg": [
       {
         "name": "Gain",
@@ -5725,6 +5867,7 @@
   "717": {
     "name": "Float",
     "descriptionEn": "Smart Box delay voicing (firmware V1.0.6 model \"Float\").",
+    "descriptionPt": "Voz de delay do Smart Box (modelo \"Float\" do firmware V1.0.6).",
     "alg": [
       {
         "name": "Mix",
@@ -5772,6 +5915,7 @@
   "718": {
     "name": "Shake",
     "descriptionEn": "Smart Box delay voicing (firmware V1.0.6 model \"Shake\").",
+    "descriptionPt": "Voz de delay do Smart Box (modelo \"Shake\" do firmware V1.0.6).",
     "alg": [
       {
         "name": "Mix",
@@ -5819,6 +5963,7 @@
   "427": {
     "name": "Mark 2x10",
     "descriptionEn": "2x10\" bass cabinet (Amphonix 2 factory cab \"Mark210\").",
+    "descriptionPt": "Gabinete de baixo 2x10\" (gabinete de f\u00e1brica \"Mark210\" do Amphonix 2).",
     "alg": [
       {
         "name": "Vol",
@@ -5834,6 +5979,7 @@
   "428": {
     "name": "Ampg 4x10",
     "descriptionEn": "4x10\" bass cabinet (Amphonix 2 factory cab \"Ampg410\").",
+    "descriptionPt": "Gabinete de baixo 4x10\" (gabinete de f\u00e1brica \"Ampg410\" do Amphonix 2).",
     "alg": [
       {
         "name": "Vol",

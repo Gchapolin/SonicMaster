@@ -167,6 +167,7 @@
    "name": "Studio Delay",
    "key": "studio_dly",
    "descriptionEn": "Clean digital delay with low / high cut on the repeats, modulation, ducking and trails.",
+   "descriptionPt": "Delay digital limpo, com corte de graves / agudos nas repetições, modulação, ducking e trails.",
    "params": [
     {
      "name": "Mix",
@@ -456,6 +457,7 @@
    "name": "Tape Echo",
    "key": "tape",
    "descriptionEn": "Tape echo: every repeat darker and a little saturated, with wow and flutter.",
+   "descriptionPt": "Tape echo: cada repetição mais escura e um pouco saturada, com wow e flutter.",
    "params": [
     {
      "name": "Mix",
@@ -642,6 +644,7 @@
    "name": "Dual Delay",
    "key": "dual",
    "descriptionEn": "Two taps: Time (follows the tap tempo) and a second tap at 1/4 .. 3/4 of it, for rhythmic patterns.",
+   "descriptionPt": "Duas batidas: Time (segue o tap tempo) e uma segunda batida entre 1/4 e 3/4 dele, para padrões rítmicos.",
    "params": [
     {
      "name": "Mix",
@@ -835,6 +838,7 @@
    "name": "Shimmer Delay",
    "key": "shimmer",
    "descriptionEn": "Every repeat an octave higher: shimmering trails (try it before a long reverb).",
+   "descriptionPt": "Cada repetição uma oitava acima: repetições cintilantes (experimente antes de um reverb longo).",
    "params": [
     {
      "name": "Mix",
@@ -1021,6 +1025,7 @@
    "name": "Swell Delay",
    "key": "swell",
    "descriptionEn": "Each note fades in (volume swell), then repeats: ambient pads from single notes.",
+   "descriptionPt": "Cada nota entra crescendo (volume swell) e depois se repete: pads ambientes a partir de notas isoladas.",
    "params": [
     {
      "name": "Mix",
@@ -1310,6 +1315,7 @@
    "name": "Lo-Fi Delay",
    "key": "lofi",
    "descriptionEn": "Dirty, filtered repeats up to 2 seconds (half sample rate, bit crush).",
+   "descriptionPt": "Repetições sujas e filtradas de até 2 segundos (meia taxa de amostragem, bit crush).",
    "params": [
     {
      "name": "Mix",
@@ -1758,6 +1764,7 @@
    "name": "Studio Verb",
    "key": "studio_rvb",
    "descriptionEn": "Every control of the reverb engine: decay up to 20 s, damping, low / high cut, modulation, trails.",
+   "descriptionPt": "Todos os controles do motor de reverb: decaimento de até 20 s, damping, corte de graves / agudos, modulação, trails.",
    "params": [
     {
      "name": "Mix",
@@ -2141,6 +2148,7 @@
    "name": "Ambient",
    "key": "ambient",
    "descriptionEn": "Long, modulated washes: decay 2 to 30 seconds.",
+   "descriptionPt": "Camadas longas e moduladas: decaimento de 2 a 30 segundos.",
    "params": [
     {
      "name": "Mix",
@@ -2524,6 +2532,7 @@
    "name": "Freeze",
    "key": "freeze",
    "descriptionEn": "Freeze On holds the tail for a long time, like a pad you play over (it fades slowly); Off = a long reverb.",
+   "descriptionPt": "Com Freeze ligado, a cauda se sustenta por muito tempo, como um pad sobre o qual você toca (ela some devagar); desligado = um reverb longo.",
    "params": [
     {
      "name": "Mix",
@@ -2907,6 +2916,7 @@
    "name": "Duck Verb",
    "key": "duck_rvb",
    "descriptionEn": "The reverb steps back while you play and blooms in the pauses.",
+   "descriptionPt": "O reverb recua enquanto você toca e floresce nas pausas.",
    "params": [
     {
      "name": "Mix",
@@ -3299,6 +3309,7 @@
    "name": "Gated",
    "key": "gated",
    "descriptionEn": "80s gated reverb: open while you play, cut after the Gate time.",
+   "descriptionPt": "Reverb com gate dos anos 80: aberto enquanto você toca, cortado depois do tempo de Gate.",
    "params": [
     {
      "name": "Mix",

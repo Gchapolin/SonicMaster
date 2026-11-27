@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sonicmaster/device/device_service.dart';
 import 'package:sonicmaster/gear/gear_piece.dart';
+import 'package:sonicmaster/l10n/lang.dart';
 import 'package:sonicmaster/l10n/shell_text.dart';
 import 'package:sonicmaster/model/effect_definition.dart';
 import 'package:sonicmaster/model/effect_parameter.dart';
@@ -193,6 +194,19 @@ void main() {
     await pumpPanel(tester, moduleId: 3, fxId: 308);
 
     expect(find.text(def.descriptionEn), findsOneWidget);
+  });
+
+  testWidgets('the description is in Portuguese when the app is', (
+    tester,
+  ) async {
+    final def = assets.effects.byId(707)!;
+
+    appLang = Lang.pt;
+    addTearDown(() => appLang = Lang.en);
+    await pumpPanel(tester, moduleId: 7, fxId: 707);
+
+    expect(find.text(def.descriptionPt), findsOneWidget);
+    expect(find.text(def.descriptionEn), findsNothing);
   });
 
   // The user's iPad in landscape: the header, the whole piece and the value

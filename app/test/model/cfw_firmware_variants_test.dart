@@ -36,6 +36,10 @@ void main() {
     final def = data.effects.byId(swellDelayId)!;
     final sens = def.params.singleWhere((p) => p.algId == 6);
 
+    // The variant keeps both description texts.
+    expect(def.descriptionPt, isNotEmpty);
+    expect(def.descriptionPt, before.descriptionPt);
+
     expect(sens.name, 'Sens');
     expect(sens.widgetType, WidgetType.knob);
     expect((sens.min, sens.max, sens.step, sens.defaultValue), (-50, 50, 1, 0));
