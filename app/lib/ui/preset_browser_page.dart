@@ -28,6 +28,10 @@ import 'top_bar.dart';
 
 /// Browse the 100 presets and load one onto the pedal. The full pedalboard /
 /// parameter editor arrives in Plan 5d; this proves preset selection on device.
+/// The regular work area's floor: the band and an editor still usable under
+/// it; a shorter one (debug console open, soft keyboard) scrolls.
+const double _minRegularWorkHeight = 420;
+
 class PresetBrowserPage extends HookConsumerWidget {
   const PresetBrowserPage({super.key});
 
@@ -208,75 +212,126 @@ class PresetBrowserPage extends HookConsumerWidget {
                                             )
                                           else
                                             LayoutBuilder(
-                                              builder: (context, constraints) => SingleChildScrollView(
-                                                padding: EdgeInsets.all(
-                                                  metrics.workPadding,
-                                                ),
-                                                // Center the work-area content vertically (grows past
-                                                // the viewport → scrolls). Clone Mode moved into the
-                                                // AMP editor, matching the web app.
-                                                child: ConstrainedBox(
-                                                  constraints: BoxConstraints(
-                                                    // Never negative: the soft
-                                                    // keyboard can leave the work
-                                                    // area shorter than its
-                                                    // padding.
-                                                    minHeight: math.max(
-                                                      0,
-                                                      constraints.maxHeight -
-                                                          2 *
-                                                              metrics
-                                                                  .workPadding,
-                                                    ),
+                                              builder: (context, constraints) {
+                                                final isCompact =
+                                                    metrics.isCompact;
+                                                // Regular (prototype N_Principal): the band
+                                                // edge to edge, the editor under it filling
+                                                // the rest (scrolls only below a floor).
+                                                // Compact: padded, centred, scrolling.
+                                                final padding = isCompact
+                                                    ? metrics.workPadding
+                                                    : 0.0;
+                                                final regularHeight = math.max(
+                                                  constraints.maxHeight,
+                                                  _minRegularWorkHeight,
+                                                );
+
+                                                return SingleChildScrollView(
+                                                  padding: EdgeInsets.all(
+                                                    padding,
                                                   ),
-                                                  child: Column(
-                                                    mainAxisAlignment: .center,
-                                                    crossAxisAlignment:
-                                                        .stretch,
-                                                    children: [
-                                                      if (emptyMessage != null)
-                                                        Text(
-                                                          emptyMessage,
-                                                          textAlign: .center,
-                                                          style: AppText
-                                                              .dialogTitle
-                                                              .copyWith(
-                                                                color: Palette
-                                                                    .textDim,
-                                                              ),
-                                                        )
-                                                      else if (state !=
-                                                          null) ...[
-                                                        const ChainView(),
-                                                        SizedBox(
-                                                          height: metrics
-                                                              .chainPanelsGap,
-                                                        ),
-                                                        // The effect editor across the whole
-                                                        // work area (Preset Vol and BPM live in
-                                                        // the top bar); it scrolls if a
-                                                        // param-heavy effect is taller.
-                                                        ConstrainedBox(
-                                                          constraints: BoxConstraints(
-                                                            minHeight: metrics
-                                                                .minPanelHeight,
+                                                  child: ConstrainedBox(
+                                                    constraints: BoxConstraints(
+                                                      // Never negative: the soft
+                                                      // keyboard can leave the work
+                                                      // area shorter than its
+                                                      // padding.
+                                                      minHeight: isCompact
+                                                          ? math.max(
+                                                              0,
+                                                              constraints
+                                                                      .maxHeight -
+                                                                  2 * padding,
+                                                            )
+                                                          : regularHeight,
+                                                      maxHeight: isCompact
+                                                          ? double.infinity
+                                                          : regularHeight,
+                                                    ),
+                                                    child: Column(
+                                                      mainAxisAlignment:
+                                                          .center,
+                                                      crossAxisAlignment:
+                                                          .stretch,
+                                                      children: [
+                                                        if (emptyMessage !=
+                                                            null)
+                                                          Text(
+                                                            emptyMessage,
+                                                            textAlign: .center,
+                                                            style: AppText
+                                                                .dialogTitle
+                                                                .copyWith(
+                                                                  color: Palette
+                                                                      .textDim,
+                                                                ),
+                                                          )
+                                                        else if (state !=
+                                                            null) ...[
+                                                          const PedalboardBand(
+                                                            child: ChainView(),
                                                           ),
-                                                          child: SonicSurface(
-                                                            radius: 24,
-                                                            padding:
-                                                                EdgeInsets.zero,
-                                                            // Always a selection (default NR).
-                                                            child: ModuleEditor(
-                                                              selectedModule ??
-                                                                  0,
+                                                          SizedBox(
+                                                            height: isCompact
+                                                                ? metrics
+                                                                      .chainPanelsGap
+                                                                : 0,
+                                                          ),
+                                                          // The effect editor across the
+                                                          // whole work area (Preset Vol and
+                                                          // BPM live in the top bar).
+                                                          // Regular: straight on the
+                                                          // background, 16 in, filling the
+                                                          // rest. Compact: a card that
+                                                          // scrolls with the page.
+                                                          Flexible(
+                                                            flex: isCompact
+                                                                ? 0
+                                                                : 1,
+                                                            fit: .tight,
+                                                            child: ConstrainedBox(
+                                                              constraints:
+                                                                  BoxConstraints(
+                                                                    minHeight:
+                                                                        isCompact
+                                                                        ? metrics
+                                                                              .minPanelHeight
+                                                                        : 0,
+                                                                  ),
+                                                              child: SonicSurface(
+                                                                radius: 24,
+                                                                // Regular: 16 in, its 1-px
+                                                                // (transparent) border included.
+                                                                padding:
+                                                                    EdgeInsets.all(
+                                                                      isCompact
+                                                                          ? 0
+                                                                          : 15,
+                                                                    ),
+                                                                color: isCompact
+                                                                    ? null
+                                                                    : Palette
+                                                                          .transparent,
+                                                                borderColor:
+                                                                    isCompact
+                                                                    ? null
+                                                                    : Palette
+                                                                          .transparent,
+                                                                // Always a selection (default NR).
+                                                                child: ModuleEditor(
+                                                                  selectedModule ??
+                                                                      0,
+                                                                ),
+                                                              ),
                                                             ),
                                                           ),
-                                                        ),
+                                                        ],
                                                       ],
-                                                    ],
+                                                    ),
                                                   ),
-                                                ),
-                                              ),
+                                                );
+                                              },
                                             ),
                                         ],
                                       ),

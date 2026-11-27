@@ -155,57 +155,57 @@ class ModuleEditor extends ConsumerWidget {
         metrics.isCompact && MediaQuery.sizeOf(context).shortestSide >= 600;
 
     // Regular (prototype N_Principal): the header, the big piece and its
-    // value line, beside the block panel holding every other control.
+    // value line, beside the block panel holding every other control. The
+    // editor fills the height it is given (the work area under the band);
+    // the piece scales down into it, so the value line never leaves the
+    // screen. Unbounded (a scroll view), it takes its natural height.
     if (!metrics.isCompact) {
-      // The header, piece and value line set the height; the panel lives
-      // beside them within it and scrolls on its own if ever taller, so the
-      // piece never leaves the screen.
-      return Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(right: blockPanelWidth + 16),
-            child: Column(
-              crossAxisAlignment: .stretch,
-              mainAxisSize: .min,
-              children: [
-                Padding(
-                  padding: metrics.editorHeaderPadding,
-                  child: _ModelHeader(
-                    tag: '$moduleName${modified ? '  ✱' : ''}',
-                    ids: dropdownIds,
-                    current: fxId!,
-                    labelOf: (id) =>
-                        effectDisplayName(id, data.effects, userNames),
-                    sections: sections,
-                    band: isAmp ? ampGainOf(fxId) : null,
-                    isEnabled: !isLoading,
-                    onPick: (id) => setEffectType(ref, moduleId, id),
-                  ),
+      return LayoutBuilder(
+        builder: (context, box) => SizedBox(
+          height: box.hasBoundedHeight ? box.maxHeight : _naturalEditorHeight,
+          child: Row(
+            crossAxisAlignment: .stretch,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: .stretch,
+                  spacing: 12,
+                  children: [
+                    _ModelHeader(
+                      tag: '$moduleName${modified ? '  ✱' : ''}',
+                      ids: dropdownIds,
+                      current: fxId!,
+                      labelOf: (id) =>
+                          effectDisplayName(id, data.effects, userNames),
+                      sections: sections,
+                      band: isAmp ? ampGainOf(fxId) : null,
+                      isEnabled: !isLoading,
+                      onPick: (id) => setEffectType(ref, moduleId, id),
+                    ),
+                    Expanded(
+                      child: PieceEditor(
+                        // A new model starts the value line on its first knob
+                        // again.
+                        key: ValueKey(def.id),
+                        model: def.name,
+                        kind: gearKindForModule(physId),
+                        knobs: onPiece,
+                        values: values,
+                        isOn: moduleOn,
+                        isEnabled: !isLoading,
+                        onSet: (p, v) =>
+                            setParameter(ref, moduleId, p.algId, v),
+                        onSwitch: () => toggleModule(ref, physId, !moduleOn),
+                      ),
+                    ),
+                  ],
                 ),
-                PieceEditor(
-                  // A new model starts the value line on its first knob again.
-                  key: ValueKey(def.id),
-                  model: def.name,
-                  kind: gearKindForModule(physId),
-                  knobs: onPiece,
-                  values: values,
-                  isOn: moduleOn,
-                  isEnabled: !isLoading,
-                  onSet: (p, v) => setParameter(ref, moduleId, p.algId, v),
-                  onSwitch: () => toggleModule(ref, physId, !moduleOn),
-                ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 16),
+              SizedBox(width: blockPanelWidth, child: BlockPanel(moduleId)),
+            ],
           ),
-          // Level with the header's 12-px top padding.
-          Positioned(
-            top: 12,
-            right: 16,
-            bottom: 12,
-            width: blockPanelWidth,
-            child: _ScrollingPanel(moduleId),
-          ),
-        ],
+        ),
       );
     }
 
@@ -590,25 +590,42 @@ class _ModelHeader extends StatelessWidget {
       onPick(ids[(i + by) % ids.length]);
     }
 
-    // A 36-px box in a 44-wide hit area, as tall as the selector.
-    Widget arrow(String key, IconData icon, int by) => SizedBox(
+    // A 36-px filled box in a 44x44 hit area.
+    Widget arrow(String key, IconData icon, int by) => GestureDetector(
       key: Key(key),
-      width: 44,
-      height: SonicMetrics.of(context).editorControlHeight,
-      child: Center(
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: Palette.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: SonicIconButton(
-            icon: icon,
-            size: 16,
-            padding: const EdgeInsets.all(10),
-            onPressed: isEnabled ? () => walk(by) : null,
+      behavior: .opaque,
+      onTap: isEnabled ? () => walk(by) : null,
+      child: MouseRegion(
+        cursor: isEnabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
+        child: SizedBox.square(
+          dimension: 44,
+          child: Center(
+            child: Container(
+              key: const Key('arrow-box'),
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: Palette.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                icon,
+                size: 16,
+                color: isEnabled
+                    ? Palette.onSurfaceVariant
+                    : Palette.onSurfaceVariant.withValues(alpha: 0.45),
+              ),
+            ),
           ),
         ),
       ),
+    );
+
+    // Space Grotesk 13, tracked, muted (prototype's tag column).
+    final tagStyle = AppText.title.copyWith(
+      fontSize: 13,
+      letterSpacing: 1,
+      color: Palette.outline,
     );
 
     return Row(
@@ -617,13 +634,17 @@ class _ModelHeader extends StatelessWidget {
         // the line when "✱" (not in the face) shows.
         ConstrainedBox(
           constraints: const BoxConstraints(minWidth: 40),
-          child: Text(
-            tag,
-            strutStyle: StrutStyle.fromTextStyle(
-              AppText.moduleTitle,
-              forceStrutHeight: true,
+          child: Align(
+            alignment: Alignment.centerLeft,
+            widthFactor: 1,
+            child: Text(
+              tag,
+              strutStyle: StrutStyle.fromTextStyle(
+                tagStyle,
+                forceStrutHeight: true,
+              ),
+              style: tagStyle,
             ),
-            style: AppText.moduleTitle.copyWith(color: Palette.textPrimary),
           ),
         ),
         const SizedBox(width: 4),
@@ -639,7 +660,11 @@ class _ModelHeader extends StatelessWidget {
                         constraints: const BoxConstraints(minWidth: 220),
                         child: SonicDropdown<int>(
                           value: current,
-                          height: SonicMetrics.of(context).editorControlHeight,
+                          height: 36,
+                          isFilled: true,
+                          radius: 10,
+                          labelStyle: AppText.uiStrong,
+                          boxKey: const Key('model-selector-box'),
                           items: [
                             for (final id in ids)
                               (value: id, label: labelOf(id)),
@@ -650,12 +675,15 @@ class _ModelHeader extends StatelessWidget {
                         ),
                       )
                     : Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 12,
+                        ),
                         child: Text(
                           labelOf(current),
                           maxLines: 1,
                           overflow: .ellipsis,
-                          style: AppText.controlLabel.copyWith(
+                          style: AppText.uiStrong.copyWith(
                             color: Palette.textPrimary,
                           ),
                         ),
@@ -696,6 +724,10 @@ class _ModelHeader extends StatelessWidget {
 /// (same 3:2), so at the iPad's 1180x820 the header, the piece and its value
 /// line fit under the pedalboard without scrolling.
 const pieceFit = Size(600, 400);
+
+/// The regular editor's height where none is given (a scroll view): the
+/// 44-pt header, its 12-px gap, the piece at [pieceFit], the value line.
+const double _naturalEditorHeight = 44 + 12 + 400 + 8 + 44;
 
 /// The regular editor's big piece (fitted to [pieceFit], scaled down when the
 /// editor is narrower) with the value line under it: the last-touched knob's
@@ -838,66 +870,49 @@ class PieceEditor extends HookWidget {
       );
     }
 
-    return Padding(
-      // 7 below: the 44-px value line takes the other 5 px, so the editor
-      // keeps its height.
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 7),
-      child: Column(
-        mainAxisSize: .min,
-        children: [
-          // Narrower than the piece: it scales down, never overflows.
-          Center(
-            child: FittedBox(
-              fit: .scaleDown,
-              child: GearPiece(
-                model: model,
-                kind: kind,
-                fit: pieceFit,
-                knobNames: [for (final k in knobs) k.name],
-                values: [for (final k in knobs) toPieceValue(k, _valueOf(k))],
-                onKnob: isEnabled
-                    ? (e) {
-                        // A piece with no knob params (the generic one draws
-                        // placeholder knobs) has nothing to set.
-                        if (e.$1 >= knobs.length) return;
+    final piece = FittedBox(
+      fit: .scaleDown,
+      child: GearPiece(
+        model: model,
+        kind: kind,
+        fit: pieceFit,
+        knobNames: [for (final k in knobs) k.name],
+        values: [for (final k in knobs) toPieceValue(k, _valueOf(k))],
+        onKnob: isEnabled
+            ? (e) {
+                // A piece with no knob params (the generic one draws
+                // placeholder knobs) has nothing to set.
+                if (e.$1 >= knobs.length) return;
 
-                        touched.value = e.$1;
-                        set(knobs[e.$1], fromPieceValue(knobs[e.$1], e.$2));
-                      }
-                    : null,
-                onSwitch: isEnabled ? onSwitch : null,
-                lit: isOn,
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          line(),
-        ],
+                touched.value = e.$1;
+                set(knobs[e.$1], fromPieceValue(knobs[e.$1], e.$2));
+              }
+            : null,
+        onSwitch: isEnabled ? onSwitch : null,
+        lit: isOn,
       ),
     );
-  }
-}
 
-/// The block panel in its own scroll view, with a visible scrollbar for the
-/// states where it is taller than the editor (CFW SC1 + EXP).
-class _ScrollingPanel extends HookWidget {
-  const _ScrollingPanel(this.moduleId);
-
-  final int moduleId;
-
-  @override
-  Widget build(BuildContext context) {
-    final controller = useScrollController();
-
-    return RawScrollbar(
-      controller: controller,
-      thumbVisibility: true,
-      thumbColor: Palette.outline,
-      radius: const Radius.circular(2),
-      thickness: 3,
-      child: SingleChildScrollView(
-        controller: controller,
-        child: BlockPanel(moduleId),
+    return Padding(
+      // Compact: 7 below, the 44-px value line takes the other 5 px. Regular
+      // sits in the editor's own 16-px padding.
+      padding: metrics.isCompact
+          ? const EdgeInsets.fromLTRB(16, 8, 16, 7)
+          : EdgeInsets.zero,
+      child: LayoutBuilder(
+        // Given a height (regular), the piece takes what the value line
+        // leaves and scales down into it; unbounded, its natural size.
+        builder: (context, box) => Column(
+          mainAxisSize: .min,
+          children: [
+            if (box.hasBoundedHeight)
+              Expanded(child: Center(child: piece))
+            else
+              Center(child: piece),
+            const SizedBox(height: 8),
+            line(),
+          ],
+        ),
       ),
     );
   }

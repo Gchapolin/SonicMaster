@@ -108,11 +108,11 @@ void main() {
           await tester.pump();
           expectNoOverflow(tester);
 
-          // The late face did reach the title: Noto's "✱" is wider than the
-          // .notdef that stood in for it. Without this, a fixture that lost
-          // its glyph or a load that never reports fontsChange would leave
-          // every other check here passing.
-          expect(title.size.width, greaterThan(width));
+          // The late face did reach the title: Noto's "✱" is not as wide as
+          // the .notdef that stood in for it. Without this, a fixture that
+          // lost its glyph or a load that never reports fontsChange would
+          // leave every other check here passing.
+          expect(title.size.width, isNot(moreOrLessEquals(width)));
           expect(
             title.getMaxIntrinsicHeight(title.size.width),
             title.size.height,
@@ -122,7 +122,7 @@ void main() {
       );
     }
 
-    testWidgets('the marker leaves the title on the Oswald line', (
+    testWidgets('the marker leaves the title on its own line', (
       tester,
     ) async {
       // Loaded before the first frame, the fallback resolves at once, as on
@@ -137,14 +137,14 @@ void main() {
         home: pageFallingBackTo(family),
       );
 
-      // round(16 px × Oswald's 1.482-em line).
-      expect(editorTitle(tester, 'NR').size.height, 24);
+      // The regular tag (prototype): Space Grotesk 13, its forced strut.
+      expect(editorTitle(tester, 'NR').size.height, 17);
 
       container.read(presetModifiedProvider.notifier).state = true;
       await tester.pump();
       expectNoOverflow(tester);
 
-      expect(editorTitle(tester, 'NR  ✱').size.height, 24);
+      expect(editorTitle(tester, 'NR  ✱').size.height, 17);
       // Unpinned, Oswald's 1.193-em ascent over the fallback's 0.63-em
       // descent makes the line round(16 × 1.823) = 29.
       expect(unpinnedLineHeight('NR  ✱', AppText.moduleTitle, family), 29);

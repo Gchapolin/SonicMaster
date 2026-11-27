@@ -166,8 +166,9 @@ void main() {
     );
   }
 
-  // Regular units are as wide as their piece box, and still wrap.
-  testWidgets('regular 692: units sized by their piece, wrapping', (
+  // Regular units are as wide as their piece box; the pedalboard stays one
+  // row, scaled down to the width (prototype band).
+  testWidgets('regular 692: units sized by their piece, one scaled row', (
     tester,
   ) async {
     await pumpChain(tester, width: 692, isCompact: false);
@@ -176,7 +177,11 @@ void main() {
       find.byType(ModuleCard).evaluate().map((e) => e.size!.width),
       regularUnitWidths,
     );
-    expect(spread(cardTops(tester)), greaterThan(100));
+    expect(spread(cardTops(tester)), lessThanOrEqualTo(4));
+    expect(
+      tester.getRect(find.byType(ModuleCard).last).right,
+      lessThanOrEqualTo(692 + 0.01),
+    );
   });
 
   // Regular: 1.5-px border, 6-px top padding, the 114-px piece box, an 8-px

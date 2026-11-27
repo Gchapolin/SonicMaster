@@ -69,43 +69,80 @@ class ExpControls extends HookConsumerWidget {
     void set(ExpAssign? a) => setExpAssign(ref, slot.value, a);
 
     final h = isPanel ? _touch : height;
-    final slotPicker = SonicDropdown<int>(
-      value: slot.value,
-      width: 64,
-      height: h,
-      items: [
-        for (final (i, name) in _slotNames.indexed) (value: i, label: name),
-      ],
-      onChanged: (v) => slot.value = v,
-    );
-    Widget targetAt(double? width) => SonicDropdown<int>(
-      value: assign == null ? _none : (isKnown ? assign.algId : _elsewhere),
-      width: width,
-      fitLabels: isPanel,
-      height: h,
-      isEnabled: !isLoading,
-      items: [
-        (value: _none, label: t.none),
-        if (assign != null && !isKnown)
-          (
-            value: _elsewhere,
-            label: isHere
-                ? t.knob(assign.algId)
-                : modules?.nameOf(assign.module) ?? t.module(assign.module),
-          ),
-        for (final p in params) (value: p.algId, label: p.name),
-      ],
-      onChanged: (v) {
-        if (v == _elsewhere) return;
+    // The panel (prototype N_Principal): filled 34-px fields, radius 8, in
+    // 44-pt tap targets; the slot a 44-wide letter, the target the rest of
+    // the row.
+    final slotPicker = isPanel
+        ? SonicDropdown<int>(
+            value: slot.value,
+            width: 44,
+            height: 34,
+            isFilled: true,
+            hasArrow: false,
+            labelStyle: AppText.ui.copyWith(fontWeight: FontWeight.w600),
+            boxKey: const Key('exp-slot-box'),
+            items: [
+              for (final (i, name) in _slotNames.indexed)
+                (value: i, label: name),
+            ],
+            onChanged: (v) => slot.value = v,
+          )
+        : SonicDropdown<int>(
+            value: slot.value,
+            width: 64,
+            height: h,
+            items: [
+              for (final (i, name) in _slotNames.indexed)
+                (value: i, label: name),
+            ],
+            onChanged: (v) => slot.value = v,
+          );
+    final targetItems = [
+      (value: _none, label: t.none),
+      if (assign != null && !isKnown)
+        (
+          value: _elsewhere,
+          label: isHere
+              ? t.knob(assign.algId)
+              : modules?.nameOf(assign.module) ?? t.module(assign.module),
+        ),
+      for (final p in params) (value: p.algId, label: p.name),
+    ];
+    final targetValue = assign == null
+        ? _none
+        : (isKnown ? assign.algId : _elsewhere);
+    void pickTarget(int v) {
+      if (v == _elsewhere) return;
 
-        set(v == _none ? null : ExpAssign(module: moduleId, algId: v));
-      },
-    );
+      set(v == _none ? null : ExpAssign(module: moduleId, algId: v));
+    }
+
+    Widget targetAt(double? width) => isPanel
+        ? SonicDropdown<int>(
+            value: targetValue,
+            width: width,
+            height: 34,
+            isFilled: true,
+            labelStyle: AppText.ui.copyWith(fontWeight: FontWeight.w400),
+            boxKey: const Key('exp-target-box'),
+            isEnabled: !isLoading,
+            items: targetItems,
+            onChanged: pickTarget,
+          )
+        : SonicDropdown<int>(
+            value: targetValue,
+            width: width,
+            height: h,
+            isEnabled: !isLoading,
+            items: targetItems,
+            onChanged: pickTarget,
+          );
     final mode = isKnown
         ? SonicSegmented<int>(
             value: assign!.mode,
-            height: h,
+            height: isPanel ? 34 : h,
             isExpanded: isPanel,
+            isFilled: isPanel,
             segmentPadding: isPanel ? 4 : 16,
             segments: [
               (value: ExpAssign.continuous, label: t.continuous),
@@ -136,25 +173,24 @@ class ExpControls extends HookConsumerWidget {
 
     if (isPanel) {
       return Padding(
-        padding: const EdgeInsets.only(top: 6),
+        padding: const EdgeInsets.only(top: 16),
         child: Column(
           crossAxisAlignment: .stretch,
           spacing: 8,
           children: [
-            // One row while the target is "None"; a longer knob name grows the
-            // target past the row and wraps it under the slot.
-            Wrap(
-              crossAxisAlignment: .center,
-              spacing: 6,
-              runSpacing: 8,
-              children: [
-                Text(
-                  'EXP',
-                  style: AppText.section.copyWith(color: Palette.textMuted),
-                ),
-                slotPicker,
-                targetAt(100),
-              ],
+            Text(
+              t.expPedal.toUpperCase(),
+              style: AppText.section.copyWith(color: Palette.outline),
+            ),
+            // One row: the slot letter and the target filling the rest.
+            LayoutBuilder(
+              builder: (context, box) => Row(
+                children: [
+                  slotPicker,
+                  const SizedBox(width: 6),
+                  targetAt(box.maxWidth - 44 - 6),
+                ],
+              ),
             ),
             ?mode,
             if (range.isNotEmpty)

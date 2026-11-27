@@ -1,6 +1,10 @@
+import 'dart:math' as math;
+
 import 'package:flutter/widgets.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../gear/gear_lookup.dart';
 import '../l10n/shell_text.dart';
 import '../model/effect_parameter.dart';
 import '../model/footswitch_assignment.dart';
@@ -12,7 +16,6 @@ import '../state/preset_providers.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text.dart';
 import 'exp_controls.dart';
-import '../gear/gear_lookup.dart';
 import 'knob_control.dart';
 import 'module_editor.dart';
 import 'scene_controls.dart';
@@ -20,11 +23,14 @@ import 'sonic_controls.dart';
 import 'tap_tempo_control.dart';
 import 'user_slots_dialog.dart';
 
-/// The panel's width (prototype N_Principal) and the width its card's 12-px
-/// padding leaves its controls (the prototype pads 14 and spaces 16; a little
-/// tighter so every effect's controls fit at 1180x820).
+/// The panel's width (prototype N_Principal) and the width its card's 14-px
+/// padding and 1-px border leave its controls.
 const blockPanelWidth = 236.0;
-const _inner = blockPanelWidth - 2 * 12;
+const _inner = blockPanelWidth - 2 * 14 - 2;
+
+/// The least the description card keeps under a top card that scrolls: one
+/// line (it scrolls too).
+const _minDescriptionHeight = 50.0;
 
 /// Whether two switch labels each fit whole beside a 26pt switch when the pair
 /// shares one panel row (16pt gap, 8pt between a label and its switch).
@@ -98,7 +104,7 @@ class BlockPanel extends ConsumerWidget {
       children: [
         Text(
           label.toUpperCase(),
-          style: AppText.section.copyWith(color: Palette.textMuted),
+          style: AppText.section.copyWith(color: Palette.outline),
         ),
         control,
       ],
@@ -112,6 +118,8 @@ class BlockPanel extends ConsumerWidget {
             value: value.clamp(0, labels.length - 1),
             width: _inner,
             height: 34,
+            isFilled: true,
+            labelStyle: AppText.ui,
             items: [for (final (i, l) in labels.indexed) (value: i, label: l)],
             isEnabled: !isLoading,
             onChanged: (i) => set(p, i),
@@ -236,6 +244,9 @@ class BlockPanel extends ConsumerWidget {
         section(
           t.footSwitch,
           SonicSegmented<FootswitchAssignment>(
+            key: const Key('panel-footswitch'),
+            height: 36,
+            isFilled: true,
             value: footswitchAssignmentOf(
               state.footswitchFs1Mask,
               state.footswitchFs2Mask,
@@ -297,56 +308,109 @@ class BlockPanel extends ConsumerWidget {
         ),
     ];
 
-    Widget card(Widget child) => DecoratedBox(
+    Widget card(Widget child, {required Key key}) => Container(
+      key: key,
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Palette.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: Palette.outlineVariant),
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        child: child,
+      child: child,
+    );
+
+    final body = Column(
+      crossAxisAlignment: .stretch,
+      children: [
+        Column(crossAxisAlignment: .stretch, spacing: 16, children: controls),
+        // CFW only (empty otherwise); each pads its own 16 above.
+        SceneControls(moduleId: physId, isPanel: true),
+        ExpControls(
+          key: expControlsKey(physId),
+          moduleId: physId,
+          isPanel: true,
+          params: [
+            for (final p in knobs)
+              if (p.widgetType == .knob || p.widgetType == .eqBand) p,
+          ],
+        ),
+      ],
+    );
+    final description = def.description;
+    final text = Text(
+      description,
+      style: AppText.ui.copyWith(
+        fontWeight: FontWeight.w400,
+        height: 1.55,
+        color: Palette.textDescription,
       ),
     );
 
     return SizedBox(
       width: blockPanelWidth,
-      child: Column(
-        crossAxisAlignment: .stretch,
-        spacing: 12,
-        children: [
-          card(
-            Column(
+      child: LayoutBuilder(
+        builder: (context, box) {
+          // Unbounded (a scroll view): both cards at their natural height.
+          if (!box.hasBoundedHeight) {
+            return Column(
               crossAxisAlignment: .stretch,
+              spacing: 12,
               children: [
-                Column(
-                  crossAxisAlignment: .stretch,
-                  spacing: 6,
-                  children: controls,
+                card(key: const Key('panel-card'), body),
+                if (description.isNotEmpty)
+                  card(key: const Key('panel-description'), text),
+              ],
+            );
+          }
+
+          // The top card at its height (scrolling inside when taller than the
+          // room), the description card filling the rest.
+          return Column(
+            crossAxisAlignment: .stretch,
+            children: [
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: description.isEmpty
+                      ? box.maxHeight
+                      : math.max(0, box.maxHeight - 12 - _minDescriptionHeight),
                 ),
-                // CFW only (empty otherwise).
-                SceneControls(moduleId: physId, isPanel: true),
-                ExpControls(
-                  key: expControlsKey(physId),
-                  moduleId: physId,
-                  isPanel: true,
-                  params: [
-                    for (final p in knobs)
-                      if (p.widgetType == .knob || p.widgetType == .eqBand) p,
-                  ],
+                child: card(key: const Key('panel-card'), _Scrolling(body)),
+              ),
+              if (description.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Expanded(
+                  child: card(
+                    key: const Key('panel-description'),
+                    SingleChildScrollView(child: text),
+                  ),
                 ),
               ],
-            ),
-          ),
-          if (def.description.isNotEmpty)
-            card(
-              Text(
-                def.description,
-                style: AppText.moduleDescription.copyWith(height: 1.55),
-              ),
-            ),
-        ],
+            ],
+          );
+        },
       ),
+    );
+  }
+}
+
+/// [child] in a scroll view with a visible scrollbar, for the states where
+/// the top card is taller than the panel (CFW SC1 + EXP).
+class _Scrolling extends HookWidget {
+  const _Scrolling(this.child);
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = useScrollController();
+
+    return RawScrollbar(
+      controller: controller,
+      thumbVisibility: true,
+      thumbColor: Palette.outline,
+      radius: const Radius.circular(2),
+      thickness: 3,
+      child: SingleChildScrollView(controller: controller, child: child),
     );
   }
 }

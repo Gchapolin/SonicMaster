@@ -58,8 +58,9 @@ class SceneControls extends ConsumerWidget {
       if (record != null)
         SonicSegmented<int>(
           value: scene,
-          height: isPanel ? _touch : height,
+          height: isPanel ? 34 : height,
           isExpanded: isPanel,
+          isFilled: isPanel,
           segmentPadding: isPanel ? 4 : 16,
           segments: const [
             (value: 0, label: 'Base'),
@@ -71,8 +72,9 @@ class SceneControls extends ConsumerWidget {
       if (record != null && scene != 0)
         SonicSegmented<int>(
           value: isOn == null ? 0 : (isOn ? 1 : 2),
-          height: isPanel ? _touch : height,
+          height: isPanel ? 34 : height,
           isExpanded: isPanel,
+          isFilled: isPanel,
           segmentPadding: isPanel ? 4 : 16,
           segments: [
             (value: 0, label: t.follow),
@@ -91,7 +93,7 @@ class SceneControls extends ConsumerWidget {
     // SC1 / SC2 under it.
     if (isPanel) {
       return Padding(
-        padding: const EdgeInsets.only(top: 6),
+        padding: const EdgeInsets.only(top: 16),
         child: Column(
           crossAxisAlignment: .stretch,
           spacing: 8,

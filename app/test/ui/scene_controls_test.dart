@@ -53,7 +53,7 @@ void main() {
   testWidgets('stock firmware: no scene controls', (tester) async {
     await pump(tester, isCfw: false);
 
-    expect(inEditor(find.text('SCENES')), findsNothing);
+    expect(inEditor(find.text('Scenes')), findsNothing);
   });
 
   testWidgets('CFW, module not in scenes: only the Scenes switch', (
@@ -61,7 +61,7 @@ void main() {
   ) async {
     await pump(tester);
 
-    expect(inEditor(find.text('SCENES')), findsOneWidget);
+    expect(inEditor(find.text('Scenes')), findsOneWidget);
     expect(inEditor(find.text('SC1')), findsNothing);
   });
 
@@ -79,8 +79,8 @@ void main() {
     expect(inEditor(find.text('23')), findsOneWidget); // THRE: base is 50
     expect(inEditor(find.text('SC1')), findsOneWidget);
     expect(inEditor(find.text('SC2')), findsOneWidget);
-    expect(inEditor(find.text('ON')), findsOneWidget);
-    expect(inEditor(find.text('OFF')), findsOneWidget);
+    expect(inEditor(find.text('On')), findsOneWidget);
+    expect(inEditor(find.text('Off')), findsOneWidget);
   });
 
   testWidgets('in BASE the knob keeps the base value', (tester) async {
@@ -92,7 +92,7 @@ void main() {
     );
 
     expect(inEditor(find.text('50')), findsOneWidget);
-    expect(inEditor(find.text('OFF')), findsNothing); // no override in BASE
+    expect(inEditor(find.text('Off')), findsNothing); // no override in BASE
   });
 
   testWidgets('a scene value for a knob the effect lacks is ignored', (
@@ -119,9 +119,9 @@ void main() {
       },
     );
 
-    await tester.ensureVisible(inEditor(find.text('OFF')));
+    await tester.ensureVisible(inEditor(find.text('Off')));
     await tester.pump();
-    await tester.tap(inEditor(find.text('OFF')));
+    await tester.tap(inEditor(find.text('Off')));
     await tester.pump();
 
     expect(
@@ -203,7 +203,7 @@ void main() {
       );
 
       expectNoOverflow(tester);
-      expect(inEditor(find.text('CENAS')), findsOneWidget);
+      expect(inEditor(find.text('Cenas')), findsOneWidget);
       expect(inEditor(find.text('SEGUIR')), findsOneWidget);
       expect(inEditor(find.text('LIGADO')), findsOneWidget);
       expect(inEditor(find.text('DESLIGADO')), findsOneWidget);

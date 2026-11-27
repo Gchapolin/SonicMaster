@@ -126,7 +126,7 @@ void main() {
     await pumpPanel(tester, moduleId: 0, fxId: 1);
 
     expect(find.text(ShellText.current.footSwitch.toUpperCase()), findsOne);
-    expect(find.text(ShellText.current.none.toUpperCase()), findsOneWidget);
+    expect(find.text(ShellText.current.none), findsOneWidget);
     expect(find.text('FS1'), findsOneWidget);
     expect(find.text('FS2'), findsOneWidget);
   });

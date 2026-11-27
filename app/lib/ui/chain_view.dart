@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../gear/gear_lookup.dart';
 import '../gear/gear_piece.dart';
+import '../l10n/module_controls_text.dart';
 import '../model/chain_order.dart';
 import '../model/footswitch_assignment.dart';
 import '../model/footswitch_state.dart';
@@ -372,20 +373,107 @@ class ChainConnector extends StatelessWidget {
 /// Corner radius of the dashed border around the amp block.
 const double _ampBlockRadius = 12;
 
-/// The dashed rounded border around the fixed amp block (web #fixed-chain-block).
+/// The dashed rounded border around the fixed amp block (web #fixed-chain-block):
+/// DRV / AMP / IR / EQ do not reorder. Regular names it on its top edge
+/// ("BLOCO FIXO"), the label masking the dashes under it.
 class AmpBlockBorder extends StatelessWidget {
   const AmpBlockBorder({super.key, required this.child});
 
   final Widget child;
 
   @override
-  Widget build(BuildContext context) => CustomPaint(
-    painter: _DashPainter(radius: _ampBlockRadius),
-    child: Padding(
-      padding: EdgeInsets.all(SonicMetrics.of(context).ampBlockPadding),
-      child: child,
-    ),
-  );
+  Widget build(BuildContext context) {
+    final metrics = SonicMetrics.of(context);
+
+    // The same Stack in both layouts: the cards inside keep their elements
+    // across a mode flip.
+    return Stack(
+      clipBehavior: .none,
+      children: [
+        CustomPaint(
+          painter: _DashPainter(radius: _ampBlockRadius),
+          child: Padding(
+            padding: EdgeInsets.all(metrics.ampBlockPadding),
+            child: child,
+          ),
+        ),
+        if (!metrics.isCompact)
+          Positioned(
+            key: const Key('fixed-block-label'),
+            // Centred on the top edge, clear of the pieces 16 px below it.
+            top: -6,
+            left: _ampBlockRadius,
+            child: ColoredBox(
+              color: Palette.surfaceContainerLow,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Text(
+                  ModuleControlsText.current.fixedBlock.toUpperCase(),
+                  style: AppText.section.copyWith(
+                    fontSize: 10,
+                    height: 1.2,
+                    color: Palette.outline,
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// Where the pedalboard's cable runs: through the pieces' centres in the
+/// 210-px band (prototype top 92).
+const double _cableTop = 92;
+
+/// The pedalboard band (prototype N_Principal "Pedaleira"): regular draws a
+/// 210-px plate in the side colour with a hairline under it and the cable
+/// line behind the units, which [child] (the chain) centres over. Compact is
+/// a bare wrapper. One tree in both layouts, so the chain survives a flip.
+class PedalboardBand extends StatelessWidget {
+  const PedalboardBand({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final isCompact = SonicMetrics.of(context).isCompact;
+
+    return DecoratedBox(
+      key: const Key('pedalboard-band'),
+      decoration: isCompact
+          ? const BoxDecoration()
+          : BoxDecoration(
+              color: Palette.surfaceContainerLow,
+              border: Border(bottom: BorderSide(color: Palette.outlineVariant)),
+            ),
+      child: SizedBox(
+        height: isCompact ? null : 210,
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: isCompact ? 0 : 14),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              if (!isCompact)
+                Positioned(
+                  key: const Key('pedalboard-cable-slot'),
+                  left: 24 - 14,
+                  right: 24 - 14,
+                  top: _cableTop,
+                  height: 2,
+                  child: ColoredBox(
+                    key: const Key('pedalboard-cable'),
+                    color: Palette.outlineVariant,
+                  ),
+                ),
+              child,
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _DashPainter extends CustomPainter {
@@ -581,17 +669,27 @@ class ChainView extends ConsumerWidget {
           hasAmpBlock: groups.any(isAmpBlock),
         );
 
-        // Centered, wrapping to new rows when the width runs out (web
-        // .chain-flow); compact card widths keep the chain on one row.
-        return Wrap(
-          alignment: .center,
-          runAlignment: .center,
-          crossAxisAlignment: .center,
-          runSpacing: 8,
-          children: [
-            for (final (i, group) in groups.indexed)
-              chainCell(i, group, i == groups.length - 1, cardWidth),
-          ],
+        // Compact: as wide as the work area, centred, wrapping to new rows
+        // when the width runs out (web .chain-flow); compact card widths
+        // keep the chain on one row. Regular: one row (the prototype's
+        // pedalboard), scaled down when the band is narrower than it.
+        return FittedBox(
+          fit: .scaleDown,
+          child: SizedBox(
+            width: metrics.isCompact && constraints.hasBoundedWidth
+                ? constraints.maxWidth
+                : null,
+            child: Wrap(
+              alignment: .center,
+              runAlignment: .center,
+              crossAxisAlignment: .center,
+              runSpacing: 8,
+              children: [
+                for (final (i, group) in groups.indexed)
+                  chainCell(i, group, i == groups.length - 1, cardWidth),
+              ],
+            ),
+          ),
         );
       },
     );

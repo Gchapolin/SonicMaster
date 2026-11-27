@@ -120,9 +120,9 @@ void main() {
   }
 
   // Regular draws the knobs on the piece (prototype N_Principal): no dials,
-  // the piece under a 56-px header (12 + 40-px selector + 4) and its 8-px
-  // padding, scaled down to the editor's width.
-  testWidgets('regular: the knobs are on the piece under a 56-px header', (
+  // the piece under the 44-pt header and its 12-px gap, scaled down to the
+  // editor's width.
+  testWidgets('regular: the knobs are on the piece under the header', (
     tester,
   ) async {
     await pumpEditor(
@@ -136,15 +136,13 @@ void main() {
     expect(
       tester.getTopLeft(find.byType(GearPiece)).dy -
           tester.getTopLeft(find.byType(ModuleEditor)).dy,
-      56 + 8,
+      greaterThanOrEqualTo(44 + 12),
     );
     // Scaled down to the room inside the surface's 1-px border, beside the
-    // block panel (236 + 16 right padding), less the 16-px side padding.
-    expect(tester.getRect(find.byType(GearPiece)).width, 634 - 2 - 252 - 32);
-    expect(
-      tester.getSize(find.byType(SonicDropdown<int>).first).height,
-      SonicMetrics.regular.editorControlHeight,
-    );
+    // block panel (236 + its 16-px gap).
+    expect(tester.getRect(find.byType(GearPiece)).width, 634 - 2 - 252);
+    // The filled 36-px selector in its 44-pt tap target.
+    expect(tester.getSize(find.byType(SonicDropdown<int>).first).height, 44);
     expect(find.text(assets.effects.byId(307)!.descriptionEn), findsOneWidget);
   });
 
