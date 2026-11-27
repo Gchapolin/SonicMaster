@@ -30,6 +30,14 @@ Paint cssRadial(Rect r, Offset at, List<Color> colors, List<double> stops) {
   return Paint()..shader = ui.Gradient.radial(c, radius, colors, stops);
 }
 
+/// The band a CSS `inset 0 dy 0 color` box-shadow paints inside [rr]: the
+/// box minus itself shifted by [dy], so it follows the rounded corners.
+Path cssInsetPath(RRect rr, double dy) => Path.combine(
+  PathOperation.difference,
+  Path()..addRRect(rr),
+  Path()..addRRect(rr.shift(Offset(0, dy))),
+);
+
 /// CSS `repeating-linear-gradient(angle, color 0 lineW, transparent lineW period)`:
 /// thin parallel lines, angle in CSS degrees (0 = up, clockwise).
 void paintHatch(

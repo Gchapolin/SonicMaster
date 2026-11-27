@@ -4,6 +4,7 @@
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
+import 'package:flutter/rendering.dart' show OverflowBoxFit;
 import 'package:flutter/widgets.dart';
 
 import 'gear_specs.dart';
@@ -16,6 +17,9 @@ const _minHit = 44.0;
 const _defaultVals = <double>[62, 45, 70, 38, 55, 66, 48, 58];
 // Graphic EQ slider positions when no value is given.
 const _sliderVals = <double>[60, 40, 55, 70, 45, 50];
+// CSS `line-height: normal` of Share Tech Mono: (ascent 885 + descent 242)
+// / 1000 units per em.
+const _monoLine = 1.127;
 
 TextStyle _font(
   double size,
@@ -32,6 +36,9 @@ TextStyle _font(
   fontStyle: italic ? FontStyle.italic : FontStyle.normal,
   letterSpacing: spacing,
   height: height,
+  // CSS half-leading: the line box's extra (or missing) space splits evenly
+  // above and below the glyphs.
+  leadingDistribution: TextLeadingDistribution.even,
   color: color,
 );
 
@@ -101,32 +108,41 @@ class PedalPiece extends StatelessWidget {
   }
 
   // Every label sits in a box as wide as the widest one ([labelW]), so a
-  // narrow cell scales them all by the same factor: one size per piece.
-  Widget _knob(int i, double size, double lbl, double labelW) => Column(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      SizedBox.square(
-        dimension: size,
-        child: CustomPaint(
-          painter: GearKnobPainter(style: spec.knob, value: _value(i)),
-        ),
-      ),
-      const SizedBox(height: 2),
-      FittedBox(
-        fit: BoxFit.scaleDown,
-        child: SizedBox(
-          width: labelW,
-          child: Text(
-            spec.knobNames[i].toUpperCase(),
-            maxLines: 1,
-            softWrap: false,
-            textAlign: TextAlign.center,
-            style: _labelStyle(lbl),
+  // narrow cell scales them all by the same factor: one size per piece. As
+  // in CSS (`white-space: nowrap`), a label may run past its cell into the
+  // grid gap ([hGap]) before it has to shrink (Pitch's LOW PITCH).
+  Widget _knob(int i, double size, double lbl, double labelW, double hGap) =>
+      Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox.square(
+            dimension: size,
+            child: CustomPaint(
+              painter: GearKnobPainter(style: spec.knob, value: _value(i)),
+            ),
           ),
-        ),
-      ),
-    ],
-  );
+          const SizedBox(height: 2),
+          LayoutBuilder(
+            builder: (context, c) => OverflowBox(
+              fit: OverflowBoxFit.deferToChild,
+              maxWidth: c.maxWidth + hGap,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: SizedBox(
+                  width: labelW,
+                  child: Text(
+                    spec.knobNames[i].toUpperCase(),
+                    maxLines: 1,
+                    softWrap: false,
+                    textAlign: TextAlign.center,
+                    style: _labelStyle(lbl),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
 
   /// CSS `grid-template-columns: repeat(cols, minmax(0, 1fr))`. With [avail]
   /// the grid sits centred at its content width (widest knob or label, as in
@@ -155,7 +171,9 @@ class PedalPiece extends StatelessWidget {
         final i = r + c;
         final cell = Align(
           alignment: Alignment.topCenter,
-          child: i < n ? _knob(i, sizeOf?.call(i) ?? kSize, lbl, labelW) : null,
+          child: i < n
+              ? _knob(i, sizeOf?.call(i) ?? kSize, lbl, labelW, hGap)
+              : null,
         );
         // The whole grid cell drags, not just the cap. With a fixed cell width
         // the cell also absorbs half of each neighbouring gap (same layout,
@@ -194,28 +212,44 @@ class PedalPiece extends StatelessWidget {
     return Column(mainAxisSize: MainAxisSize.min, children: rows);
   }
 
+  /// The model name. CSS breaks its lines at [lineW] but never inside a
+  /// word (a longer word just widens the box); the result is scaled down to
+  /// [maxW] when wider, so it keeps 4px off the body's edges.
   Widget _title(
     double size, {
+    required double lineW,
+    double? maxW,
     double spacing = 1,
     bool italic = false,
     bool upper = true,
     TextAlign align = TextAlign.center,
-  }) => Padding(
-    // Side margin: a long name wraps before it touches the body's edges
-    // (rack, studio and tape size their title box to the text and need none).
-    padding: EdgeInsets.symmetric(
-      horizontal: switch (spec.family) {
-        PedalFamily.rack || PedalFamily.studio || PedalFamily.tape => 0,
-        _ => 6,
-      },
-    ),
-    child: Text(
-      upper ? model.toUpperCase() : model,
-      textAlign: align,
-      maxLines: 2,
-      style: _font(size, spec.label, spacing: spacing, italic: italic),
-    ),
-  );
+  }) {
+    final text = upper ? model.toUpperCase() : model;
+    final style = _font(size, spec.label, spacing: spacing, italic: italic);
+    var word = 0.0;
+    for (final wd in text.split(' ')) {
+      final tp = TextPainter(
+        text: TextSpan(text: wd, style: style),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      word = math.max(word, tp.width);
+      tp.dispose();
+    }
+    final box = maxW ?? lineW;
+    return SizedBox(
+      width: box,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: align == TextAlign.left
+            ? Alignment.centerLeft
+            : Alignment.center,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: math.max(lineW, word + 0.5)),
+          child: Text(text, textAlign: align, maxLines: 2, style: style),
+        ),
+      ),
+    );
+  }
 
   Widget _led() =>
       PaintBox(7, 7, (c, s) => paintLed(c, s.center(Offset.zero), 7, lit));
@@ -236,8 +270,10 @@ class PedalPiece extends StatelessWidget {
     ),
   );
 
-  // Recessed plate under the knobs (compact and graphic families).
-  Widget _plate(double w, double? h) {
+  // Recessed plate under the knobs (compact and graphic families): a darker
+  // gradient with CSS `inset 0 2px 0 rgba(0,0,0,.25)` (and, compact only,
+  // `inset 0 -1px 0 rgba(255,255,255,.08)`) along its rounded edge.
+  Widget _plate(double w, double? h, {bool lowerLight = false}) {
     final plate = PaintBox(w, h ?? 0, (c, s) {
       final rr = RRect.fromRectAndRadius(
         Offset.zero & s,
@@ -252,17 +288,13 @@ class PedalPiece extends StatelessWidget {
             [shadeColor(spec.body, -0.06), shadeColor(spec.body, -0.16)],
           ),
       );
-      c.save();
-      c.clipRRect(rr);
-      c.drawRect(
-        Rect.fromLTWH(0, 0, s.width, 2),
-        Paint()..color = const Color(0x40000000),
-      );
-      c.drawRect(
-        Rect.fromLTWH(0, s.height - 1, s.width, 1),
-        Paint()..color = const Color(0x14FFFFFF),
-      );
-      c.restore();
+      c.drawPath(cssInsetPath(rr, 2), Paint()..color = const Color(0x40000000));
+      if (lowerLight) {
+        c.drawPath(
+          cssInsetPath(rr, -1),
+          Paint()..color = const Color(0x14FFFFFF),
+        );
+      }
     });
     return h == null ? SizedBox(width: w, child: plate) : plate;
   }
@@ -275,10 +307,10 @@ class PedalPiece extends StatelessWidget {
     var pad = const EdgeInsets.fromLTRB(10, 14, 10, 0);
     var switches = <double>[22];
     double swGap = 14, swBottom = 12;
-    Widget title = Padding(
-      padding: const EdgeInsets.fromLTRB(6, 6, 6, 0),
-      child: _title(13),
-    );
+    // The title: size, top margin and look per family. Only the default
+    // title has the prototype's `padding: 0 6px`; the others span the body.
+    double tSize = 13, tTop = 6, tSpacing = 1;
+    var tPadded = true, tItalic = false, tUpper = true;
     final below = <Widget>[];
     final tail = <Widget>[];
     Widget? screen;
@@ -294,15 +326,14 @@ class PedalPiece extends StatelessWidget {
         hGap = vGap = 4;
         lbl = 6.5;
         switches = [];
-        title = Padding(
-          padding: const EdgeInsets.only(top: 4),
-          child: _title(11),
-        );
+        tPadded = false;
+        tSize = 11;
+        tTop = 4;
         below.add(
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
-              child: _plate(92, null),
+              child: _plate(92, null, lowerLight: true),
             ),
           ),
         );
@@ -335,39 +366,39 @@ class PedalPiece extends StatelessWidget {
         k = nk == 1 ? 34 : 24;
         cols = math.min(nk, 2);
         switches = [20];
-        title = Padding(
-          padding: const EdgeInsets.only(top: 8),
-          child: _title(14, italic: true, upper: false, spacing: 0),
-        );
+        tPadded = false;
+        tSize = 14;
+        tTop = 8;
+        tItalic = true;
+        tUpper = false;
+        tSpacing = 0;
       case PedalFamily.wide:
         w = 180;
         h = 160;
         k = 30;
         pad = const EdgeInsets.fromLTRB(14, 16, 14, 0);
-        title = Padding(
-          padding: const EdgeInsets.only(top: 8),
-          child: _title(16),
-        );
+        tPadded = false;
+        tSize = 16;
+        tTop = 8;
       case PedalFamily.round:
         w = h = 170;
         k = 26;
         cols = 2;
         pad = const EdgeInsets.fromLTRB(40, 26, 40, 0);
         swBottom = 28;
-        title = Padding(
-          padding: const EdgeInsets.only(top: 6),
-          child: _title(16, italic: true),
-        );
+        tPadded = false;
+        tSize = 16;
+        tItalic = true;
       case PedalFamily.wedge:
         w = 120;
         k = 24;
         cols = 2;
       case PedalFamily.rat:
         cols = 3;
-        title = Padding(
-          padding: const EdgeInsets.only(top: 10),
-          child: _title(18, spacing: 3),
-        );
+        tPadded = false;
+        tSize = 18;
+        tTop = 10;
+        tSpacing = 3;
       case PedalFamily.graphic:
         w = 110;
         switches = [];
@@ -388,10 +419,9 @@ class PedalPiece extends StatelessWidget {
             ],
           ),
         );
-        title = Padding(
-          padding: const EdgeInsets.only(top: 4),
-          child: _title(11),
-        );
+        tPadded = false;
+        tSize = 11;
+        tTop = 4;
         below.addAll([
           const SizedBox(height: 6),
           _plate(92, 54),
@@ -419,7 +449,7 @@ class PedalPiece extends StatelessWidget {
               11,
               const Color(0xFF9FE3FF),
               spacing: 0,
-              height: 1.2,
+              height: _monoLine,
               family: 'Share Tech Mono',
             ).copyWith(fontWeight: FontWeight.w400),
           ),
@@ -427,10 +457,9 @@ class PedalPiece extends StatelessWidget {
         switches = [18, 18];
         swGap = 70;
         swBottom = 10;
-        title = Padding(
-          padding: const EdgeInsets.only(top: 2),
-          child: _title(12),
-        );
+        tPadded = false;
+        tSize = 12;
+        tTop = 2;
       default:
         if (nk >= 4) {
           w = 124;
@@ -440,6 +469,17 @@ class PedalPiece extends StatelessWidget {
         }
     }
 
+    final title = Padding(
+      padding: EdgeInsets.only(top: tTop),
+      child: _title(
+        tSize,
+        lineW: tPadded ? w - 12 : w,
+        maxW: tPadded ? w - 12 : w - 8,
+        spacing: tSpacing,
+        italic: tItalic,
+        upper: tUpper,
+      ),
+    );
     final grid = Padding(
       padding: pad,
       child: cols == 0
@@ -494,14 +534,24 @@ class PedalPiece extends StatelessWidget {
       h,
       tail.isEmpty
           ? Column(children: top)
-          // CSS `margin-top: auto`: the tail sits at the bottom.
-          : Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          // CSS `margin-top: auto`: the tail sits at the bottom. As in CSS,
+          // content taller than the case pushes the tail down into its
+          // bottom margin (Phaser M) instead of shrinking the knobs; the grid
+          // only shrinks once the washer would come within 4px of the edge.
+          : CustomMultiChildLayout(
+              delegate: _TailLayout(
+                switches.isEmpty ? 0 : _footswitchGrow(switches.first) / 2,
+                (switches.isEmpty ? 10 : swBottom) - 4,
+              ),
               children: [
-                Flexible(
+                LayoutId(
+                  id: #top,
                   child: Column(mainAxisSize: MainAxisSize.min, children: top),
                 ),
-                Column(mainAxisSize: MainAxisSize.min, children: tail),
+                LayoutId(
+                  id: #tail,
+                  child: Column(mainAxisSize: MainAxisSize.min, children: tail),
+                ),
               ],
             ),
     );
@@ -553,7 +603,7 @@ class PedalPiece extends StatelessWidget {
         children: [
           ear(),
           gap,
-          SizedBox(width: 46, child: _title(12, align: TextAlign.left)),
+          _title(12, lineW: 46, align: TextAlign.left),
           gap,
           if (rack) ...[
             Container(
@@ -569,6 +619,7 @@ class PedalPiece extends StatelessWidget {
                       15,
                       const Color(0xFFFF4A3A),
                       spacing: 0,
+                      height: _monoLine,
                       family: 'Share Tech Mono',
                     ).copyWith(
                       fontWeight: FontWeight.w400,
@@ -596,7 +647,8 @@ class PedalPiece extends StatelessWidget {
     230,
     130,
     Padding(
-      padding: const EdgeInsets.all(10),
+      // `padding: 10px` inside the 1px border (border-box).
+      padding: const EdgeInsets.all(11),
       child: Row(
         children: [
           PaintBox(120, 96, (c, s) {
@@ -636,11 +688,9 @@ class PedalPiece extends StatelessWidget {
                     Color(0xFF6B4E2E), Color(0xFF6B4E2E), //
                     Color(0xFF2A2A2A), Color(0xFF2A2A2A),
                   ],
-                  // CSS circle stops are of the farthest corner (r * sqrt2).
-                  [
-                    for (final p in const [0, .14, .16, .30, .32, .92, .94, 1])
-                      p / math.sqrt2,
-                  ],
+                  // Fractions of the farthest corner (r * sqrt2), as in CSS:
+                  // cssRadial measures it from the reel's square box.
+                  const [0, .14, .16, .30, .32, .92, .94, 1],
                 ),
               );
             }
@@ -650,7 +700,7 @@ class PedalPiece extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _title(13),
+                _title(13, lineW: 80),
                 const SizedBox(height: 6),
                 _grid(18, 7, 3, 4, 2, avail: 80),
                 const SizedBox(height: 6),
@@ -684,7 +734,10 @@ class PedalPiece extends StatelessWidget {
           paintHatch(c, Offset.zero & s, 0, const Color(0xFF1A1A1A), 4, 6);
           c.restore();
         }),
-        Padding(padding: const EdgeInsets.only(top: 8), child: _title(12)),
+        Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: _title(12, lineW: 100, maxW: 92),
+        ),
         const Spacer(),
         PaintBox(78, 26, (c, s) {
           final r = Offset.zero & s;
@@ -701,6 +754,39 @@ class PedalPiece extends StatelessWidget {
       ],
     ),
   );
+}
+
+/// The stomp's content above its bottom-anchored tail (footswitches or the
+/// rubber pad). [over] is how far the tail's hit box reaches above the CSS
+/// box it stands for; [slack] how far content may push the tail down.
+class _TailLayout extends MultiChildLayoutDelegate {
+  _TailLayout(this.over, this.slack);
+  final double over;
+  final double slack;
+
+  @override
+  void performLayout(Size size) {
+    final tail = layoutChild(#tail, BoxConstraints(maxWidth: size.width));
+    final box = tail.height - over;
+    final top = layoutChild(
+      #top,
+      BoxConstraints.tightFor(
+        width: size.width,
+      ).copyWith(minHeight: 0, maxHeight: size.height - box + slack),
+    );
+    positionChild(#top, Offset.zero);
+    positionChild(
+      #tail,
+      Offset(
+        (size.width - tail.width) / 2,
+        math.max(top.height, size.height - box) - over,
+      ),
+    );
+  }
+
+  @override
+  bool shouldRelayout(_TailLayout old) =>
+      old.over != over || old.slack != slack;
 }
 
 /// Vertical drag on a knob or slider: up raises the value, [perPx] per pixel.
@@ -821,7 +907,9 @@ class _BodyPainter extends CustomPainter {
         _drops(canvas, rr);
         canvas.save();
         canvas.clipRRect(rr);
-        paintTolex(canvas, r, const Color(0xFF3A3D42));
+        // The prototype's plain TOLEX.grey stripes (no `tol()` grain/shade).
+        canvas.drawRect(r, Paint()..color = const Color(0xFF3A3D42));
+        paintHatch(canvas, r, 45, const Color(0xFF33363A), 2, 4, phase: 2);
         canvas.restore();
         canvas.drawRRect(
           rr.deflate(0.5),

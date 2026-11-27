@@ -76,6 +76,23 @@ void main() {
     );
   });
 
+  // CSS `inset 0 2px 0`: the shadow band follows the rounded corners down
+  // the sides (the GT EQ / compact plate outline), not a straight strip.
+  test('cssInsetPath follows the rounded corners', () {
+    final rr = RRect.fromRectAndRadius(
+      const Rect.fromLTWH(0, 0, 92, 54),
+      const Radius.circular(4),
+    );
+    final top = cssInsetPath(rr, 2);
+    expect(top.contains(const Offset(46, 1)), true);
+    expect(top.contains(const Offset(46, 3)), false);
+    // Beside the corner, below the 2px band: still shaded.
+    expect(top.contains(const Offset(0.6, 3.5)), true);
+    final bottom = cssInsetPath(rr, -1);
+    expect(bottom.contains(const Offset(46, 53.5)), true);
+    expect(bottom.contains(const Offset(46, 1)), false);
+  });
+
   // Eyeball goldens: regenerate with --update-goldens when the look changes.
   testWidgets('knob_styles golden (14 styles x 0/50/100)', (tester) async {
     await tester.pumpWidget(

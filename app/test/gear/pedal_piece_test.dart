@@ -185,6 +185,57 @@ void main() {
     }
   });
 
+  // The prototype's rat title (18px, 3px tracking, no side padding) fits on
+  // one line across the 112px body; the app keeps it on one line, scaled to
+  // stay 4px off the edges, instead of wrapping it.
+  testWidgets('Dark Mouse prints its title on one line', (tester) async {
+    await tester.pumpWidget(
+      _host(PedalPiece(spec: pedalSpecs['Dark Mouse']!, model: 'Dark Mouse')),
+    );
+    final r = tester.getRect(find.text('DARK MOUSE'));
+    expect(r.height, lessThan(24));
+    expect(r.width, greaterThan(96));
+  });
+
+  // CSS never breaks inside a word: the rack title keeps PARAMETRIC whole
+  // (scaled into its 46px column).
+  testWidgets('a rack title never breaks inside a word', (tester) async {
+    await tester.pumpWidget(
+      _host(
+        PedalPiece(spec: pedalSpecs['Parametric 3']!, model: 'Parametric 3'),
+      ),
+    );
+    final t = find.text('PARAMETRIC 3');
+    final p = TextPainter(
+      text: TextSpan(text: 'PARAMETRIC', style: tester.widget<Text>(t).style),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    final box = tester.renderObject<RenderBox>(t).size;
+    expect(box.width, greaterThanOrEqualTo(p.width - 0.01));
+    expect(tester.getRect(t).width, lessThanOrEqualTo(46.01));
+    p.dispose();
+  });
+
+  // The prototype's mxr Phaser M overflows its 160px case (the CSS grid
+  // never shrinks): the knobs stay close to 24px, the switch drops into its
+  // bottom margin but stays on the case.
+  testWidgets('Phaser M keeps its knobs and its footswitch on the case', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _host(PedalPiece(spec: pedalSpecs['Phaser M']!, model: 'Phaser M')),
+    );
+    final caps = find.byWidgetPredicate(
+      (w) => w is CustomPaint && w.painter is GearKnobPainter,
+    );
+    expect(caps, findsNWidgets(3));
+    expect(tester.getRect(caps.first).width, greaterThan(23));
+    final body = tester.getRect(find.byType(PedalPiece));
+    final sw = tester.getCenter(find.byKey(const Key('footswitch')));
+    // Washer radius (20 + 12) / 2 = 16, at least 4px inside the case.
+    expect(sw.dy + 16, lessThanOrEqualTo(body.bottom - 4 + 0.01));
+  });
+
   testWidgets('the model name is printed on the pedal', (tester) async {
     await tester.pumpWidget(
       _host(PedalPiece(spec: pedalSpecs['Phaser M']!, model: 'Phaser M')),
