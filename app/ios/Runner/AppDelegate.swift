@@ -112,10 +112,40 @@ final class PipController: NSObject, AVPictureInPictureControllerDelegate,
     let device = info["device"] as? String ?? ""
     let connected = info["connected"] as? Bool ?? false
     let modified = info["modified"] as? Bool ?? false
+    let prevLabel = info["prevLabel"] as? String ?? ""
+    let prevName = info["prevName"] as? String ?? ""
+    let nextLabel = info["nextLabel"] as? String ?? ""
+    let nextName = info["nextName"] as? String ?? ""
     let bg = color("bg", 0xFF3E2C28)
     let fg = color("fg", 0xFFF0ECE9)
     let accent = color("accent", 0xFFDF9D8E)
     let ok = color("ok", 0xFF9FBF8F)
+
+    // The system draws over this frame when the controls show: close and
+    // restore in the top corners, skip / pause across the middle, the
+    // progress bar along the bottom. So the preset sits in the top band
+    // between the corner buttons, the middle stays clear (faint arrows sit
+    // under the skip buttons), and where each skip goes is printed below
+    // them, above the progress bar.
+    func centered() -> NSMutableParagraphStyle {
+      let p = NSMutableParagraphStyle()
+      p.alignment = .center
+      p.lineBreakMode = .byTruncatingTail
+      return p
+    }
+    func line(_ parts: [(String, UIFont, UIColor)]) -> NSAttributedString {
+      let out = NSMutableAttributedString()
+      for (text, font, color) in parts {
+        out.append(NSAttributedString(
+          string: text,
+          attributes: [.font: font, .foregroundColor: color, .paragraphStyle: centered()]))
+      }
+      return out
+    }
+    func draw(_ text: NSAttributedString, in rect: CGRect) {
+      text.draw(with: rect, options: [.usesLineFragmentOrigin, .truncatesLastVisibleLine],
+                context: nil)
+    }
 
     let format = UIGraphicsImageRendererFormat()
     format.scale = 2
@@ -124,32 +154,34 @@ final class PipController: NSObject, AVPictureInPictureControllerDelegate,
       bg.setFill()
       ctx.fill(CGRect(origin: .zero, size: size))
 
-      NSAttributedString(
-        string: label + (modified ? "*" : ""),
-        attributes: [
-          .font: UIFont.systemFont(ofSize: 44, weight: .heavy), .foregroundColor: accent,
-        ]
-      ).draw(at: CGPoint(x: 18, y: 12))
+      // Top band: the current preset, then the pedal.
+      let big = UIFont.systemFont(ofSize: 22, weight: .heavy)
+      draw(line([
+        (label + (modified ? "*" : ""), big, accent),
+        (name.isEmpty ? "" : "  " + name, UIFont.systemFont(ofSize: 22, weight: .semibold), fg),
+      ]), in: CGRect(x: 46, y: 8, width: size.width - 92, height: 28))
+      draw(line([
+        ("\u{25CF} ", UIFont.systemFont(ofSize: 11), connected ? ok : fg.withAlphaComponent(0.4)),
+        (device, UIFont.systemFont(ofSize: 12), fg.withAlphaComponent(0.7)),
+      ]), in: CGRect(x: 46, y: 36, width: size.width - 92, height: 16))
 
-      NSAttributedString(
-        string: name,
-        attributes: [
-          .font: UIFont.systemFont(ofSize: 26, weight: .semibold), .foregroundColor: fg,
-        ]
-      ).draw(
-        with: CGRect(x: 18, y: 72, width: size.width - 36, height: 34),
-        options: [.usesLineFragmentOrigin, .truncatesLastVisibleLine], context: nil)
+      // Middle: faint arrows under the skip buttons.
+      let arrow = UIFont.systemFont(ofSize: 34, weight: .light)
+      let faint = fg.withAlphaComponent(0.18)
+      draw(line([("\u{2039}", arrow, faint)]), in: CGRect(x: 44, y: 58, width: 60, height: 40))
+      draw(line([("\u{203A}", arrow, faint)]), in: CGRect(x: 216, y: 58, width: 60, height: 40))
 
-      (connected ? ok : fg.withAlphaComponent(0.4)).setFill()
-      ctx.cgContext.fillEllipse(in: CGRect(x: 18, y: 126, width: 12, height: 12))
-      NSAttributedString(
-        string: device,
-        attributes: [
-          .font: UIFont.systemFont(ofSize: 16), .foregroundColor: fg.withAlphaComponent(0.7),
-        ]
-      ).draw(
-        with: CGRect(x: 38, y: 122, width: size.width - 56, height: 22),
-        options: [.usesLineFragmentOrigin, .truncatesLastVisibleLine], context: nil)
+      // Bottom band: where each skip goes.
+      let small = UIFont.systemFont(ofSize: 12, weight: .semibold)
+      let dim = fg.withAlphaComponent(0.85)
+      if !prevLabel.isEmpty {
+        draw(line([("\u{2039} " + prevLabel, small, accent), (" " + prevName, small, dim)]),
+             in: CGRect(x: 6, y: 108, width: 148, height: 18))
+      }
+      if !nextLabel.isEmpty {
+        draw(line([(nextLabel, small, accent), (" " + nextName + " \u{203A}", small, dim)]),
+             in: CGRect(x: 166, y: 108, width: 148, height: 18))
+      }
     }
 
     if let buffer = Self.sampleBuffer(from: image) {

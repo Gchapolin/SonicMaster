@@ -51,7 +51,11 @@ void main() {
         currentPresetProvider.overrideWith((_) => current),
         presetModifiedProvider.overrideWith((_) => isModified),
         presetNamesProvider.overrideWith(
-          (_) => {const PresetRef(.user, 7): 'Metal Riff'},
+          (_) => {
+            const PresetRef(.user, 6): 'Pure Clean',
+            const PresetRef(.user, 7): 'Metal Riff',
+            const PresetRef(.user, 8): 'Grunge',
+          },
         ),
         connectionStateProvider.overrideWith((_) => true),
         connectedDeviceNameProvider.overrideWith((_) => 'Pocket Master'),
@@ -122,6 +126,24 @@ void main() {
       expect(lastUpdate()['modified'], isFalse);
     }, variant: ios);
 
+    testWidgets('sends the presets the skip buttons go to', (tester) async {
+      await pumpBridge(tester);
+
+      expect(lastUpdate()['prevLabel'], 'P06');
+      expect(lastUpdate()['prevName'], 'Pure Clean');
+      expect(lastUpdate()['nextLabel'], 'P08');
+      expect(lastUpdate()['nextName'], 'Grunge');
+    }, variant: ios);
+
+    testWidgets('with no current preset, next is P01 and there is no previous', (
+      tester,
+    ) async {
+      await pumpBridge(tester, current: null);
+
+      expect(lastUpdate()['prevLabel'], '');
+      expect(lastUpdate()['nextLabel'], 'P01');
+    }, variant: ios);
+
     testWidgets('sends an update when the preset changes', (tester) async {
       final c = await pumpBridge(tester);
 
@@ -130,7 +152,7 @@ void main() {
       await tester.pump();
 
       expect(lastUpdate()['label'], 'P08');
-      expect(lastUpdate()['name'], '');
+      expect(lastUpdate()['name'], 'Grunge');
       expect(lastUpdate()['modified'], isTrue);
     }, variant: ios);
 

@@ -23,10 +23,18 @@ final _pipInfoProvider = Provider<Map<String, Object?>>((ref) {
   ref.watch(paletteIdProvider); // the colors below follow the palette
   final preset = ref.watch(currentPresetProvider);
   final isConnected = ref.watch(connectionStateProvider);
+  final names = ref.watch(presetNamesProvider);
+  // Where the skip buttons go (with nothing loaded, both load P01).
+  final prev = preset?.neighbour(-1);
+  final next = preset?.neighbour(1) ?? const PresetRef(.user, 1);
 
   return {
     'label': preset?.label ?? '--',
-    'name': preset == null ? '' : ref.watch(presetNamesProvider)[preset] ?? '',
+    'name': preset == null ? '' : names[preset] ?? '',
+    'prevLabel': prev?.label ?? '',
+    'prevName': prev == null ? '' : names[prev] ?? '',
+    'nextLabel': next.label,
+    'nextName': names[next] ?? '',
     'device': isConnected
         ? ref.watch(connectedDeviceNameProvider) ?? ''
         : ConnectionText.current.disconnected,
