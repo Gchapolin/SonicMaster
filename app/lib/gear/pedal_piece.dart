@@ -868,6 +868,8 @@ class _KnobDragState extends State<KnobDrag> {
     if (on == null) return widget.child;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
+      // Claims the tap, so touching a knob never switches the pedal.
+      onTap: () {},
       onVerticalDragStart: (_) => _v = widget.value,
       onVerticalDragUpdate: (d) {
         _v = (_v - d.delta.dy * widget.perPx).clamp(0.0, 100.0);

@@ -172,11 +172,25 @@ class GearPiece extends StatelessWidget {
   }
 
   // Its own layer: dragging a knob repaints this piece, not its neighbours.
+  // Like a real stompbox, a tap anywhere on the piece calls [onSwitch]; the
+  // knobs and sliders keep their taps (KnobDrag), the footswitch its own.
   @override
-  Widget build(BuildContext context) => RepaintBoundary(
-    child: SizedBox.fromSize(
-      size: fit,
-      child: FittedBox(fit: BoxFit.contain, child: _piece()),
-    ),
-  );
+  Widget build(BuildContext context) {
+    final piece = _piece();
+    return RepaintBoundary(
+      child: SizedBox.fromSize(
+        size: fit,
+        child: FittedBox(
+          fit: BoxFit.contain,
+          child: onSwitch == null
+              ? piece
+              : GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: onSwitch,
+                  child: piece,
+                ),
+        ),
+      ),
+    );
+  }
 }
