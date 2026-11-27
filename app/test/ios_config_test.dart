@@ -38,4 +38,10 @@ void main() {
       contains('UIInterfaceOrientationPortrait'),
     );
   });
+
+  // The PiP window (audio) and the pedal link (bluetooth-central) keep
+  // running while another app is in front.
+  test('runs PiP and BLE in the background', () {
+    expect(orientations('UIBackgroundModes'), ['audio', 'bluetooth-central']);
+  });
 }
