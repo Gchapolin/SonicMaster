@@ -31,7 +31,7 @@ void main() {
     await pump(tester, load: 57);
 
     expect(find.text('DSP 57%'), findsOneWidget);
-    expect(colorOf(tester, 'DSP 57%'), Palette.onSurfaceVariant);
+    expect(colorOf(tester, 'DSP 57%'), Palette.meterCaption);
   });
 
   testWidgets('turns to the alert color from 85 %', (tester) async {

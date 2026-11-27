@@ -2,11 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart' show Icons;
 import 'package:flutter/widgets.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../device/device_model.dart';
 import '../l10n/common_text.dart';
 import '../l10n/settings_text.dart';
+import '../l10n/shell_text.dart';
 import '../model/cfw_eq_models.dart';
 import '../model/cfw_info.dart';
 import '../model/device_capabilities.dart';
@@ -395,7 +398,33 @@ class GlobalSettingsDialog extends ConsumerWidget {
             const SizedBox(height: 16),
             Align(alignment: Alignment.centerRight, child: close),
           ],
+          const SizedBox(height: 12),
+          const _AppCredit(),
         ],
+      ),
+    );
+  }
+}
+
+/// The app's version and the credit to its original author (Skyggedans), in
+/// a muted line at the foot of the dialog. Reads the bundle version at
+/// runtime, so it tracks the pubspec.
+class _AppCredit extends HookWidget {
+  const _AppCredit();
+
+  @override
+  Widget build(BuildContext context) {
+    final info = useFuture(useMemoized(PackageInfo.fromPlatform));
+    final version = info.data?.version ?? '';
+    final app = version.isEmpty ? 'SonicMaster' : 'SonicMaster $version';
+
+    return Text(
+      '$app · ${ShellText.current.byAuthor}',
+      textAlign: .center,
+      style: AppText.ui.copyWith(
+        fontSize: 11,
+        fontWeight: FontWeight.w400,
+        color: Palette.muted,
       ),
     );
   }

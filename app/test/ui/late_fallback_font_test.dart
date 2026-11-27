@@ -8,9 +8,6 @@ import 'package:sonicmaster/state/preset_providers.dart';
 import 'package:sonicmaster/theme/app_text.dart';
 import 'package:sonicmaster/ui/module_editor.dart';
 import 'package:sonicmaster/ui/preset_browser_page.dart';
-import 'package:sonicmaster/ui/preset_rail.dart';
-import 'package:sonicmaster/ui/sonic_controls.dart';
-import 'package:sonicmaster/ui/top_bar.dart';
 
 import '../support/page_harness.dart';
 import '../support/view_helpers.dart';
@@ -241,13 +238,7 @@ void main() {
       home: pageFallingBackTo(family),
     );
 
-    final well = find.ancestor(
-      of: find.descendant(
-        of: find.byType(TopBar),
-        matching: find.byType(PresetSlotChip),
-      ),
-      matching: find.byType(SonicRecess),
-    );
+    final well = find.byKey(const ValueKey('preset-pill'));
 
     final height = tester.getSize(well).height;
 
@@ -256,8 +247,5 @@ void main() {
     expectNoOverflow(tester);
 
     expect(tester.getSize(well).height, height);
-    // Unpinned, the marker alone is a line of the fallback face only:
-    // round(16 px × (1.069 + 0.63) em) = 27, against the name's 24.
-    expect(unpinnedLineHeight('✱', AppText.presetTitle, family), 27);
   });
 }

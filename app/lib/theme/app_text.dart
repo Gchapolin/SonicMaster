@@ -9,18 +9,25 @@ import 'app_colors.dart';
 /// Tokens omit `color` where the call site sets it from state (active/disabled,
 /// in-range/out-of-range); they bake a color only where the original style did.
 ///
-/// The display font is Oswald. The root `WidgetsApp` sets it as the app-wide
-/// `DefaultTextStyle`, so a token that omits `fontFamily` still renders in
-/// Oswald through `Text` (which merges the default). Tokens carry
-/// `fontFamily: 'Oswald'` explicitly where that merge does not happen — a canvas
-/// / `TextPainter`, or a raw `EditableText`, both of which paint the style
-/// verbatim. Only [monoLog] deliberately opts out of the display face.
+/// The editor shell follows the prototype's faces (N_Principal.dc.html): Inter
+/// for UI text ([ui], the root `WidgetsApp`'s app-wide `DefaultTextStyle`),
+/// JetBrains Mono for numbers and codes, Space Grotesk for the logo and
+/// titles, Barlow Condensed on gear pieces. Tokens carry `fontFamily`
+/// explicitly where the default does not merge — a canvas / `TextPainter`, or
+/// a raw `EditableText`, both of which paint the style verbatim.
+///
+/// The controls shared with the block editor (segments, dropdowns, buttons,
+/// knobs, chain and module labels) still use the legacy condensed display
+/// face, Oswald.
 abstract final class AppText {
   static const String _display = 'Oswald';
+  static const String _ui = 'Inter';
+  static const String _mono = 'JetBrains Mono';
+  static const String _title = 'Space Grotesk';
 
   /// Section header on the preset rail.
   static const TextStyle railHeader = TextStyle(
-    fontFamily: _display,
+    fontFamily: _ui,
     fontWeight: FontWeight.w600,
     fontSize: 11,
     letterSpacing: 0.5,
@@ -60,10 +67,9 @@ abstract final class AppText {
 
   /// Selected preset name in the browser header.
   static const TextStyle presetTitle = TextStyle(
-    fontFamily: _display,
+    fontFamily: _ui,
     fontWeight: FontWeight.w600,
-    fontSize: 16,
-    letterSpacing: 0.5,
+    fontSize: 15,
   );
 
   /// Dropdown menu item.
@@ -97,21 +103,21 @@ abstract final class AppText {
 
   /// Connection well status label.
   static TextStyle get connectionLabel =>
-      TextStyle(fontFamily: _display, fontSize: 14, color: Palette.railText);
+      TextStyle(fontFamily: _ui, fontSize: 13, color: Palette.textMuted);
 
   /// Tap-tempo BPM readout.
   static TextStyle get bpm => TextStyle(
-    fontFamily: _display,
-    fontWeight: FontWeight.w600,
-    fontSize: 18,
+    fontFamily: _mono,
+    fontWeight: FontWeight.w500,
+    fontSize: 16,
     color: Palette.textPrimary,
   );
 
   /// Large tap-tempo BPM display (color set per in/out-of-range state).
   static const TextStyle bpmDisplay = TextStyle(
-    fontFamily: _display,
-    fontWeight: FontWeight.w600,
-    fontSize: 22,
+    fontFamily: _mono,
+    fontWeight: FontWeight.w500,
+    fontSize: 20,
   );
 
   /// KnobControl / PanelCell value readout (12pt base × 1.5).
@@ -164,7 +170,7 @@ abstract final class AppText {
 
   /// Dialog title.
   static TextStyle get dialogTitle => TextStyle(
-    fontFamily: _display,
+    fontFamily: _title,
     color: Palette.textPrimary,
     fontSize: 20,
     fontWeight: FontWeight.w600,
@@ -172,17 +178,17 @@ abstract final class AppText {
 
   /// Dialog body copy.
   static TextStyle get dialogBody => TextStyle(
-    fontFamily: _display,
+    fontFamily: _ui,
     color: Palette.textMuted,
     fontSize: 14,
     height: 1.4,
   );
 
-  /// Text-field input text. Carries the display face explicitly: it is handed
+  /// Text-field input text. Carries the UI face explicitly: it is handed
   /// to a raw `EditableText`, which paints its style verbatim rather than
   /// merging the ambient `DefaultTextStyle` the way `Text` does.
   static TextStyle get input =>
-      TextStyle(fontFamily: _display, color: Palette.textPrimary);
+      TextStyle(fontFamily: _ui, color: Palette.textPrimary);
 
   /// Text-field label.
   static TextStyle get inputLabel => TextStyle(color: Palette.textMuted);
@@ -198,7 +204,7 @@ abstract final class AppText {
 
   /// Emphasised section label (dev console header).
   static const TextStyle boldLabel = TextStyle(
-    fontFamily: _display,
+    fontFamily: _ui,
     fontWeight: FontWeight.bold,
   );
 
@@ -206,38 +212,35 @@ abstract final class AppText {
 
   /// Default UI text.
   static const TextStyle ui = TextStyle(
-    fontFamily: 'Inter',
+    fontFamily: _ui,
     fontWeight: FontWeight.w500,
     fontSize: 13,
   );
 
   /// Emphasised UI text.
   static const TextStyle uiStrong = TextStyle(
-    fontFamily: 'Inter',
+    fontFamily: _ui,
     fontWeight: FontWeight.w600,
     fontSize: 15,
   );
 
   /// Screen / panel title.
   static const TextStyle title = TextStyle(
-    fontFamily: 'Space Grotesk',
+    fontFamily: _title,
     fontWeight: FontWeight.w600,
     fontSize: 22,
   );
 
   /// Section header; upper-case the text at the call site.
   static const TextStyle section = TextStyle(
-    fontFamily: 'Inter',
+    fontFamily: _ui,
     fontWeight: FontWeight.w600,
     fontSize: 11,
     letterSpacing: 1,
   );
 
   /// Numeric / code readout.
-  static const TextStyle mono = TextStyle(
-    fontFamily: 'JetBrains Mono',
-    fontSize: 13,
-  );
+  static const TextStyle mono = TextStyle(fontFamily: _mono, fontSize: 13);
 
   /// Label on a gear piece (size set by the call site).
   static const TextStyle gearLabel = TextStyle(

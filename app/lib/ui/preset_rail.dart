@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart'; // Icons glyph font only
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
 import '../l10n/shell_text.dart';
 import '../model/command_library.dart';
@@ -15,9 +14,7 @@ import '../state/preset_providers.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text.dart';
 import 'knob_control.dart';
-import 'sonic_controls.dart';
 import 'sonic_field.dart';
-import 'sonic_metrics.dart';
 import 'unsaved_changes_dialog.dart';
 
 /// The regular preset rail (and the bar's logo zone above it): the
@@ -271,10 +268,11 @@ Future<void> pickPreset(
   await loadPreset(ref, preset);
 }
 
-/// The left sidebar: once connected, the master-volume knob plus the tabbed,
-/// searchable preset chip list; the app footer in every state. The connection
-/// status and Connect/Disconnect live in the top bar ([ConnectionControls]).
-/// The compact layout shows the same pieces in its preset drawer.
+/// The left sidebar (prototype N_Principal): once connected, the tabbed,
+/// searchable preset chip list over the compact master-volume row. The
+/// connection status and Connect/Disconnect live in the top bar
+/// ([ConnectionControls]); the version and credit in Ajustes. The compact
+/// layout shows the same pieces in its preset drawer.
 class PresetRail extends ConsumerWidget {
   const PresetRail({
     super.key,
@@ -302,44 +300,33 @@ class PresetRail extends ConsumerWidget {
           // Connect/Disconnect now lives in the top bar's device well; the rail
           // shows the master knob + preset browser only when connected.
           if (isConnected) ...[
-            RailControls(onMasterVolume: onMasterVolume),
+            const RailControls(),
             // chip list
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
+                padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
                 child: ListView(children: [PresetChipColumn(onPick: onPick)]),
               ),
             ),
-          ] else
-            const Spacer(),
-          const RailFooter(),
+            MasterVolumeRow(onMasterVolume: onMasterVolume),
+          ],
         ],
       ),
     );
   }
 }
 
-/// The rail's fixed controls, top to bottom: the Master Vol knob, a hairline,
-/// the Factory/User tabs and the preset search box.
+/// The rail's fixed controls, top to bottom: the Fábrica/Usuário segments
+/// and the preset search box.
 class RailControls extends StatelessWidget {
   const RailControls({
     super.key,
-    this.isHoldToTurnOnTouch = false,
     this.searchScrollPadding = const EdgeInsets.all(20),
-    required this.onMasterVolume,
   });
-
-  /// Passed to the Master Vol knob: true inside the compact drawer's scroll
-  /// list, so a flick that starts on the knob scrolls instead of changing the
-  /// live master level.
-  final bool isHoldToTurnOnTouch;
 
   /// The search field's [SonicField.scrollPadding]. The compact drawer gives
   /// it a deep bottom, so revealing the focused field shows the matches too.
   final EdgeInsets searchScrollPadding;
-
-  /// Called with each new Master Vol level ([PresetRail.onMasterVolume]).
-  final ValueChanged<int> onMasterVolume;
 
   @override
   Widget build(BuildContext context) {
@@ -347,18 +334,9 @@ class RailControls extends StatelessWidget {
       mainAxisSize: .min,
       crossAxisAlignment: .stretch,
       children: [
-        _MasterVolume(
-          isHoldToTurnOnTouch: isHoldToTurnOnTouch,
-          onMasterVolume: onMasterVolume,
-        ),
-        // thin rail divider — same hairline as the footer's top border,
-        // separating the master knob from the bank selector.
-        Container(height: 1, color: Palette.railBorder),
         const _BankTabs(),
-        // search — a grey recessed well (rail-toned), borderless. Extra top
-        // padding gives a harmonious gap below the selector.
         Padding(
-          padding: const EdgeInsets.fromLTRB(8, 14, 8, 8),
+          padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
           child: _PresetSearchField(scrollPadding: searchScrollPadding),
         ),
       ],
@@ -366,14 +344,21 @@ class RailControls extends StatelessWidget {
   }
 }
 
-/// The master-volume knob: the pedal's global output level.
-class _MasterVolume extends ConsumerWidget {
-  const _MasterVolume({
-    required this.isHoldToTurnOnTouch,
+/// The rail's bottom row: a small master-volume knob (the pedal's global
+/// output level) beside its caption and value, under a hairline.
+class MasterVolumeRow extends ConsumerWidget {
+  const MasterVolumeRow({
+    super.key,
+    this.isHoldToTurnOnTouch = false,
     required this.onMasterVolume,
   });
 
+  /// Passed to the knob: true inside the compact drawer's scroll list, so a
+  /// flick that starts on the knob scrolls instead of changing the live
+  /// master level.
   final bool isHoldToTurnOnTouch;
+
+  /// Called with each new Master Vol level ([PresetRail.onMasterVolume]).
   final ValueChanged<int> onMasterVolume;
 
   @override
@@ -381,24 +366,33 @@ class _MasterVolume extends ConsumerWidget {
     final globalVol = ref.watch(globalVolumeProvider);
     final isLoading = ref.watch(presetLoadingProvider);
 
-    return Padding(
-      padding: const EdgeInsets.all(14),
-      child: KnobControl(
-        value: globalVol,
-        min: 0,
-        max: 100,
-        step: 1,
-        label: ShellText.current.masterVol,
-        size: SonicMetrics.of(context).panelKnobSize,
-        isEnabled: !isLoading,
-        isHoldToTurnOnTouch: isHoldToTurnOnTouch,
-        onChanged: (v) => onMasterVolume(v.round()),
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: Palette.railBorder)),
+      ),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: KnobControl(
+          value: globalVol,
+          min: 0,
+          max: 100,
+          step: 1,
+          label: ShellText.current.masterVol,
+          size: 44,
+          isEnabled: !isLoading,
+          isInline: true,
+          isHoldToTurnOnTouch: isHoldToTurnOnTouch,
+          onChanged: (v) => onMasterVolume(v.round()),
+        ),
       ),
     );
   }
 }
 
-/// The Factory/User bank selector.
+/// The Fábrica/Usuário bank selector: the prototype's filled track (3-px
+/// inset, 2-px gap) with sentence-case labels. Each segment's tap target
+/// takes the track's margins too, so it is 44 tall.
 class _BankTabs extends ConsumerWidget {
   const _BankTabs();
 
@@ -406,17 +400,62 @@ class _BankTabs extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final tab = ref.watch(presetTabProvider);
 
+    Widget segment(PresetBank bank, String label) {
+      final isActive = bank == tab;
+
+      return Expanded(
+        child: GestureDetector(
+          behavior: .opaque,
+          onTap: () => ref.read(presetTabProvider.notifier).state = bank,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 7),
+            child: Container(
+              height: 30,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: isActive ? Palette.secondaryContainer : null,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                label,
+                maxLines: 1,
+                style: AppText.ui.copyWith(
+                  color: isActive
+                      ? Palette.onSecondaryContainer
+                      : Palette.muted,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
-      child: SonicSegmented<PresetBank>(
-        value: tab,
-        isExpanded: true,
-        height: 40,
-        segments: [
-          (value: .factory, label: ShellText.current.factory),
-          (value: .user, label: ShellText.current.user),
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
+      child: Stack(
+        children: [
+          Positioned.fill(
+            top: 4,
+            bottom: 4,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: Palette.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 3),
+            child: Row(
+              spacing: 2,
+              children: [
+                segment(.factory, ShellText.current.factory),
+                segment(.user, ShellText.current.user),
+              ],
+            ),
+          ),
         ],
-        onChanged: (b) => ref.read(presetTabProvider.notifier).state = b,
       ),
     );
   }
@@ -463,41 +502,6 @@ class PresetChipColumn extends ConsumerWidget {
   }
 }
 
-/// The rail's persistent footer: the app name + version and author credit,
-/// pinned to the bottom of the rail in every connection state. Reads the bundle
-/// version at runtime, so it tracks the pubspec without a hardcoded string.
-class RailFooter extends HookWidget {
-  const RailFooter({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final info = useFuture(useMemoized(PackageInfo.fromPlatform));
-    final version = info.data?.version ?? '';
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-      decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: Palette.railBorder)),
-      ),
-      child: Column(
-        children: [
-          Text(
-            version.isEmpty ? 'SonicMaster' : 'SonicMaster $version',
-            textAlign: .center,
-            style: _railStyle(11, w: .w600, ls: 0.5),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            ShellText.current.byAuthor,
-            textAlign: .center,
-            style: _railStyle(10, color: Palette.railMuted, ls: 0.5),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 /// The rail's preset search box: a rail-toned recessed well with a leading
 /// search glyph and a [SonicField] that pushes typed text into
 /// [presetSearchProvider] (which drives the chip-list filter).
@@ -516,23 +520,27 @@ class _PresetSearchField extends HookConsumerWidget {
       text: ref.read(presetSearchProvider),
     );
 
-    return SonicRecess(
-      radius: 8,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+    return Container(
+      height: 36,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        color: Palette.field,
+        borderRadius: BorderRadius.circular(10),
+      ),
       child: Row(
         children: [
-          Icon(Icons.search, size: 18, color: Palette.onSurfaceVariant),
+          Icon(Icons.search, size: 15, color: Palette.muted),
           const SizedBox(width: 8),
           Expanded(
             child: SonicField(
               controller: controller,
               hintText: ShellText.current.searchPresets,
-              style: AppText.input.copyWith(
+              style: AppText.ui.copyWith(
+                fontWeight: FontWeight.w400,
                 color: Palette.railText,
-                fontSize: 14,
               ),
               isRecessed: false,
-              padding: const EdgeInsets.symmetric(vertical: 11),
+              padding: EdgeInsets.zero,
               scrollPadding: scrollPadding,
               onChanged: (v) =>
                   ref.read(presetSearchProvider.notifier).state = v,

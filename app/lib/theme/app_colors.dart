@@ -22,6 +22,7 @@ abstract final class Palette {
   static Color get line2 => current.line2;
   static Color get ok => current.ok;
   static Color get faint => current.faint;
+  static Color get muted => current.muted;
 
   // Material 3 roles.
   static Color get primary => current.acc;
@@ -82,6 +83,15 @@ abstract final class Palette {
   /// Modal dim: the barrier behind pop-ups (showSonicDialog) and behind the
   /// compact preset drawer.
   static const Color scrim = Color(0x99000000);
+
+  /// The DSP meter's dark inset track and its caption (prototype values,
+  /// the same on every palette, like the gear pieces).
+  static const Color meterTrack = Color(0xFF0A0A0B);
+  static const Color meterCaption = Color(0xFF9A958C);
+
+  /// The DSP meter's fill: the prototype's ok-to-accent ramp.
+  static LinearGradient get meterFill =>
+      LinearGradient(colors: [current.ok, current.acc]);
 
   /// Fully transparent (the native desktop window's background).
   static const Color transparent = Color(0x00000000);

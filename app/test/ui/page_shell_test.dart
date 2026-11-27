@@ -82,11 +82,14 @@ void main() {
             )
             .first;
 
-        // As wide as the rail, inside the plate's 1-px top and bottom edges.
-        expect(
-          tester.getRect(logoZone),
-          const Rect.fromLTRB(0, 1, railWidth, 59),
-        );
+        // At the logo's own width (prototype), inside the plate's 1-px top
+        // and bottom edges.
+        final zone = tester.getRect(logoZone);
+
+        expect(zone.left, 0);
+        expect(zone.top, 1);
+        expect(zone.bottom, 59);
+        expect(zone.width, lessThan(railWidth));
         expect(tester.getRect(find.byType(PresetRail)).left, 0);
         expect(tester.getRect(find.byType(PresetRail)).width, railWidth);
         expect(_inBar(find.text('P01')), findsOneWidget);
@@ -95,7 +98,8 @@ void main() {
         expect(_inBar(find.byIcon(Icons.terminal)), findsOneWidget);
         expect(_inBar(find.byType(ConnectionControls)), findsOneWidget);
         expect(_inBar(find.text('Smart Box')), findsOneWidget);
-        expect(_inBar(find.text('Disconnect')), findsOneWidget);
+        // Disconnect moved to the device status's menu.
+        expect(_inBar(find.text('Disconnect')), findsNothing);
         expect(find.byType(WindowControls), findsNothing);
       });
     }
@@ -172,12 +176,7 @@ void main() {
         expect(tester.takeException(), isNull);
 
         final appWidth = math.max(size.width, 640.0);
-        final presetWell = find
-            .ancestor(
-              of: _inBar(find.text('P01')),
-              matching: find.byType(SonicRecess),
-            )
-            .first;
+        final presetWell = find.byKey(const ValueKey('preset-pill'));
 
         expect(tester.getSize(find.byType(TopBar)), Size(appWidth, 48));
         expect(_inBar(find.byType(SonicLogo)), findsNothing);

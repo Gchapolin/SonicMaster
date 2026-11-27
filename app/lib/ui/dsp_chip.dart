@@ -28,31 +28,33 @@ class DspChip extends ConsumerWidget {
 
     final percent = load.clamp(0, 100);
     final isAlert = percent >= alertFrom;
-    final color = isAlert ? Palette.error : Palette.onSurfaceVariant;
-    // Flat stand-in for the prototype's ok-to-primary ramp (no gradients):
-    // ok while light, primary once the load passes half, error at the alert.
-    final fill = isAlert
-        ? Palette.error
-        : percent > 50
-        ? Palette.primary
-        : Palette.ok;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: Row(
+    // Stacked as in the prototype: the caption over an 86x6 bar, a dark inset
+    // track with the ok-to-accent ramp (the alert color from 85 %).
+    return SizedBox(
+      width: meterWidth,
+      child: Column(
         mainAxisSize: .min,
+        crossAxisAlignment: .start,
+        spacing: 3,
         children: [
           Text(
             'DSP $percent%',
-            style: AppText.mono.copyWith(color: color, fontSize: 11),
+            style: AppText.gearLabel.copyWith(
+              fontWeight: FontWeight.w500,
+              fontSize: 10,
+              letterSpacing: 1,
+              height: 1.2,
+              color: isAlert ? Palette.error : Palette.meterCaption,
+            ),
           ),
-          const SizedBox(width: 8),
           Container(
             key: trackKey,
             width: meterWidth,
             height: 6,
+            clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
-              color: Palette.surfaceContainerHigh,
+              color: Palette.meterTrack,
               borderRadius: BorderRadius.circular(3),
             ),
             alignment: Alignment.centerLeft,
@@ -60,8 +62,8 @@ class DspChip extends ConsumerWidget {
               key: fillKey,
               width: meterWidth * percent / 100,
               decoration: BoxDecoration(
-                color: fill,
-                borderRadius: BorderRadius.circular(3),
+                color: isAlert ? Palette.error : null,
+                gradient: isAlert ? null : Palette.meterFill,
               ),
             ),
           ),

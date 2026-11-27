@@ -5,14 +5,18 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../l10n/common_text.dart';
 import '../model/slider_nudge.dart';
+import '../model/tap_tempo.dart';
 import '../state/preset_providers.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text.dart';
 import 'preset_fields_panel.dart';
 import 'sonic_controls.dart';
+import 'sonic_metrics.dart';
 
 /// The loaded preset's volume and BPM in the top bar, right after its name:
 /// drag a value up or down to turn it, or tap it for the two full knobs.
+/// Regular adds the prototype's TAP button (tap tempo for the preset BPM).
+/// The group opens with a hairline on its left (prototype N_Principal).
 /// Empty until a preset is decoded.
 class BarPresetFields extends ConsumerWidget {
   const BarPresetFields({super.key});
@@ -29,29 +33,106 @@ class BarPresetFields extends ConsumerWidget {
       builder: (_) => const _PresetFieldsDialog(),
     );
 
-    return Row(
-      mainAxisSize: .min,
-      children: [
-        BarValue(
-          label: 'VOL',
-          value: state.presetVolume,
-          min: 0,
-          max: 100,
-          isEnabled: !isLoading,
-          onChanged: (v) => setPresetVolume(ref, v),
-          onTap: openKnobs,
+    final isCompact = SonicMetrics.of(context).isCompact;
+
+    return Container(
+      margin: EdgeInsets.only(left: isCompact ? 0 : 10),
+      padding: EdgeInsets.only(left: isCompact ? 6 : 10),
+      decoration: BoxDecoration(
+        border: Border(left: BorderSide(color: Palette.outlineVariant)),
+      ),
+      child: Row(
+        mainAxisSize: .min,
+        children: [
+          BarValue(
+            label: 'VOL',
+            value: state.presetVolume,
+            min: 0,
+            max: 100,
+            isEnabled: !isLoading,
+            onChanged: (v) => setPresetVolume(ref, v),
+            onTap: openKnobs,
+          ),
+          SizedBox(width: isCompact ? 2 : 6),
+          BarValue(
+            label: 'BPM',
+            value: state.presetBpm,
+            min: presetBpmMin,
+            max: presetBpmMax,
+            isEnabled: !isLoading,
+            onChanged: (v) => setPresetBpm(ref, v),
+            onTap: openKnobs,
+          ),
+          if (!isCompact) ...[
+            const SizedBox(width: 6),
+            BarTapButton(
+              isEnabled: !isLoading,
+              onBpm: (bpm) => setPresetBpm(ref, bpm),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// The bar's TAP: each tap's pointer time feeds [bpmFromTaps] (the last four
+/// taps; a pause over 2 s starts over), and every tempo it yields goes to
+/// [onBpm], rounded.
+class BarTapButton extends HookWidget {
+  const BarTapButton({super.key, required this.isEnabled, required this.onBpm});
+
+  final bool isEnabled;
+  final ValueChanged<int> onBpm;
+
+  @override
+  Widget build(BuildContext context) {
+    final taps = useMemoized(() => <int>[]);
+
+    void tap(Duration at) {
+      final ms = at.inMilliseconds;
+
+      if (taps.isNotEmpty && ms - taps.last > 2000) taps.clear();
+
+      taps.add(ms);
+
+      if (taps.length > 4) taps.removeAt(0);
+
+      final bpm = bpmFromTaps(taps);
+
+      if (bpm != null) onBpm(bpm.round());
+    }
+
+    // A 44-pt target around the prototype's 32-pt outlined button.
+    return Listener(
+      behavior: .opaque,
+      onPointerDown: isEnabled ? (e) => tap(e.timeStamp) : null,
+      child: Opacity(
+        opacity: isEnabled ? 1 : 0.4,
+        child: SizedBox(
+          height: 44,
+          child: Center(
+            child: Container(
+              height: 32,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                border: Border.all(color: Palette.secondaryContainer),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                'TAP',
+                style: AppText.ui.copyWith(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 1,
+                  color: Palette.onSurface,
+                ),
+              ),
+            ),
+          ),
         ),
-        const SizedBox(width: 6),
-        BarValue(
-          label: 'BPM',
-          value: state.presetBpm,
-          min: presetBpmMin,
-          max: presetBpmMax,
-          isEnabled: !isLoading,
-          onChanged: (v) => setPresetBpm(ref, v),
-          onTap: openKnobs,
-        ),
-      ],
+      ),
     );
   }
 }
@@ -126,29 +207,34 @@ class BarValue extends HookWidget {
                   emit(dragValue.value.round());
                 }
               : null,
-          child: SonicRecess(
-            radius: 8,
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-            child: Column(
-              mainAxisSize: .min,
-              children: [
-                Text(
-                  label,
-                  style: AppText.controlLabel.copyWith(
-                    fontSize: 10,
-                    letterSpacing: 1.2,
-                    height: 1.2,
-                    color: Palette.onSurfaceVariant,
+          // A 44-pt target around the prototype's small label over value.
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Column(
+                mainAxisSize: .min,
+                mainAxisAlignment: .center,
+                crossAxisAlignment: .start,
+                children: [
+                  Text(
+                    label,
+                    style: AppText.section.copyWith(
+                      fontSize: 10,
+                      height: 1.1,
+                      color: Palette.muted,
+                    ),
                   ),
-                ),
-                Text(
-                  '$value',
-                  style: AppText.bpm.copyWith(
-                    height: 1.1,
-                    color: isEnabled ? Palette.textPrimary : Palette.textDim,
+                  Text(
+                    '$value',
+                    style: AppText.mono.copyWith(
+                      fontSize: 15,
+                      height: 1.1,
+                      color: isEnabled ? Palette.textPrimary : Palette.textDim,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

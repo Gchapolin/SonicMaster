@@ -13,6 +13,7 @@ import 'state/connection_prefs.dart';
 import 'state/device_providers.dart';
 import 'state/palette_providers.dart';
 import 'theme/app_colors.dart';
+import 'theme/app_text.dart';
 import 'ui/preset_browser_page.dart';
 import 'ui/rotate_device_overlay.dart';
 import 'ui/sonic_metrics.dart';
@@ -112,8 +113,9 @@ class SonicMasterApp extends ConsumerWidget {
       title: 'SonicMaster',
       debugShowCheckedModeBanner: false,
       color: Palette.background,
-      // Oswald is the app's display font everywhere; there is no Material theme.
-      textStyle: TextStyle(fontFamily: 'Oswald', color: Palette.textPrimary),
+      // Inter is the app's UI face (prototype N_Principal); there is no
+      // Material theme.
+      textStyle: AppText.ui.copyWith(color: Palette.textPrimary),
       pageRouteBuilder: <T>(RouteSettings settings, WidgetBuilder builder) =>
           PageRouteBuilder<T>(
             settings: settings,

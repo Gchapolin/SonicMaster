@@ -359,14 +359,16 @@ void main() {
   }
 
   // The regular layout is pinned: these plates sit exactly where they did
-  // before SonicDialog learned to scroll and lift.
+  // before SonicDialog learned to scroll and lift (re-measured for the
+  // prototype's Inter / Space Grotesk dialog faces).
   group('regular 1280x800 plates are unchanged', () {
     for (final (name, rect) in const [
-      ('unsaved changes', Rect.fromLTRB(400, 301, 880, 499)),
-      ('save preset', Rect.fromLTRB(450, 240.5, 830, 559.5)),
+      ('unsaved changes', Rect.fromLTRB(400, 303, 880, 497)),
+      ('save preset', Rect.fromLTRB(450, 242.5, 830, 557.5)),
       ('device picker, scanning', Rect.fromLTRB(410, 145, 870, 655)),
-      // The redesign's three-column grid, Close in the header.
-      ('settings', Rect.fromLTRB(90, 148, 1190, 652)),
+      // The redesign's three-column grid, Close in the header, the app
+      // credit at its foot.
+      ('settings', Rect.fromLTRB(90, 135.5, 1190, 664.5)),
     ]) {
       testWidgets(name, (tester) async {
         final dialog = _cases.firstWhere((c) => c.name == name);

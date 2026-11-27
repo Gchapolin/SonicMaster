@@ -45,11 +45,6 @@ Finder get _burger => find
 Finder get _save =>
     find.descendant(of: find.byType(TopBar), matching: find.byIcon(Icons.save));
 
-/// The rail footer's plate (its top hairline and padding).
-Finder get _footer => find
-    .ancestor(of: find.text('by Skyggedans'), matching: find.byType(Container))
-    .first;
-
 /// The drawer row of the preset in [slot].
 Finder _row(String slot) => find
     .ancestor(of: _inDrawer(find.text(slot)), matching: find.byType(PresetChip))
@@ -264,7 +259,7 @@ void main() {
       expect(tester.getRect(_drawerHeader).right, lessThanOrEqualTo(0));
     });
 
-    testWidgets('one scrolling list: Master Vol, tabs, search, rows, footer', (
+    testWidgets('one scrolling list: Master Vol, tabs, search, rows', (
       tester,
     ) async {
       await pumpPage(
@@ -278,10 +273,9 @@ void main() {
 
       for (final finder in [
         find.text('MASTER VOL'),
-        find.text('FACTORY'),
+        find.text('Factory'),
         find.byType(EditableText),
         find.text('P02'),
-        find.text('by Skyggedans'),
       ]) {
         expect(
           find.descendant(of: _drawerList, matching: finder),
@@ -290,7 +284,7 @@ void main() {
       }
     });
 
-    testWidgets('disconnected: it opens on the footer alone, pinned low', (
+    testWidgets('disconnected: it opens without the preset controls', (
       tester,
     ) async {
       final container = await pumpPage(
@@ -303,70 +297,57 @@ void main() {
 
       expect(container.read(presetDrawerOpenProvider), isTrue);
       expect(_inDrawer(find.text('MASTER VOL')), findsNothing);
-      expect(tester.getRect(_footer).bottom, 393);
+      expect(_inDrawer(find.byType(EditableText)), findsNothing);
     });
 
     // A phone's BLE link drops while the user browses the drawer.
-    testWidgets(
-      'a pedal drop leaves it open on the footer; reconnect restores',
-      (tester) async {
-        final container = await pumpPage(
-          tester,
-          size: const Size(852, 393),
-          selectedEffects: const {},
-        );
+    testWidgets('a pedal drop leaves it open; reconnect restores', (
+      tester,
+    ) async {
+      final container = await pumpPage(
+        tester,
+        size: const Size(852, 393),
+        selectedEffects: const {},
+      );
 
-        await _openDrawer(tester);
-        await tester.enterText(_inDrawer(find.byType(EditableText)), 'P06');
-        await tester.pump();
+      await _openDrawer(tester);
+      await tester.enterText(_inDrawer(find.byType(EditableText)), 'P06');
+      await tester.pump();
 
-        container.read(connectionStateProvider.notifier).state = false;
-        await tester.pump();
+      container.read(connectionStateProvider.notifier).state = false;
+      await tester.pump();
 
-        expect(tester.takeException(), isNull);
-        expect(container.read(presetDrawerOpenProvider), isTrue);
-        expect(_inDrawer(find.text('MASTER VOL')), findsNothing);
-        expect(tester.getRect(_footer).bottom, 393);
+      expect(tester.takeException(), isNull);
+      expect(container.read(presetDrawerOpenProvider), isTrue);
+      expect(_inDrawer(find.text('MASTER VOL')), findsNothing);
 
-        container.read(connectionStateProvider.notifier).state = true;
-        await tester.pump();
+      container.read(connectionStateProvider.notifier).state = true;
+      await tester.pump();
 
-        expect(
-          tester
-              .widget<EditableText>(_inDrawer(find.byType(EditableText)))
-              .controller
-              .text,
-          'P06',
-        );
-        expect(_inDrawer(find.byType(PresetChip)), findsOneWidget);
+      expect(
+        tester
+            .widget<EditableText>(_inDrawer(find.byType(EditableText)))
+            .controller
+            .text,
+        'P06',
+      );
+      expect(_inDrawer(find.byType(PresetChip)), findsOneWidget);
 
-        await tester.tap(_burger);
-        await tester.pumpAndSettle();
+      await tester.tap(_burger);
+      await tester.pumpAndSettle();
 
-        expect(container.read(presetDrawerOpenProvider), isFalse);
-      },
-    );
+      expect(container.read(presetDrawerOpenProvider), isFalse);
+    });
 
     for (final size in const [Size(568, 320), Size(640, 300)]) {
       final label = '${size.width.toInt()}x${size.height.toInt()}';
 
-      testWidgets('$label: it opens without error; the footer is reachable', (
-        tester,
-      ) async {
+      testWidgets('$label: it opens without error', (tester) async {
         await pumpPage(tester, size: size, selectedEffects: const {});
         await _openDrawer(tester);
 
         expect(tester.takeException(), isNull);
         expect(tester.getSize(_drawerHeader), const Size(drawerWidth, 48));
-
-        await tester.ensureVisible(find.text('by Skyggedans'));
-        await tester.pump();
-
-        expectWithin(
-          tester.getRect(_footer),
-          tester.getRect(_drawerList),
-          'footer',
-        );
       });
     }
 
@@ -767,11 +748,11 @@ void main() {
 
       final semantics = tester.ensureSemantics();
 
-      expect(find.bySemanticsLabel('by Skyggedans'), findsNothing);
+      expect(find.bySemanticsLabel('MASTER VOL'), findsNothing);
 
       await _openDrawer(tester);
 
-      expect(find.bySemanticsLabel('by Skyggedans'), findsOneWidget);
+      expect(find.bySemanticsLabel('MASTER VOL'), findsOneWidget);
       semantics.dispose();
     });
 

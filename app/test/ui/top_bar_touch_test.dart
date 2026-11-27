@@ -106,21 +106,23 @@ void main() {
     );
   });
 
-  testWidgets('regular: only the Connect button connects (unchanged)', (
+  // Regular follows the prototype: the device status (dot + name) is one
+  // target the bar's height, like the compact well.
+  testWidgets('regular, disconnected: the whole status connects', (
     tester,
   ) async {
     await pumpPage(tester, size: const Size(1280, 800), isConnected: false);
     await tapAndSettle(tester, dot(tester));
 
-    // Per tap: the next one would dismiss a picker this one opened.
-    expect(picker, findsNothing);
-
-    await tapAndSettle(tester, nearBarTop(tester, find.text('Connect')));
-
-    expect(picker, findsNothing);
-
-    await tapAndSettle(tester, tester.getCenter(find.text('Connect')));
-
     expect(picker, findsOneWidget);
+  });
+
+  testWidgets('regular, connected: the status opens Disconnect, not the '
+      'picker', (tester) async {
+    await pumpPage(tester, size: const Size(1280, 800));
+    await tapAndSettle(tester, nearBarTop(tester, find.text('Smart Box')));
+
+    expect(picker, findsNothing);
+    expect(find.text('Disconnect'), findsOneWidget);
   });
 }

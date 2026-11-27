@@ -91,13 +91,10 @@ void main() {
     expect(tester.widget<Text>(find.text('TRAIL')).style!.fontSize, 12);
   });
 
-  // The rail's Master Vol is a panel knob too: 120 beside the desktop work
-  // area, 72 inside the compact drawer's one scroll list.
-  for (final (size, dial) in const [
-    (Size(1280, 800), 120.0),
-    (Size(852, 393), 72.0),
-  ]) {
-    testWidgets('Master Vol is a ${dial.toInt()}-px dial at '
+  // The rail's Master Vol is the prototype's compact row: a 44-px dial in
+  // both layouts (the rail and the compact drawer).
+  for (final size in const [Size(1280, 800), Size(852, 393)]) {
+    testWidgets('Master Vol is a 44-px dial at '
         '${size.width.toInt()}x${size.height.toInt()}', (tester) async {
       await pumpSonicHost(
         tester,
@@ -106,12 +103,15 @@ void main() {
           alignment: Alignment.topLeft,
           child: SizedBox(
             width: railWidth,
-            child: RailControls(onMasterVolume: (_) {}),
+            child: MasterVolumeRow(onMasterVolume: (_) {}),
           ),
         ),
       );
 
-      expect(tester.getSize(find.byKey(const Key('knob'))), Size.square(dial));
+      expect(
+        tester.getSize(find.byKey(const Key('knob'))),
+        const Size.square(44),
+      );
       expect(tester.takeException(), isNull);
     });
   }

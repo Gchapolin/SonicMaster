@@ -34,6 +34,7 @@ class KnobControl extends HookWidget {
     this.size = 120,
     this.isHoldToTurnOnTouch = false,
     this.isDense = false,
+    this.isInline = false,
   });
 
   // Pixels of vertical drag that span the whole [min,max] range. One tunable:
@@ -75,6 +76,10 @@ class KnobControl extends HookWidget {
   /// for dense panels; input behaviour still follows the layout.
   final bool isDense;
 
+  /// The prototype's compact row (the rail's Volume geral): the dial, then
+  /// the caption over the value (JetBrains Mono), left-aligned beside it.
+  final bool isInline;
+
   @override
   Widget build(BuildContext context) {
     final isEditing = useState(false);
@@ -84,9 +89,13 @@ class KnobControl extends HookWidget {
     final controller = useTextEditingController();
     final editorFocus = useFocusNode();
     final metrics = SonicMetrics.of(context);
-    final valueStyle = isDense
+    final valueStyle = isInline
+        ? AppText.mono.copyWith(fontSize: 15, color: Palette.textPrimary)
+        : isDense
         ? AppText.knobValueCompact
         : metrics.knobValueStyle;
+    final readoutWidth = isInline ? 56.0 : size;
+    final readoutAlignment = isInline ? Alignment.centerLeft : Alignment.center;
 
     // One step of vertical travel, shared by every pointer kind: up increases
     // ([dy] is +down, so negate). Shift = fine-tune (~4× slower); read
@@ -271,8 +280,9 @@ class KnobControl extends HookWidget {
     // The readout row: the dial's width, the value centred in it.
     final readout = isEditing.value
         ? SizedBox(
-            width: size,
-            child: Center(
+            width: readoutWidth,
+            child: Align(
+              alignment: readoutAlignment,
               child: CallbackShortcuts(
                 bindings: {
                   const SingleActivator(LogicalKeyboardKey.escape): cancel,
@@ -281,7 +291,7 @@ class KnobControl extends HookWidget {
                   controller: controller,
                   focusNode: editorFocus,
                   autofocus: true,
-                  textAlign: .center,
+                  textAlign: isInline ? .start : .center,
                   style: valueStyle,
                   isRecessed: false,
                   padding: EdgeInsets.zero,
@@ -310,8 +320,9 @@ class KnobControl extends HookWidget {
             behavior: metrics.isCompact ? .opaque : .deferToChild,
             onDoubleTap: isEnabled ? startEdit : null,
             child: SizedBox(
-              width: size,
-              child: Center(
+              width: readoutWidth,
+              child: Align(
+                alignment: readoutAlignment,
                 child: Text(
                   valueText ?? '$value${unit ?? ''}',
                   style: valueStyle,
@@ -319,6 +330,27 @@ class KnobControl extends HookWidget {
               ),
             ),
           );
+
+    if (isInline) {
+      return Row(
+        mainAxisSize: .min,
+        spacing: 12,
+        children: [
+          knob,
+          Column(
+            mainAxisSize: .min,
+            crossAxisAlignment: .start,
+            children: [
+              Text(
+                label.toUpperCase(),
+                style: AppText.section.copyWith(color: Palette.muted),
+              ),
+              readout,
+            ],
+          ),
+        ],
+      );
+    }
 
     // A vertical cell — value on top, knob, name below — so cells sit side by
     // side in a Wrap like the knobs on a hardware unit.

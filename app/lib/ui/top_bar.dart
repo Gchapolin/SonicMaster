@@ -109,11 +109,12 @@ class TopBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final metrics = SonicMetrics.of(context);
     final isCompact = metrics.isCompact;
-    // Regular: tighter than the metrics token so the CFW bar (DSP, battery,
-    // tuner, Save label) still fits one row at 1180 px.
+    // Regular: the prototype's 40-px icon buttons (20-px glyph), 44 tall for
+    // the touch target.
     final iconPadding = isCompact
         ? metrics.topBarIconPadding
-        : const EdgeInsets.symmetric(horizontal: 5, vertical: 8);
+        : const EdgeInsets.symmetric(horizontal: 10, vertical: 12);
+    final iconSize = isCompact ? 22.0 : 20.0;
     final isConnected = ref.watch(connectionStateProvider);
     final current = ref.watch(currentPresetProvider);
     final isLoading = ref.watch(presetLoadingProvider);
@@ -159,47 +160,34 @@ class TopBar extends ConsumerWidget {
                   // its ref through a connect in flight. Never group them.
                   child: Row(
                     children: [
-                      if (isCompact) ...[
-                        // The well gives way to the actions: its name
-                        // ellipsizes first.
-                        // The preset (with its arrows) gives way first: its
-                        // name ellipsizes before the values or the actions.
-                        Expanded(
-                          child: Row(
-                            children: [
-                              if (well != null) ...[
-                                Flexible(
-                                  child: _PresetStepper(
-                                    current: current!,
-                                    isEnabled: !isLoading,
-                                    well: well,
-                                  ),
+                      // The preset (with its arrows) gives way first: its
+                      // name ellipsizes before the values or the actions.
+                      Expanded(
+                        child: Row(
+                          children: [
+                            if (well != null) ...[
+                              Flexible(
+                                child: _PresetStepper(
+                                  current: current!,
+                                  isEnabled: !isLoading,
+                                  isCompact: isCompact,
+                                  well: well,
                                 ),
-                                const SizedBox(width: 8),
-                                const BarPresetFields(),
-                              ],
+                              ),
+                              SizedBox(width: isCompact ? 8 : 0),
+                              const BarPresetFields(),
                             ],
-                          ),
+                          ],
                         ),
-                        const FullscreenButton(),
-                      ] else ...[
-                        if (well != null) ...[
-                          _PresetStepper(
-                            current: current!,
-                            isEnabled: !isLoading,
-                            well: well,
-                          ),
-                          const SizedBox(width: 12),
-                          const BarPresetFields(),
-                        ],
-                        const Spacer(),
-                      ],
+                      ),
+                      if (isCompact) const FullscreenButton(),
                       const DspChip(),
                       const BatteryChip(),
                       // The pedal's tuner, mirrored (CFW only).
                       if (isConnected && ref.watch(cfwInfoProvider) != null)
                         SonicIconButton(
                           icon: Icons.music_note,
+                          size: iconSize,
                           padding: iconPadding,
                           onPressed: isLoading
                               ? null
@@ -207,6 +195,19 @@ class TopBar extends ConsumerWidget {
                                   context: context,
                                   builder: (_) => const TunerDialog(),
                                 ),
+                        ),
+                      // The CFW community's shared presets (downloaded). Not
+                      // on web: their server sends no CORS header, so a
+                      // browser may not read it from another site.
+                      if (!kIsWeb)
+                        SonicIconButton(
+                          icon: Icons.public,
+                          size: iconSize,
+                          padding: iconPadding,
+                          onPressed: () => showSonicDialog<void>(
+                            context: context,
+                            builder: (_) => const CommunityPresetsDialog(),
+                          ),
                         ),
                       // Phones have no room (14 px short at 568x320): they reach
                       // Appearance from the preset drawer instead.
@@ -217,12 +218,14 @@ class TopBar extends ConsumerWidget {
                           excludeSemantics: true,
                           child: SonicIconButton(
                             icon: Icons.palette,
+                            size: iconSize,
                             padding: iconPadding,
                             onPressed: () => showAppearanceDialog(context),
                           ),
                         ),
                       SonicIconButton(
                         icon: Icons.tune,
+                        size: iconSize,
                         padding: iconPadding,
                         onPressed: (isConnected && !isLoading)
                             ? () {
@@ -240,6 +243,7 @@ class TopBar extends ConsumerWidget {
                       // the pedal (arrow up).
                       SonicIconButton(
                         icon: Icons.file_download,
+                        size: iconSize,
                         padding: iconPadding,
                         onPressed: (isConnected && state != null)
                             ? () => exportPreset(ref)
@@ -247,23 +251,12 @@ class TopBar extends ConsumerWidget {
                       ),
                       SonicIconButton(
                         icon: Icons.file_upload,
+                        size: iconSize,
                         padding: iconPadding,
                         onPressed: (isConnected && !isLoading)
                             ? () => importPreset(ref)
                             : null,
                       ),
-                      // The CFW community's shared presets (downloaded). Not
-                      // on web: their server sends no CORS header, so a
-                      // browser may not read it from another site.
-                      if (!kIsWeb)
-                        SonicIconButton(
-                          icon: Icons.public,
-                          padding: iconPadding,
-                          onPressed: () => showSonicDialog<void>(
-                            context: context,
-                            builder: (_) => const CommunityPresetsDialog(),
-                          ),
-                        ),
                       _SaveButton(
                         isCompact: isCompact,
                         onPressed:
@@ -278,35 +271,55 @@ class TopBar extends ConsumerWidget {
                       if (kDebugMode && !isCompact)
                         SonicIconButton(
                           icon: Icons.terminal,
+                          size: iconSize,
                           padding: iconPadding,
                           color: isConsoleOpen ? Palette.accent : null,
                           onPressed: onConsoleToggle,
                         ),
-                      SizedBox(width: 8),
+                      SizedBox(width: isCompact ? 8 : 6),
                       // Connection status, pinned to the right edge.
-                      // Compact: the whole well, stretched to the bar's
+                      // Regular: the prototype's dot + device name after a
+                      // hairline; the whole status (the bar's height) opens
+                      // the Desconectar menu, or connects while disconnected.
+                      // Compact: the recessed well, stretched to the bar's
                       // height, connects while disconnected (the 26-px button
-                      // alone is small for a finger). It never disconnects:
-                      // Disconnect stays on its button. Wrapped in every
-                      // layout and state (inert in regular), so
-                      // ConnectionControls keeps its element and its ref
+                      // alone is small for a finger); Disconnect stays on its
+                      // button. The same widgets in every layout and state,
+                      // so ConnectionControls keeps its element and its ref
                       // through connects, disconnects and mode flips.
                       SonicHitArea(
-                        onTap: metrics.isCompact
+                        onTap: isCompact
                             ? connectAction(context, ref)
-                            : null,
+                            : deviceStatusAction(context, ref),
                         child: SizedBox(
                           height: double.infinity,
                           child: Center(
                             widthFactor: 1,
-                            child: SonicRecess(
-                              radius: 8,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 6,
-                              ),
+                            child: Container(
+                              padding: isCompact
+                                  ? const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 6,
+                                    )
+                                  : const EdgeInsets.only(left: 12),
+                              decoration: isCompact
+                                  ? BoxDecoration(
+                                      color: Palette.surfaceContainerHigh,
+                                      border: Border.all(
+                                        color: Palette.outline,
+                                      ),
+                                      borderRadius: BorderRadius.circular(8),
+                                    )
+                                  : BoxDecoration(
+                                      border: Border(
+                                        left: BorderSide(
+                                          color: Palette.outlineVariant,
+                                        ),
+                                      ),
+                                    ),
                               child: ConnectionControls(
-                                hasStatusLabel: !metrics.isCompact,
+                                hasStatusLabel: !isCompact,
+                                isStatusOnly: !isCompact,
                               ),
                             ),
                           ),
@@ -326,16 +339,15 @@ class TopBar extends ConsumerWidget {
   }
 }
 
-/// The regular bar's branding zone: as wide as the rail below it, the logo
-/// inset so it never crosses the rail/work-area divider.
+/// The regular bar's branding zone: the logo at its own width, as in the
+/// prototype (its 16-px inset, then a 20-px gap to the preset arrows).
 class _LogoZone extends StatelessWidget {
   const _LogoZone();
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: railWidth,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.only(left: 16, right: 4),
       alignment: Alignment.centerLeft,
       child: const SonicLogo(),
     );
@@ -350,11 +362,13 @@ class _PresetStepper extends ConsumerWidget {
   const _PresetStepper({
     required this.current,
     required this.isEnabled,
+    required this.isCompact,
     required this.well,
   });
 
   final PresetRef current;
   final bool isEnabled;
+  final bool isCompact;
   final Widget well;
 
   static const _presetsPerBank = 50;
@@ -367,19 +381,44 @@ class _PresetStepper extends ConsumerWidget {
       (current.number - 1 + by) % _presetsPerBank + 1,
     );
 
-    Widget arrow(IconData icon, int by) => SonicIconButton(
-      icon: icon,
-      size: 20,
-      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 12),
-      onPressed: isEnabled
+    // Regular: the prototype's 36-px filled buttons, inside 44-pt targets.
+    Widget arrow(IconData icon, int by) {
+      final onPressed = isEnabled
           ? () => pickPreset(context, ref, neighbour(by))
-          : null,
-    );
+          : null;
+
+      if (isCompact) {
+        return SonicIconButton(
+          icon: icon,
+          size: 20,
+          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 12),
+          onPressed: onPressed,
+        );
+      }
+
+      return SonicHitArea(
+        onTap: onPressed,
+        padding: const EdgeInsets.all(4),
+        child: Opacity(
+          opacity: isEnabled ? 1 : 0.4,
+          child: Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: Palette.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, size: 18, color: Palette.onSurfaceVariant),
+          ),
+        ),
+      );
+    }
 
     return Row(
       mainAxisSize: .min,
       children: [
         arrow(Icons.chevron_left, -1),
+        SizedBox(width: isCompact ? 0 : 6),
         Flexible(
           child: SonicHitArea(
             onTap: () =>
@@ -387,13 +426,15 @@ class _PresetStepper extends ConsumerWidget {
             child: well,
           ),
         ),
+        SizedBox(width: isCompact ? 0 : 6),
         arrow(Icons.chevron_right, 1),
       ],
     );
   }
 }
 
-/// The loaded preset in a recessed well: its slot chip, its decoded name (if
+/// The loaded preset in the prototype's pill: a 36-px filled control (230
+/// wide in regular) with the slot code in mono accent, the decoded name (if
 /// any) and the unsaved-edits marker.
 class _PresetWell extends StatelessWidget {
   const _PresetWell({
@@ -403,51 +444,55 @@ class _PresetWell extends StatelessWidget {
     required this.isCompact,
   });
 
+  static const pillKey = ValueKey('preset-pill');
+
   final String slot;
   final String name;
   final bool isModified;
 
-  /// Compact: the well sits in a bounded slot and its name gives way
-  /// (ellipsizes) when the bar runs short. Regular lays the well out at its
-  /// natural width (unbounded), where a Flexible would throw.
+  /// Compact: the pill takes its natural width; regular is 230 wide.
   final bool isCompact;
 
   @override
   Widget build(BuildContext context) {
-    final nameBox = ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 220),
-      child: Text(
-        name,
-        maxLines: 1,
-        overflow: .ellipsis,
-        style: AppText.presetTitle.copyWith(color: Palette.textPrimary),
-      ),
-    );
+    final nameStyle = AppText.uiStrong.copyWith(color: Palette.textPrimary);
 
-    return SonicRecess(
-      radius: 8,
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+    return Container(
+      key: pillKey,
+      width: isCompact ? null : 230,
+      height: 36,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: Palette.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(10),
+      ),
       child: Row(
         mainAxisSize: .min,
         children: [
-          PresetSlotChip(slot),
+          Text(slot, style: AppText.mono.copyWith(color: Palette.primary)),
           if (name.isNotEmpty) ...[
-            const SizedBox(width: 8),
-            if (isCompact) Flexible(child: nameBox) else nameBox,
+            const SizedBox(width: 10),
+            Flexible(
+              child: Text(
+                name,
+                maxLines: 1,
+                overflow: .ellipsis,
+                style: nameStyle,
+              ),
+            ),
           ],
-          // Unsaved-edits marker, kept outside the ellipsizing name box so a
-          // long name can't truncate it. "✱" is not in Oswald: the forced
-          // Oswald strut keeps its fallback face's taller line from growing
-          // the well.
+          // Unsaved-edits marker, kept outside the ellipsizing name so a long
+          // name can't truncate it. "✱" is not in Inter: the forced strut
+          // keeps its fallback face's taller line from growing the pill.
           if (isModified) ...[
             const SizedBox(width: 6),
             Text(
               '✱',
               strutStyle: StrutStyle.fromTextStyle(
-                AppText.presetTitle,
+                nameStyle,
                 forceStrutHeight: true,
               ),
-              style: AppText.presetTitle.copyWith(color: Palette.textPrimary),
+              style: nameStyle,
             ),
           ],
         ],

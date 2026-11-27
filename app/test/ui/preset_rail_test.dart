@@ -47,8 +47,8 @@ void main() {
     await tester.pumpWidget(connectedRail());
     await tester.pump();
 
-    expect(find.text('FACTORY'), findsOneWidget);
-    expect(find.text('USER'), findsOneWidget);
+    expect(find.text('Factory'), findsOneWidget);
+    expect(find.text('User'), findsOneWidget);
     // User tab active by default -> User chips visible, Factory chips not.
     expect(find.text('P01'), findsOneWidget);
     expect(find.text('F01'), findsNothing);
@@ -78,12 +78,12 @@ void main() {
       await tester.pump();
       expect(find.text('Connect'), findsNothing);
       expect(find.text('Disconnect'), findsNothing);
-      expect(find.text('FACTORY'), findsNothing);
+      expect(find.text('Factory'), findsNothing);
 
       // Connected: the browser appears; still no Connect/Disconnect in the rail.
       await tester.pumpWidget(connectedRail());
       await tester.pump();
-      expect(find.text('FACTORY'), findsOneWidget);
+      expect(find.text('Factory'), findsOneWidget);
       expect(find.text('Connect'), findsNothing);
       expect(find.text('Disconnect'), findsNothing);
     },
@@ -307,12 +307,12 @@ void main() {
                 child: Column(
                   crossAxisAlignment: .stretch,
                   children: [
-                    const RailControls(onMasterVolume: _ignoreVolume),
+                    const RailControls(),
                     PresetChipColumn(
                       onPick: _ignorePick,
                       currentRowKey: currentRowKey,
                     ),
-                    const RailFooter(),
+                    const MasterVolumeRow(onMasterVolume: _ignoreVolume),
                   ],
                 ),
               ),
@@ -323,10 +323,9 @@ void main() {
       await tester.pump();
 
       expect(find.text('MASTER VOL'), findsOneWidget);
-      expect(find.text('FACTORY'), findsOneWidget);
+      expect(find.text('Factory'), findsOneWidget);
       expect(find.byType(EditableText), findsOneWidget);
       expect(find.byType(PresetChip), findsNWidgets(50));
-      expect(find.text('by Skyggedans'), findsOneWidget);
       expect((currentRowKey.currentWidget! as PresetChip).slot, 'P07');
     },
   );

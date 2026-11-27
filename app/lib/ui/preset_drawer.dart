@@ -257,9 +257,9 @@ class _DrawerHeader extends StatelessWidget {
   }
 }
 
-/// ONE scroll list: the rail's controls, its preset rows, then its footer,
-/// pushed to the bottom while the list is shorter than the panel (the
-/// footer alone while disconnected).
+/// ONE scroll list: the Appearance entry, the rail's Master Vol row, its
+/// controls and its preset rows. Master Vol stays in the list (the rail pins
+/// it under its own): a phone's soft keyboard leaves no room for a pinned row.
 class _DrawerBody extends ConsumerWidget {
   const _DrawerBody({
     required this.scrollController,
@@ -297,8 +297,11 @@ class _DrawerBody extends ConsumerWidget {
                     },
                   ),
                   if (isConnected) ...[
-                    RailControls(
+                    MasterVolumeRow(
                       isHoldToTurnOnTouch: true,
+                      onMasterVolume: onMasterVolume,
+                    ),
+                    RailControls(
                       // Revealing the focused search reveals the list's
                       // height below it too (capped so the caret itself stays
                       // revealable): the matches show above the keyboard.
@@ -308,7 +311,6 @@ class _DrawerBody extends ConsumerWidget {
                         20,
                         math.max(20, constraints.maxHeight - 64),
                       ),
-                      onMasterVolume: onMasterVolume,
                     ),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
@@ -320,7 +322,6 @@ class _DrawerBody extends ConsumerWidget {
                   ],
                 ],
               ),
-              const RailFooter(),
             ],
           ),
         ),
