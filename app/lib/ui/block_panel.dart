@@ -183,21 +183,24 @@ class BlockPanel extends ConsumerWidget {
             );
           }
         case .eqBand:
-          bands.add(
-            KnobControl(
-              value: v,
-              min: p.min ?? 0,
-              max: p.max ?? 100,
-              step: p.step ?? 1,
-              label: p.name,
-              unit: p.unit,
-              valueText: p.textFor(v),
-              size: 32,
-              isDense: true,
-              isEnabled: !isLoading,
-              onChanged: (x) => set(p, x),
-            ),
-          );
+          // On the piece (a graphic EQ's sliders), unless it draws none.
+          if (!drawsKnobs) {
+            bands.add(
+              KnobControl(
+                value: v,
+                min: p.min ?? 0,
+                max: p.max ?? 100,
+                step: p.step ?? 1,
+                label: p.name,
+                unit: p.unit,
+                valueText: p.textFor(v),
+                size: 32,
+                isDense: true,
+                isEnabled: !isLoading,
+                onChanged: (x) => set(p, x),
+              ),
+            );
+          }
       }
     }
 

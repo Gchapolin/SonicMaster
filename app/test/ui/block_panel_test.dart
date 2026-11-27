@@ -154,6 +154,25 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('EQ bands are on the piece, not in the panel', (tester) async {
+    // GT EQ 1: five eqBand sliders and Vol, all drawn on the graphic EQ.
+    await pumpPanel(tester, moduleId: 5, fxId: 501);
+
+    for (final band in ['125Hz', '400Hz', '800Hz', '1.6kHz', '4kHz']) {
+      expect(
+        find.descendant(
+          of: find.byType(BlockPanel),
+          matching: find.textContaining(
+            RegExp(RegExp.escape(band), caseSensitive: false),
+          ),
+        ),
+        findsNothing,
+        reason: band,
+      );
+    }
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('a select with no options shows a dash', (tester) async {
     // Touch Wah with its Mode select stripped of options.
     final real = assets.effects.effects[103]!;

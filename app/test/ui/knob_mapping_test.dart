@@ -53,7 +53,7 @@ void main() {
     expect(fromPieceValue(p, 40.4), 40);
   });
 
-  test('pieceKnobs keeps the knob params, in the effect order', () {
+  test('pieceKnobs keeps the knob and EQ band params, in the effect order', () {
     final def = EffectDefinition(
       id: 1,
       name: 'Fx',
@@ -68,7 +68,10 @@ void main() {
       ],
     );
 
-    expect(pieceKnobs(def).map((p) => p.name), ['A', 'C']);
-    expect(pieceKnobs(def, isCfw: true).map((p) => p.name), ['A', 'C', 'F']);
+    expect(pieceKnobs(def).map((p) => p.name), ['A', 'C', 'E']);
+    expect(
+      pieceKnobs(def, isCfw: true).map((p) => p.name),
+      ['A', 'C', 'E', 'F'],
+    );
   });
 }

@@ -2,12 +2,13 @@ import '../model/effect_definition.dart';
 import '../model/effect_parameter.dart';
 import '../model/slider_nudge.dart';
 
-/// The effect's knob-type params drawn on its piece, in the effect's order
-/// (the ones the pedal's firmware, [isCfw], has).
+/// The effect's knob and EQ band params drawn on its piece (a graphic EQ's
+/// bands are its sliders), in the effect's order (the ones the pedal's
+/// firmware, [isCfw], has).
 List<EffectParameter> pieceKnobs(EffectDefinition def, {bool isCfw = false}) =>
     [
       for (final p in def.paramsFor(isCfw: isCfw))
-        if (p.widgetType == .knob) p,
+        if (p.widgetType == .knob || p.widgetType == .eqBand) p,
     ];
 
 /// [v] (the pedal's value) as a piece knob position, 0..100, clamped to the
