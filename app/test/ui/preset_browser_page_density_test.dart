@@ -79,37 +79,37 @@ void main() {
     ('DLY Sweep + tap tempo', 7, 708, <int, num>{1: 500, 6: 0}, false),
   ];
 
-  group('regular keeps the pre-compact work area', () {
+  // Regular (prototype N_Principal): the 210-px pedalboard band edge to edge
+  // beside the rail, the editor 16 under it filling the rest.
+  group('regular: the band and the editor under it', () {
     for (final size in const [Size(1280, 800), Size(960, 640)]) {
-      testWidgets('${label(size)}: padding 12, gap 34, the 3:2 piece', (
+      testWidgets('${label(size)}: band, editor, the 3:2 piece', (
         tester,
       ) async {
         await pumpPage(tester, size: size);
 
-        final chain = find.byType(ChainView);
+        final band = tester.getRect(find.byKey(const Key('pedalboard-band')));
 
-        expect(tester.getTopLeft(chain).dx, railWidth + 12);
-        expect(gap(tester), 34);
-        // The editor spans the work area: Preset Vol / BPM are in the bar.
-        expect(
-          tester.getSize(editorSurface()).width,
-          tester.getSize(chain).width,
-        );
-        // The knobs are on the selected module's piece: full size at 1280,
-        // scaled down (3:2 kept) beside the block panel at 960.
+        expect(band.left, railWidth);
+        expect(band.height, 210);
+        expect(tester.getRect(editorSurface()).top, band.bottom);
+        expect(tester.getSize(editorSurface()).width, band.width);
+        // The knobs are on the selected module's piece, 3:2 kept.
         final piece = tester.getRect(inEditor(find.byType(GearPiece))).size;
 
         expect(piece.aspectRatio, closeTo(1.5, 0.01));
-        if (size.width == 1280) expect(piece, pieceFit);
         expect(cardWidths(), regularUnitWidths);
       });
 
-      testWidgets('${label(size)}: an empty editor keeps the 212 minimum', (
+      testWidgets('${label(size)}: an empty editor fills the rest', (
         tester,
       ) async {
         await pumpPage(tester, size: size, selectedEffects: const {});
 
-        expect(tester.getSize(editorSurface()).height, 212);
+        final band = tester.getRect(find.byKey(const Key('pedalboard-band')));
+
+        expect(tester.getRect(editorSurface()).bottom, size.height);
+        expect(tester.getRect(editorSurface()).top, band.bottom);
       });
     }
   });

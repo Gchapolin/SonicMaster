@@ -92,7 +92,7 @@ class KnobControl extends HookWidget {
     final valueStyle = isInline
         ? AppText.mono.copyWith(fontSize: 15, color: Palette.textPrimary)
         : isDense
-        ? AppText.knobValueCompact
+        ? SonicMetrics.compact.knobValueStyle
         : metrics.knobValueStyle;
     final readoutWidth = isInline ? 56.0 : size;
     final readoutAlignment = isInline ? Alignment.centerLeft : Alignment.center;
@@ -321,11 +321,17 @@ class KnobControl extends HookWidget {
             onDoubleTap: isEnabled ? startEdit : null,
             child: SizedBox(
               width: readoutWidth,
+              // One line: a reading wider than the dial ("+2.0dB" over a
+              // dense 32-px knob) shrinks instead of wrapping.
               child: Align(
                 alignment: readoutAlignment,
-                child: Text(
-                  valueText ?? '$value${unit ?? ''}',
-                  style: valueStyle,
+                child: FittedBox(
+                  fit: .scaleDown,
+                  child: Text(
+                    valueText ?? '$value${unit ?? ''}',
+                    maxLines: 1,
+                    style: valueStyle,
+                  ),
                 ),
               ),
             ),
@@ -368,7 +374,7 @@ class KnobControl extends HookWidget {
             Text(
               label.toUpperCase(),
               style: isDense
-                  ? AppText.knobLabelCompact
+                  ? SonicMetrics.compact.knobLabelStyle
                   : metrics.knobLabelStyle,
             ),
         ],

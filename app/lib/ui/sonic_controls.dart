@@ -9,6 +9,17 @@ import '../theme/app_colors.dart';
 import '../theme/app_text.dart';
 import 'sonic_metrics.dart';
 
+// The prototype's faces (N_Principal): Inter for the controls' own text.
+
+/// Segmented-control segment label.
+final _segmentStyle = AppText.ui.copyWith(fontWeight: FontWeight.w600);
+
+/// Dropdown trigger label.
+final _controlStyle = AppText.uiStrong.copyWith(fontSize: 14);
+
+/// Dropdown menu item.
+final _menuStyle = AppText.ui.copyWith(fontSize: 14);
+
 /// Official UI-kit controls, faithful to `UI Kit (standalone).html`:
 /// [SonicToggle] reproduces the BOOST toggle and [SonicDropdown] the MODE
 /// dropdown. All boolean toggles and dropdowns in the app use these.
@@ -252,9 +263,9 @@ class SonicButton extends HookWidget {
                   padding: EdgeInsets.symmetric(horizontal: 22 * s),
                   child: Text(
                     label,
-                    style: AppText.button.copyWith(
-                      fontSize: 19 * s,
-                      letterSpacing: 19 * s * 0.12,
+                    style: AppText.uiStrong.copyWith(
+                      fontSize: 17 * s,
+                      letterSpacing: 17 * s * 0.02,
                       color: labelColor,
                     ),
                   ),
@@ -430,7 +441,13 @@ class SonicSegmented<T> extends StatelessWidget {
     this.disabledValues = const {},
     this.segmentPadding = 16,
     this.isProportional = false,
+    this.isFilled = false,
   });
+
+  /// The prototype's filled track (block panel): the control fill, radius 10,
+  /// padding 3, sentence-case Inter labels; the selected segment is a
+  /// rounded pill. It fills the width and sits centred in a 44-pt tap target.
+  final bool isFilled;
 
   final T value;
   final List<SonicItem<T>> segments;
@@ -458,10 +475,7 @@ class SonicSegmented<T> extends StatelessWidget {
     if (!isProportional) return 1;
 
     final painter = TextPainter(
-      text: TextSpan(
-        text: seg.label.toUpperCase(),
-        style: AppText.segmentLabel,
-      ),
+      text: TextSpan(text: seg.label.toUpperCase(), style: _segmentStyle),
       textDirection: TextDirection.ltr,
       maxLines: 1,
     )..layout();
@@ -469,10 +483,86 @@ class SonicSegmented<T> extends StatelessWidget {
     return (painter.width + 2 * segmentPadding).ceil();
   }
 
+  Widget _filled() {
+    final isEnabled = onChanged != null;
+    final n = segments.length;
+
+    // One tap target over the whole 44-pt row: the segment under the finger.
+    return Opacity(
+      opacity: isEnabled ? 1 : 0.45,
+      child: LayoutBuilder(
+        builder: (context, box) => GestureDetector(
+          behavior: .opaque,
+          onTapUp: isEnabled
+              ? (d) {
+                  final i = (d.localPosition.dx / box.maxWidth * n)
+                      .floor()
+                      .clamp(0, n - 1);
+                  final v = segments[i].value;
+
+                  if (!disabledValues.contains(v)) onChanged!(v);
+                }
+              : null,
+          child: SizedBox(
+            width: width,
+            height: math.max(height, 44),
+            child: Center(
+              child: Container(
+                key: const Key('seg-track'),
+                height: height,
+                padding: const EdgeInsets.all(3),
+                decoration: BoxDecoration(
+                  color: Palette.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  spacing: 2,
+                  children: [
+                    for (final seg in segments)
+                      Expanded(
+                        child: Container(
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: seg.value == value
+                                ? Palette.secondaryContainer
+                                : null,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: FittedBox(
+                            fit: .scaleDown,
+                            child: Text(
+                              seg.label,
+                              maxLines: 1,
+                              style: AppText.ui.copyWith(
+                                color: seg.value == value
+                                    ? Palette.onSecondaryContainer
+                                    : Palette.outline.withValues(
+                                        alpha:
+                                            disabledValues.contains(seg.value)
+                                            ? 0.5
+                                            : 1,
+                                      ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (isFilled) return _filled();
+
     final isEnabled = onChanged != null;
-    final isFilled = width != null || isExpanded;
+    final isFullWidth = width != null || isExpanded;
     final segmentWidgets = [
       for (final (i, seg) in segments.indexed)
         _Segment(
@@ -488,7 +578,7 @@ class SonicSegmented<T> extends StatelessWidget {
         ),
     ];
 
-    final children = isFilled
+    final children = isFullWidth
         ? [
             for (final (i, s) in segmentWidgets.indexed)
               Expanded(flex: _flexOf(segments[i]), child: s),
@@ -498,7 +588,7 @@ class SonicSegmented<T> extends StatelessWidget {
     final radius = BorderRadius.circular(height / 2);
     Widget bar = ClipRRect(
       borderRadius: radius,
-      child: Row(mainAxisSize: isFilled ? .max : .min, children: children),
+      child: Row(mainAxisSize: isFullWidth ? .max : .min, children: children),
     );
 
     if (width != null) bar = SizedBox(width: width, child: bar);
@@ -565,7 +655,7 @@ class _Segment extends StatelessWidget {
             child: Text(
               label.toUpperCase(),
               maxLines: 1,
-              style: AppText.segmentLabel.copyWith(
+              style: _segmentStyle.copyWith(
                 color: isDimmed
                     ? Palette.outline
                     : isActive
@@ -594,11 +684,31 @@ class SonicDropdown<T> extends HookWidget {
     this.height = 40,
     this.sections = const {},
     this.fitLabels = false,
+    this.isFilled = false,
+    this.radius = 8,
+    this.labelStyle,
+    this.boxKey,
+    this.hasArrow = true,
   });
 
   final T? value;
   final List<SonicItem<T>> items;
   final ValueChanged<T> onChanged;
+
+  /// The prototype's filled field: the control fill, no outline, [radius]
+  /// corners, a [height] box centred in a 44-pt tap target.
+  final bool isFilled;
+  final double radius;
+
+  /// The trigger label's style (colour aside); null: Inter 14 w600.
+  final TextStyle? labelStyle;
+
+  /// Key of the drawn box (the trigger's visible field).
+  final Key? boxKey;
+
+  /// Filled only: false drops the chevron and centres the label (a 44-wide
+  /// picker such as the EXP slot).
+  final bool hasArrow;
 
   /// Group titles in the open menu: each is shown above the item with that
   /// value, and is not an option itself.
@@ -653,7 +763,7 @@ class SonicDropdown<T> extends HookWidget {
               width!,
               (_widestLabel(
                             labels,
-                            AppText.controlLabel,
+                            _controlStyle,
                             direction: direction,
                             scaler: scaler,
                           ) +
@@ -688,6 +798,11 @@ class SonicDropdown<T> extends HookWidget {
           width: fitted,
           isEnabled: isEnabled,
           height: height,
+          isFilled: isFilled,
+          radius: radius,
+          labelStyle: labelStyle,
+          boxKey: boxKey,
+          hasArrow: hasArrow || !isFilled,
           onTap: toggle,
         ),
       ),
@@ -733,6 +848,11 @@ class _DropdownTrigger extends StatelessWidget {
     required this.width,
     required this.isEnabled,
     required this.height,
+    required this.isFilled,
+    required this.radius,
+    required this.labelStyle,
+    required this.boxKey,
+    required this.hasArrow,
     required this.onTap,
   });
 
@@ -742,45 +862,75 @@ class _DropdownTrigger extends StatelessWidget {
   final double? width;
   final bool isEnabled;
   final double height;
+  final bool isFilled;
+  final double radius;
+  final TextStyle? labelStyle;
+  final Key? boxKey;
+  final bool hasArrow;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    Widget trigger = Container(
-      key: triggerKey,
+    final box = Container(
+      key: boxKey,
       height: height,
-      padding: const EdgeInsets.symmetric(horizontal: 14),
-      // An outlined field; the border is drawn over the content, so it takes
-      // no space.
-      foregroundDecoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Palette.outline),
-      ),
+      padding: isFilled
+          ? EdgeInsets.fromLTRB(hasArrow ? 14 : 4, 0, hasArrow ? 12 : 4, 0)
+          : const EdgeInsets.symmetric(horizontal: 14),
+      // Filled: the control fill. Outlined: the border is drawn over the
+      // content, so it takes no space.
+      decoration: isFilled
+          ? BoxDecoration(
+              color: Palette.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(radius),
+            )
+          : null,
+      foregroundDecoration: isFilled
+          ? null
+          : BoxDecoration(
+              borderRadius: BorderRadius.circular(radius),
+              border: Border.all(color: Palette.outline),
+            ),
       child: Row(
         mainAxisSize: width == null ? .min : .max,
-        mainAxisAlignment: .spaceBetween,
+        mainAxisAlignment: hasArrow ? .spaceBetween : .center,
         children: [
           Flexible(
             child: Text(
               label,
               maxLines: 1,
               overflow: .ellipsis,
-              style: AppText.controlLabel.copyWith(color: Palette.onSurface),
+              style: (labelStyle ?? _controlStyle).copyWith(
+                color: Palette.onSurface,
+              ),
             ),
           ),
-          const SizedBox(width: 8),
-          AnimatedRotation(
-            turns: isOpen ? 0.5 : 0,
-            duration: const Duration(milliseconds: 180),
-            child: Icon(
-              Icons.keyboard_arrow_down,
-              size: 22,
-              color: Palette.onSurfaceVariant,
+          if (hasArrow) ...[
+            const SizedBox(width: 8),
+            AnimatedRotation(
+              turns: isOpen ? 0.5 : 0,
+              duration: const Duration(milliseconds: 180),
+              child: Icon(
+                Icons.keyboard_arrow_down,
+                size: isFilled ? 18 : 22,
+                color: isFilled ? Palette.outline : Palette.onSurfaceVariant,
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );
+
+    // The filled box sits centred in a 44-pt tall tap target.
+    final field = KeyedSubtree(key: triggerKey, child: box);
+    Widget trigger = isFilled
+        ? Padding(
+            padding: EdgeInsets.symmetric(
+              vertical: math.max(0, (44 - height) / 2),
+            ),
+            child: field,
+          )
+        : field;
 
     if (width != null) {
       trigger = SizedBox(width: width, child: trigger);
@@ -875,7 +1025,7 @@ class _DropdownMenu<T> extends HookWidget {
   double _contentWidth(double minWidth) {
     final maxLabel = _widestLabel([
       for (final it in items) it.label,
-    ], AppText.menuItem);
+    ], _menuStyle);
 
     // The item's 14-px side padding, the plate's 6-px padding and 1-px
     // border, both sides.
@@ -886,7 +1036,7 @@ class _DropdownMenu<T> extends HookWidget {
   // row's 10-px top and bottom padding.
   double _listHeight(TextScaler textScaler) {
     final painter = TextPainter(
-      text: const TextSpan(text: 'Ag', style: AppText.menuItem),
+      text: TextSpan(text: 'Ag', style: _menuStyle),
       textDirection: .ltr,
       textScaler: textScaler,
       maxLines: 1,
@@ -1025,7 +1175,7 @@ class _SonicMenuSection extends StatelessWidget {
         title.toUpperCase(),
         maxLines: 1,
         overflow: .ellipsis,
-        style: AppText.menuItem.copyWith(
+        style: _menuStyle.copyWith(
           color: Palette.onSurfaceVariant,
           fontSize: 11,
           letterSpacing: 1,
@@ -1064,7 +1214,7 @@ class _SonicMenuItem extends StatelessWidget {
             label,
             maxLines: 1,
             overflow: .ellipsis,
-            style: AppText.menuItem.copyWith(
+            style: _menuStyle.copyWith(
               color: isSelected
                   ? Palette.onSecondaryContainer
                   : Palette.onSurface,

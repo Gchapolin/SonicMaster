@@ -47,6 +47,7 @@ void fitCfwModels(EffectLibrary effects, CfwInfo? info) {
           id: data.id,
           name: data.name,
           descriptionEn: data.descriptionEn,
+          descriptionPt: data.descriptionPt,
           params: [for (final p in data.params) p.algId == 6 ? _sens : p],
         )
       : data;

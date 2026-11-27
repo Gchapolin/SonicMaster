@@ -50,7 +50,8 @@ class LedButton extends StatelessWidget {
                   SizedBox(width: height * 0.25),
                   Text(
                     label,
-                    style: AppText.ledLabel.copyWith(
+                    style: AppText.section.copyWith(
+                      fontSize: 13,
                       color: isOn
                           ? Palette.onSurface
                           : Palette.onSurfaceVariant,

@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../theme/app_colors.dart';
 import '../theme/app_text.dart';
 
 /// D1: the compact layout applies to any viewport narrower than 960 or shorter
@@ -169,12 +170,20 @@ class SonicMetrics {
 
   /// A KnobControl's value readout and its edit field; also the height of
   /// PanelCell's reserved readout row.
-  TextStyle get knobValueStyle =>
-      isCompact ? AppText.knobValueCompact : AppText.knobValue;
+  /// The prototype's number face (JetBrains Mono).
+  TextStyle get knobValueStyle => AppText.mono.copyWith(
+    fontWeight: FontWeight.w600,
+    fontSize: isCompact ? 13 : 16,
+    color: Palette.textPrimary,
+  );
 
-  /// The caption under a KnobControl or PanelCell.
-  TextStyle get knobLabelStyle =>
-      isCompact ? AppText.knobLabelCompact : AppText.knobLabel;
+  /// The caption under a KnobControl or PanelCell (Inter, tracked).
+  TextStyle get knobLabelStyle => AppText.section.copyWith(
+    fontWeight: FontWeight.w500,
+    fontSize: isCompact ? 10 : 13,
+    letterSpacing: isCompact ? 0.6 : 0.8,
+    color: Palette.textMuted,
+  );
 
   /// Padding of the module editor's header row (title, effect, on/off). Its
   /// horizontal inset is the control row's 8 plus [knobCellPadding], so the

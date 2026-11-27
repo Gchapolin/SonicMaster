@@ -9,6 +9,12 @@ abstract class ModuleControlsText {
       appLang == Lang.pt ? const _Pt() : const _En();
 
   String get scenes;
+
+  /// The block panel's EXP section header (upper-cased there).
+  String get expPedal;
+
+  /// Over the pedalboard's fixed DRV / AMP / IR / EQ block (upper-cased).
+  String get fixedBlock;
   String get follow;
   String get on;
   String get off;
@@ -26,7 +32,11 @@ class _En extends ModuleControlsText {
   const _En();
 
   @override
-  String get scenes => 'SCENES';
+  String get scenes => 'Scenes';
+  @override
+  String get expPedal => 'Expression pedal';
+  @override
+  String get fixedBlock => 'Fixed block';
   @override
   String get follow => 'Follow';
   @override
@@ -55,7 +65,11 @@ class _Pt extends ModuleControlsText {
   const _Pt();
 
   @override
-  String get scenes => 'CENAS';
+  String get scenes => 'Cenas';
+  @override
+  String get expPedal => 'Pedal de expressão';
+  @override
+  String get fixedBlock => 'Bloco fixo';
   @override
   String get follow => 'Seguir';
   @override

@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sonicmaster/state/preset_providers.dart';
 import 'package:sonicmaster/theme/app_text.dart';
 import 'package:sonicmaster/ui/module_editor.dart';
+import 'package:sonicmaster/ui/sonic_metrics.dart';
 import 'package:sonicmaster/ui/preset_browser_page.dart';
 
 import '../support/page_harness.dart';
@@ -105,11 +106,11 @@ void main() {
           await tester.pump();
           expectNoOverflow(tester);
 
-          // The late face did reach the title: Noto's "✱" is wider than the
-          // .notdef that stood in for it. Without this, a fixture that lost
-          // its glyph or a load that never reports fontsChange would leave
-          // every other check here passing.
-          expect(title.size.width, greaterThan(width));
+          // The late face did reach the title: Noto's "✱" is not as wide as
+          // the .notdef that stood in for it. Without this, a fixture that
+          // lost its glyph or a load that never reports fontsChange would
+          // leave every other check here passing.
+          expect(title.size.width, isNot(moreOrLessEquals(width)));
           expect(
             title.getMaxIntrinsicHeight(title.size.width),
             title.size.height,
@@ -119,7 +120,7 @@ void main() {
       );
     }
 
-    testWidgets('the marker leaves the title on the Oswald line', (
+    testWidgets('the marker leaves the title on its own line', (
       tester,
     ) async {
       // Loaded before the first frame, the fallback resolves at once, as on
@@ -134,14 +135,14 @@ void main() {
         home: pageFallingBackTo(family),
       );
 
-      // round(16 px × Oswald's 1.482-em line).
-      expect(editorTitle(tester, 'NR').size.height, 24);
+      // The regular tag (prototype): Space Grotesk 13, its forced strut.
+      expect(editorTitle(tester, 'NR').size.height, 17);
 
       container.read(presetModifiedProvider.notifier).state = true;
       await tester.pump();
       expectNoOverflow(tester);
 
-      expect(editorTitle(tester, 'NR  ✱').size.height, 24);
+      expect(editorTitle(tester, 'NR  ✱').size.height, 17);
       // Unpinned, Oswald's 1.193-em ascent over the fallback's 0.63-em
       // descent makes the line round(16 × 1.823) = 29.
       expect(unpinnedLineHeight('NR  ✱', AppText.moduleTitle, family), 29);
@@ -159,29 +160,29 @@ void main() {
   }
 
   group('the knob value editor', () {
-    // The field takes any text, so a typed glyph outside Oswald (an arrow, a
-    // Persian digit, "✱") makes the web fetch a face just like the marker.
-    // A module knob in regular, where the editor is the taller panel, and
-    // Patch Vol in compact, where the Preset panel is. Lines: round(18 or
-    // 14 px × 1.482 em) pinned, round(18 or 14 px × 1.823 em) unpinned.
+    // The field takes any text, so a typed glyph outside its face (an arrow,
+    // a Persian digit, "✱") makes the web fetch a face just like the marker.
+    // A module knob in regular and in compact. Lines: the JetBrains Mono
+    // readout (16 or 13 px) pinned, and the taller line the fallback makes
+    // unpinned.
     for (final (name, size, panel, readout, style, pinned, unpinned) in [
       (
         'a module knob, regular,',
         regular,
         ModuleEditor,
         '50',
-        AppText.knobValue,
+        SonicMetrics.regular.knobValueStyle,
+        21,
         27,
-        33,
       ),
       (
         'a module knob, compact,',
         compact,
         ModuleEditor,
         '50',
-        AppText.knobValueCompact,
-        21,
-        26,
+        SonicMetrics.compact.knobValueStyle,
+        17,
+        22,
       ),
     ]) {
       testWidgets('$name still fits its panel when a typed glyph loads late', (

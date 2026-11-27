@@ -144,7 +144,8 @@ void main() {
     expect(
       tester.getRect(find.text('Select Bluetooth device')),
       rectMoreOrLessEquals(
-        const Rect.fromLTRB(545.6, 462.5, 734.4, 485.5),
+        // The button label in Inter (prototype face).
+        const Rect.fromLTRB(557.8, 465.5, 722.2, 482.5),
         epsilon: 0.1,
       ),
     );

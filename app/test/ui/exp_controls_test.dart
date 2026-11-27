@@ -86,10 +86,10 @@ void main() {
   ) async {
     await pump(tester);
 
-    expect(inExp(find.text('EXP')), findsOneWidget);
+    expect(inExp(find.text('EXPRESSION PEDAL')), findsOneWidget);
     expect(inExp(find.text('A')), findsOneWidget);
     expect(inExp(find.text('None')), findsOneWidget);
-    expect(inExp(find.text('MOMENT')), findsNothing);
+    expect(inExp(find.text('Moment')), findsNothing);
   });
 
   testWidgets('a slot on this module shows its knob, mode and range', (
@@ -98,7 +98,7 @@ void main() {
     await pump(tester, slots: const [nrThre, null, null, null]);
 
     expect(inExp(find.text('THRE')), findsOneWidget);
-    expect(inExp(find.text('CONT')), findsOneWidget);
+    expect(inExp(find.text('Cont')), findsOneWidget);
     expect(inExp(find.text('0 %')), findsOneWidget);
     expect(inExp(find.text('35 %')), findsOneWidget);
   });
@@ -119,7 +119,7 @@ void main() {
     );
 
     expect(inExp(find.text('AMP')), findsOneWidget);
-    expect(inExp(find.text('CONT')), findsNothing);
+    expect(inExp(find.text('Cont')), findsNothing);
   });
 
   testWidgets('picking a knob assigns the slot over its whole range', (
@@ -152,9 +152,9 @@ void main() {
   testWidgets('mode and range changes keep the target', (tester) async {
     final (c, _) = await pump(tester, slots: const [nrThre, null, null, null]);
 
-    await tester.ensureVisible(inExp(find.text('TOGGLE')));
+    await tester.ensureVisible(inExp(find.text('Toggle')));
     await tester.pump();
-    await tester.tap(inExp(find.text('TOGGLE')));
+    await tester.tap(inExp(find.text('Toggle')));
     await tester.pump();
     await pick(tester, '35 %', '40 %');
 

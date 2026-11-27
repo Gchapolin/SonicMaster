@@ -8,6 +8,7 @@
    "name": "Studio EQ",
    "key": "studio",
    "descriptionEn": "Studio EQ: low cut, bass shelf (100 Hz), sweepable mid with Q, treble shelf (4 kHz), high cut.",
+   "descriptionPt": "EQ de estúdio: corte de graves, shelf de graves (100 Hz), médio varrível com Q, shelf de agudos (4 kHz), corte de agudos.",
    "params": [
     {
      "name": "Low Cut",
@@ -677,6 +678,7 @@
    "name": "Cut 24",
    "key": "cut24",
    "descriptionEn": "Low cut and high cut, 24 dB/oct (or 12 dB/oct with 24dB off).",
+   "descriptionPt": "Corte de graves e de agudos, 24 dB/oct (ou 12 dB/oct com 24dB desligado).",
    "params": [
     {
      "name": "Low Cut",
@@ -941,6 +943,7 @@
    "name": "Parametric 3",
    "key": "para3",
    "descriptionEn": "Three sweepable bands with one shared Q.",
+   "descriptionPt": "Três bandas varríveis com um Q compartilhado.",
    "params": [
     {
      "name": "Low F",
@@ -1608,6 +1611,7 @@
    "name": "Tilt EQ",
    "key": "tilt",
    "descriptionEn": "Tilts the tone darker or brighter around the pivot, with low and high cut.",
+   "descriptionPt": "Inclina o timbre para o mais escuro ou o mais brilhante em torno do ponto de pivô, com corte de graves e de agudos.",
    "params": [
     {
      "name": "Tilt",

@@ -86,7 +86,23 @@ class PedalPiece extends StatelessWidget {
   TextStyle _labelStyle(double size) =>
       _font(size, spec.label, spacing: 0.5, height: 1.2);
 
-  Widget _knob(int i, double size, double lbl) => Column(
+  /// The widest knob label set at [lbl].
+  double _widestLabel(double lbl) {
+    var w = 0.0;
+    for (final name in spec.knobNames) {
+      final tp = TextPainter(
+        text: TextSpan(text: name.toUpperCase(), style: _labelStyle(lbl)),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      w = math.max(w, tp.width);
+      tp.dispose();
+    }
+    return w;
+  }
+
+  // Every label sits in a box as wide as the widest one ([labelW]), so a
+  // narrow cell scales them all by the same factor: one size per piece.
+  Widget _knob(int i, double size, double lbl, double labelW) => Column(
     mainAxisSize: MainAxisSize.min,
     children: [
       SizedBox.square(
@@ -98,11 +114,15 @@ class PedalPiece extends StatelessWidget {
       const SizedBox(height: 2),
       FittedBox(
         fit: BoxFit.scaleDown,
-        child: Text(
-          spec.knobNames[i].toUpperCase(),
-          maxLines: 1,
-          softWrap: false,
-          style: _labelStyle(lbl),
+        child: SizedBox(
+          width: labelW,
+          child: Text(
+            spec.knobNames[i].toUpperCase(),
+            maxLines: 1,
+            softWrap: false,
+            textAlign: TextAlign.center,
+            style: _labelStyle(lbl),
+          ),
         ),
       ),
     ],
@@ -121,17 +141,10 @@ class PedalPiece extends StatelessWidget {
     double Function(int i)? sizeOf,
   }) {
     final n = spec.knobNames.length;
+    final labelW = _widestLabel(lbl);
     double? cellW;
     if (avail != null) {
-      var w = kSize;
-      for (final name in spec.knobNames) {
-        final tp = TextPainter(
-          text: TextSpan(text: name.toUpperCase(), style: _labelStyle(lbl)),
-          textDirection: TextDirection.ltr,
-        )..layout();
-        w = math.max(w, tp.width);
-        tp.dispose();
-      }
+      final w = math.max(kSize, labelW);
       cellW = math.min(w, (avail - hGap * (cols - 1)) / cols);
     }
     final rows = <Widget>[];
@@ -142,7 +155,7 @@ class PedalPiece extends StatelessWidget {
         final i = r + c;
         final cell = Align(
           alignment: Alignment.topCenter,
-          child: i < n ? _knob(i, sizeOf?.call(i) ?? kSize, lbl) : null,
+          child: i < n ? _knob(i, sizeOf?.call(i) ?? kSize, lbl, labelW) : null,
         );
         // The whole grid cell drags, not just the cap. With a fixed cell width
         // the cell also absorbs half of each neighbouring gap (same layout,

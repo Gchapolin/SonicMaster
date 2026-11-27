@@ -224,7 +224,7 @@ class AmpPiece extends StatelessWidget {
     );
   }
 
-  Widget _knob(int i) => KnobDrag(
+  Widget _knob(int i, double labelW) => KnobDrag(
     value: _value(i),
     perPx: 0.5,
     onChanged: onKnob == null ? null : (v) => onKnob!((i, v)),
@@ -238,13 +238,18 @@ class AmpPiece extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 2),
+        // As wide as the widest label: every label of the amp scales alike.
         FittedBox(
           fit: BoxFit.scaleDown,
-          child: Text(
-            spec.knobNames[i].toUpperCase(),
-            maxLines: 1,
-            softWrap: false,
-            style: _font(8, spec.panel.ink),
+          child: SizedBox(
+            width: labelW,
+            child: Text(
+              spec.knobNames[i].toUpperCase(),
+              maxLines: 1,
+              softWrap: false,
+              textAlign: TextAlign.center,
+              style: _font(8, spec.panel.ink),
+            ),
           ),
         ),
       ],
@@ -258,6 +263,18 @@ class AmpPiece extends StatelessWidget {
       (c, s) => paintJack(c, s.center(Offset.zero), 11),
     );
     final toggle = PaintBox(9, 9, (c, s) => _paintToggle(c));
+    var labelW = 0.0;
+    for (final name in spec.knobNames) {
+      final tp = TextPainter(
+        text: TextSpan(
+          text: name.toUpperCase(),
+          style: _font(8, spec.panel.ink),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      labelW = math.max(labelW, tp.width);
+      tp.dispose();
+    }
     return CustomPaint(
       painter: _PanelPainter(spec.panel, radius, wear),
       child: Stack(
@@ -286,7 +303,7 @@ class AmpPiece extends StatelessWidget {
                 jack,
                 jack,
                 for (var i = 0; i < spec.knobNames.length; i++)
-                  Flexible(child: _knob(i)),
+                  Flexible(child: _knob(i, labelW)),
                 if (toggles) ...[toggle, toggle],
                 // IgnorePointer: the glass passes taps to the target below.
                 IgnorePointer(

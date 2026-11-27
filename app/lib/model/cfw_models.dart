@@ -53,6 +53,7 @@ List<CfwModel> parseCfwModels(
             id: m['fxId'] as int,
             name: m['name'] as String,
             descriptionEn: (m['descriptionEn'] as String?) ?? '',
+            descriptionPt: (m['descriptionPt'] as String?) ?? '',
             params: [
               for (final p
                   in (m['params'] as List).cast<Map<String, dynamic>>())
@@ -158,6 +159,7 @@ void addCfwStockExtras(EffectLibrary effects, Map<String, dynamic> fxJson) {
         id: def.id,
         name: def.name,
         descriptionEn: def.descriptionEn,
+        descriptionPt: def.descriptionPt,
         params: [
           for (final p in def.params)
             taken.contains(p.algId) ||

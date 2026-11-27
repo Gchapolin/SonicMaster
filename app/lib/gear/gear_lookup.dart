@@ -27,3 +27,21 @@ bool pieceDrawsKnobs(String model, GearKind kind) =>
       PedalSpec(family: PedalFamily.wah) => false,
       _ => true,
     };
+
+/// The box [model]'s mini piece fits in on the pedalboard (prototype
+/// N_Principal fitW / fitH): amp 118x76, cab 88x92, pedal 66x114. The
+/// landscape pedals (rack, studio, tape: twice as wide as tall or near it)
+/// take the amp's box, so they read at the size of their neighbours instead
+/// of a sliver across the pedal's.
+({double width, double height}) pedalboardSlot(String? model, GearKind kind) =>
+    switch (kind) {
+      GearKind.amp => (width: 118, height: 76),
+      GearKind.cab => (width: 88, height: 92),
+      GearKind.pedal => switch (model == null ? null : pedalSpecs[model]) {
+        PedalSpec(
+          family: PedalFamily.rack || PedalFamily.studio || PedalFamily.tape,
+        ) =>
+          (width: 118, height: 76),
+        _ => (width: 66, height: 114),
+      },
+    };

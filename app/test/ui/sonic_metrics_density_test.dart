@@ -24,8 +24,12 @@ void main() {
     // knob_control.dart:141, sonic_controls.dart:517
     expect(metrics.knobCellPadding, 8);
     // knob_control.dart:123/:135/:154, sonic_controls.dart:521/:529
-    expect(metrics.knobValueStyle, equals(AppText.knobValue));
-    expect(metrics.knobLabelStyle, equals(AppText.knobLabel));
+    // The prototype faces: Mono numbers, Inter captions (wider than the old
+    // condensed face, so a little smaller).
+    expect(metrics.knobValueStyle.fontFamily, AppText.mono.fontFamily);
+    expect(metrics.knobValueStyle.fontSize, 16);
+    expect(metrics.knobLabelStyle.fontFamily, AppText.ui.fontFamily);
+    expect(metrics.knobLabelStyle.fontSize, 13);
     // module_editor.dart:85
     expect(
       metrics.editorHeaderPadding,
@@ -68,8 +72,11 @@ void main() {
     expect(metrics.presetPanelWidth, 194);
     expect(metrics.panelKnobSize, 72);
     expect(metrics.knobCellPadding, 4);
-    expect(metrics.knobValueStyle, equals(AppText.knobValueCompact));
-    expect(metrics.knobLabelStyle, equals(AppText.knobLabelCompact));
+    expect(metrics.knobValueStyle.fontFamily, AppText.mono.fontFamily);
+    expect(metrics.knobValueStyle.fontSize, 13);
+    expect(metrics.knobLabelStyle.fontFamily, AppText.ui.fontFamily);
+    expect(metrics.knobLabelStyle.fontSize, 10);
+    expect(metrics.knobLabelStyle.letterSpacing, 0.6);
     expect(
       metrics.editorHeaderPadding,
       const EdgeInsets.fromLTRB(12, 4, 12, 4),

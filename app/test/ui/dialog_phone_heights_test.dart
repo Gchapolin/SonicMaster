@@ -367,8 +367,9 @@ void main() {
       ('save preset', Rect.fromLTRB(450, 242.5, 830, 557.5)),
       ('device picker, scanning', Rect.fromLTRB(410, 145, 870, 655)),
       // The redesign's three-column grid, Close in the header, the app
-      // credit at its foot.
-      ('settings', Rect.fromLTRB(90, 135.5, 1190, 664.5)),
+      // credit at its foot (Inter segments and buttons since the prototype
+      // faces).
+      ('settings', Rect.fromLTRB(90, 140.5, 1190, 659.5)),
     ]) {
       testWidgets(name, (tester) async {
         final dialog = _cases.firstWhere((c) => c.name == name);
