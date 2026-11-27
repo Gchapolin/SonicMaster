@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sonicmaster/device/demo_transport.dart';
 import 'package:sonicmaster/device/device_service.dart';
 import 'package:sonicmaster/model/preset_ref.dart';
 import 'package:sonicmaster/state/data_providers.dart';
@@ -37,11 +38,14 @@ void main() {
     WidgetTester tester, {
     PresetRef? current = const PresetRef(.user, 7),
     bool isModified = false,
+    bool acks = false,
   }) async {
     final container = ProviderContainer(
       overrides: [
         deviceServiceProvider.overrideWith((ref) {
-          final service = DeviceService(SilentTransport())..startListening();
+          final service = DeviceService(
+            acks ? DemoTransport() : SilentTransport(),
+          )..startListening();
 
           ref.onDispose(service.dispose);
 
@@ -92,10 +96,7 @@ void main() {
 
   group('PresetRef.neighbour', () {
     test('steps within the bank and wraps at both ends', () {
-      expect(
-        const PresetRef(.user, 7).neighbour(1),
-        const PresetRef(.user, 8),
-      );
+      expect(const PresetRef(.user, 7).neighbour(1), const PresetRef(.user, 8));
       expect(
         const PresetRef(.user, 7).neighbour(-1),
         const PresetRef(.user, 6),
@@ -135,14 +136,16 @@ void main() {
       expect(lastUpdate()['nextName'], 'Grunge');
     }, variant: ios);
 
-    testWidgets('with no current preset, next is P01 and there is no previous', (
-      tester,
-    ) async {
-      await pumpBridge(tester, current: null);
+    testWidgets(
+      'with no current preset, next is P01 and there is no previous',
+      (tester) async {
+        await pumpBridge(tester, current: null);
 
-      expect(lastUpdate()['prevLabel'], '');
-      expect(lastUpdate()['nextLabel'], 'P01');
-    }, variant: ios);
+        expect(lastUpdate()['prevLabel'], '');
+        expect(lastUpdate()['nextLabel'], 'P01');
+      },
+      variant: ios,
+    );
 
     testWidgets('sends an update when the preset changes', (tester) async {
       final c = await pumpBridge(tester);
@@ -170,6 +173,22 @@ void main() {
       await pumpPastAckTimeout(tester);
 
       expect(c.read(presetLoadStatusProvider), 'P08: no ACK (timeout)');
+    }, variant: ios);
+
+    testWidgets('a skip updates the window with no frame (app in background)', (
+      tester,
+    ) async {
+      final c = await pumpBridge(tester, acks: true);
+
+      // In the background the app draws no frames: only time passes.
+      await tester.runAsync(() async {
+        await fromNative(tester, 'next');
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+      });
+
+      expect(c.read(presetLoadStatusProvider), 'loaded P08');
+      expect(lastUpdate()['label'], 'P08');
+      expect(lastUpdate()['name'], 'Grunge');
     }, variant: ios);
 
     testWidgets('previous loads the previous preset', (tester) async {
