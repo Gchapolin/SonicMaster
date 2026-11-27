@@ -879,6 +879,7 @@ class PieceEditor extends HookWidget {
         fit: pieceFit,
         knobNames: [for (final k in knobs) k.name],
         values: [for (final k in knobs) toPieceValue(k, _valueOf(k))],
+        valueTexts: [for (final k in knobs) pieceValueText(k, _valueOf(k))],
         onKnob: isEnabled
             ? (e) {
                 // A piece with no knob params (the generic one draws

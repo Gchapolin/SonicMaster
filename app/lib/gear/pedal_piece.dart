@@ -55,6 +55,7 @@ class PedalPiece extends StatelessWidget {
     this.onSwitch,
     this.lit = true,
     this.wear = 0.6,
+    this.valueTexts,
   });
 
   final PedalSpec spec;
@@ -64,6 +65,10 @@ class PedalPiece extends StatelessWidget {
   final VoidCallback? onSwitch;
   final bool lit;
   final double wear;
+
+  /// Each knob's value as text. Given (the editor), a graphic EQ prints its
+  /// band and value around every slider; null keeps the prototype's look.
+  final List<String>? valueTexts;
 
   double _value(int i, [List<double> defaults = _defaultVals]) {
     final v = values != null && i < values!.length ? values![i] : null;
@@ -403,19 +408,49 @@ class PedalPiece extends StatelessWidget {
         w = 110;
         switches = [];
         cols = 0;
+        final texts = valueTexts;
+        Widget slider(int i) => KnobDrag(
+          value: _value(i, _sliderVals),
+          perPx: 100 / 66,
+          onChanged: _report(i),
+          child: _slider(_value(i, _sliderVals), scale: texts != null),
+        );
+        // ponytail: 5-px print, readable once the editor scales the piece up.
+        Widget print(String t, String family) => SizedBox(
+          height: 6,
+          child: FittedBox(
+            child: Text(
+              t,
+              maxLines: 1,
+              style: _font(5, spec.label, spacing: 0.2, family: family),
+            ),
+          ),
+        );
         sliders = Padding(
-          padding: const EdgeInsets.only(top: 10),
+          padding: EdgeInsets.only(top: texts == null ? 10 : 6),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              for (var i = 0; i < math.min(nk, 6); i++) ...[
-                KnobDrag(
-                  value: _value(i, _sliderVals),
-                  perPx: 100 / 66,
-                  onChanged: _report(i),
-                  child: _slider(_value(i, _sliderVals)),
-                ),
-              ],
+              for (var i = 0; i < math.min(nk, 6); i++)
+                if (texts == null)
+                  slider(i)
+                else
+                  SizedBox(
+                    width: 14,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        print(_band(spec.knobNames[i]), 'Barlow Condensed'),
+                        const SizedBox(height: 2),
+                        slider(i),
+                        const SizedBox(height: 2),
+                        print(
+                          i < texts.length ? texts[i] : '',
+                          'Share Tech Mono',
+                        ),
+                      ],
+                    ),
+                  ),
             ],
           ),
         );
@@ -424,7 +459,8 @@ class PedalPiece extends StatelessWidget {
         tTop = 4;
         below.addAll([
           const SizedBox(height: 6),
-          _plate(92, 54),
+          // The printed bands take their height from the plate.
+          _plate(92, valueTexts == null ? 54 : 34),
           const SizedBox(height: 8),
         ]);
       case PedalFamily.modern:
@@ -557,7 +593,22 @@ class PedalPiece extends StatelessWidget {
     );
   }
 
-  Widget _slider(double p) => PaintBox(11, 66, (c, s) {
+  /// A graphic EQ band's short print: "125Hz" -> "125", "Vol" -> "VOL".
+  static String _band(String name) =>
+      name.replaceFirst(RegExp('hz\$', caseSensitive: false), '').toUpperCase();
+
+  Widget _slider(double p, {bool scale = false}) => PaintBox(11, 66, (c, s) {
+    if (scale) {
+      // Scale marks either side of the track; the middle (0 dB) is darker.
+      for (var i = 0; i <= 4; i++) {
+        final y = 3.5 + (s.height - 7) * i / 4;
+        final tick = Paint()
+          ..color = Color(i == 2 ? 0x8C000000 : 0x40000000)
+          ..strokeWidth = 0.6;
+        c.drawLine(Offset(0, y), Offset(2.5, y), tick);
+        c.drawLine(Offset(s.width - 2.5, y), Offset(s.width, y), tick);
+      }
+    }
     c.drawRRect(
       RRect.fromRectAndRadius(
         Rect.fromLTWH(4, 0, 3, s.height),

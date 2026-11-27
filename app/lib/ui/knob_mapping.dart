@@ -33,3 +33,14 @@ num fromPieceValue(EffectParameter p, double v) {
 
   return snapToStep(snapped.clamp(min, max), step);
 }
+
+/// [p]'s value [v] as the piece prints it under a graphic EQ slider: the
+/// param's own text, else the number, signed when the range is bipolar.
+String pieceValueText(EffectParameter p, num v) {
+  final text = p.textFor(v);
+  if (text != null) return text;
+
+  final n = v == v.roundToDouble() ? v.round().toString() : v.toString();
+
+  return (p.min ?? 0) < 0 && v > 0 ? '+$n' : n;
+}

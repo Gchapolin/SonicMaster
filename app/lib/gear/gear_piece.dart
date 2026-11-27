@@ -110,6 +110,7 @@ class GearPiece extends StatelessWidget {
     this.onSwitch,
     this.lit = true,
     this.knobNames,
+    this.valueTexts,
   });
 
   final String model;
@@ -120,6 +121,9 @@ class GearPiece extends StatelessWidget {
   final VoidCallback? onSwitch;
   final bool lit;
   final List<String>? knobNames;
+
+  /// Each knob's value as text, for pieces that print it (graphic EQ).
+  final List<String>? valueTexts;
 
   Widget _piece() {
     // An empty list would make the pedal layout divide by zero: use the spec.
@@ -134,6 +138,7 @@ class GearPiece extends StatelessWidget {
         onKnob: onKnob,
         onSwitch: onSwitch,
         lit: lit,
+        valueTexts: valueTexts,
       ),
       final AmpSpec s => AmpPiece(
         spec: names == null

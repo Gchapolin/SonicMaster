@@ -69,9 +69,35 @@ void main() {
     );
 
     expect(pieceKnobs(def).map((p) => p.name), ['A', 'C', 'E']);
-    expect(
-      pieceKnobs(def, isCfw: true).map((p) => p.name),
-      ['A', 'C', 'E', 'F'],
+    expect(pieceKnobs(def, isCfw: true).map((p) => p.name), [
+      'A',
+      'C',
+      'E',
+      'F',
+    ]);
+  });
+
+  test('pieceValueText signs a bipolar band and leaves the rest as is', () {
+    final band = EffectParameter(
+      name: '4kHz',
+      algId: 0,
+      defaultValue: 0,
+      widgetType: .eqBand,
+      min: -50,
+      max: 50,
     );
+    final vol = EffectParameter(
+      name: 'Vol',
+      algId: 1,
+      defaultValue: 50,
+      widgetType: .knob,
+      min: 0,
+      max: 100,
+    );
+
+    expect(pieceValueText(band, 8), '+8');
+    expect(pieceValueText(band, -3), '-3');
+    expect(pieceValueText(band, 0), '0');
+    expect(pieceValueText(vol, 50), '50');
   });
 }
