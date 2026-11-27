@@ -12,6 +12,7 @@ import 'src/rust/frb_generated.dart';
 import 'state/connection_prefs.dart';
 import 'state/device_providers.dart';
 import 'state/palette_providers.dart';
+import 'state/pip_bridge.dart';
 import 'theme/app_colors.dart';
 import 'theme/app_text.dart';
 import 'ui/preset_browser_page.dart';
@@ -92,7 +93,8 @@ Future<void> main() async {
         // whose name we don't auto-recognize stays gated across launches.
         deviceModelOverrideProvider.overrideWith((_) => prefs.modelOverride),
       ],
-      child: const SonicMasterApp(),
+      // Keeps the iOS Picture-in-Picture window in sync (no-op elsewhere).
+      child: const PipBridge(child: SonicMasterApp()),
     ),
   );
 }
