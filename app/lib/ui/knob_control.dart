@@ -7,7 +7,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 
 import '../model/slider_nudge.dart';
 import '../theme/app_colors.dart';
-import '../theme/app_text.dart';
 import 'sonic_field.dart';
 import 'sonic_metrics.dart';
 
@@ -85,7 +84,7 @@ class KnobControl extends HookWidget {
     final editorFocus = useFocusNode();
     final metrics = SonicMetrics.of(context);
     final valueStyle = isDense
-        ? AppText.knobValueCompact
+        ? SonicMetrics.compact.knobValueStyle
         : metrics.knobValueStyle;
 
     // One step of vertical travel, shared by every pointer kind: up increases
@@ -311,10 +310,16 @@ class KnobControl extends HookWidget {
             onDoubleTap: isEnabled ? startEdit : null,
             child: SizedBox(
               width: size,
+              // One line: a reading wider than the dial ("+2.0dB" over a
+              // dense 32-px knob) shrinks instead of wrapping.
               child: Center(
-                child: Text(
-                  valueText ?? '$value${unit ?? ''}',
-                  style: valueStyle,
+                child: FittedBox(
+                  fit: .scaleDown,
+                  child: Text(
+                    valueText ?? '$value${unit ?? ''}',
+                    maxLines: 1,
+                    style: valueStyle,
+                  ),
                 ),
               ),
             ),
@@ -336,7 +341,7 @@ class KnobControl extends HookWidget {
             Text(
               label.toUpperCase(),
               style: isDense
-                  ? AppText.knobLabelCompact
+                  ? SonicMetrics.compact.knobLabelStyle
                   : metrics.knobLabelStyle,
             ),
         ],

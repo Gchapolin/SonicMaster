@@ -164,15 +164,14 @@ void main() {
           .segmentPadding,
       10,
     );
-    // NONE / FS1 / FS2 at 10 px a side, in a 4-px cell padding: 44 px
-    // narrower than the regular 196.1-px cell.
+    // NONE / FS1 / FS2 (Inter) at 10 px a side, in a 4-px cell padding.
     expect(
       tester
           .getSize(
             find.ancestor(of: footswitch, matching: find.byType(PanelCell)),
           )
           .width,
-      closeTo(152.1, 0.1),
+      closeTo(153.4, 0.1),
     );
   });
 

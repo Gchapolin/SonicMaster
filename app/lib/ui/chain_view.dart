@@ -183,9 +183,7 @@ class ModuleCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             name,
-            style: AppText.chainLabel.copyWith(
-              fontSize: 11,
-              letterSpacing: 1,
+            style: AppText.section.copyWith(
               color: isSelected ? Palette.primary : Palette.faint,
             ),
           ),
@@ -246,7 +244,8 @@ class ModuleCard extends StatelessWidget {
           SizedBox(height: metrics.chainIconGap),
           Text(
             name,
-            style: AppText.chainLabel.copyWith(
+            style: AppText.section.copyWith(
+              fontSize: 12,
               color: isSelected
                   ? Palette.onSecondaryContainer
                   : Palette.chainIcon,
@@ -256,7 +255,11 @@ class ModuleCard extends StatelessWidget {
             effect ?? '—',
             maxLines: 1,
             overflow: .ellipsis,
-            style: AppText.chainSub,
+            style: AppText.ui.copyWith(
+              fontSize: 10,
+              fontWeight: FontWeight.w400,
+              color: Palette.chainEffect,
+            ),
           ),
         ],
       ),
@@ -336,7 +339,7 @@ class _FsBadge extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: AppText.chainLabel.copyWith(
+        style: AppText.section.copyWith(
           color: Palette.onPrimaryContainer,
           fontSize: 11,
           height: 1.1,

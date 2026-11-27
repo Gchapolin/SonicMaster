@@ -217,7 +217,10 @@ class ExpControls extends HookConsumerWidget {
         children: [
           Text(
             'EXP',
-            style: AppText.dialogBody.copyWith(color: Palette.onSurfaceVariant),
+            style: AppText.ui.copyWith(
+              fontSize: 14,
+              color: Palette.onSurfaceVariant,
+            ),
           ),
           slotPicker,
           targetAt(132),

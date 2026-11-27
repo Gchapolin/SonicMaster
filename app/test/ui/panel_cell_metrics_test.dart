@@ -53,13 +53,11 @@ void main() {
     );
   }
 
-  // Oswald lines are 1.482 em, laid out in whole pixels: readout 18 -> 27,
-  // caption 16.5 -> 24, compact readout 14 -> 21, compact caption 12 -> 18.
-  // Regular: 8 + 27 + 2 + 120 + 2 + 24 + 8 = 191 (today's cell).
-  // Compact: 4 + 21 + 2 + 72 + 2 + 18 + 4 = 123.
+  // The prototype faces (JetBrains Mono readout, Inter caption) at their
+  // sizes, in whole-pixel lines.
   for (final (metrics, cellSize) in const [
-    (SonicMetrics.regular, Size(136, 191)),
-    (SonicMetrics.compact, Size(80, 123)),
+    (SonicMetrics.regular, Size(136, 177)),
+    (SonicMetrics.compact, Size(80, 113)),
   ]) {
     final mode = metrics.isCompact ? 'compact' : 'regular';
 
@@ -86,9 +84,9 @@ void main() {
   ) async {
     await pumpCells(tester, SonicMetrics.compact);
 
-    expect(tester.widget<Text>(find.text('50')).style!.fontSize, 14);
-    expect(tester.widget<Text>(find.text('GAIN')).style!.fontSize, 12);
-    expect(tester.widget<Text>(find.text('TRAIL')).style!.fontSize, 12);
+    expect(tester.widget<Text>(find.text('50')).style!.fontSize, 13);
+    expect(tester.widget<Text>(find.text('GAIN')).style!.fontSize, 10);
+    expect(tester.widget<Text>(find.text('TRAIL')).style!.fontSize, 10);
   });
 
   // The rail's Master Vol is a panel knob too: 120 beside the desktop work
@@ -157,7 +155,7 @@ void main() {
     );
     expect(editor.widget.controller.text, '73');
     expect(editor.widget.focusNode.hasFocus, isTrue);
-    expect(editor.widget.style.fontSize, 14);
+    expect(editor.widget.style.fontSize, 13);
 
     await tester.testTextInput.receiveAction(.done);
     await tester.pump();

@@ -127,7 +127,8 @@ class SceneControls extends ConsumerWidget {
             children: [
               Text(
                 t.scenes,
-                style: AppText.dialogBody.copyWith(
+                style: AppText.ui.copyWith(
+                  fontSize: 14,
                   color: Palette.onSurfaceVariant,
                 ),
               ),

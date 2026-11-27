@@ -224,10 +224,10 @@ class ModuleEditor extends ConsumerWidget {
               Text(
                 '$moduleName${modified ? '  ✱' : ''}',
                 strutStyle: StrutStyle.fromTextStyle(
-                  AppText.moduleTitle,
+                  _compactTagStyle,
                   forceStrutHeight: true,
                 ),
-                style: AppText.moduleTitle.copyWith(color: Palette.textPrimary),
+                style: _compactTagStyle.copyWith(color: Palette.textPrimary),
               ),
               // effect type — dropdown (if selectable) or static name, centered
               // between the title and the toggle. Expanded + Center puts it
@@ -262,7 +262,7 @@ class ModuleEditor extends ConsumerWidget {
                           effectDisplayName(fxId!, data.effects, userNames),
                           maxLines: 1,
                           overflow: .ellipsis,
-                          style: AppText.controlLabel.copyWith(
+                          style: AppText.uiStrong.copyWith(
                             color: Palette.textPrimary,
                           ),
                         ),
@@ -725,6 +725,9 @@ class _ModelHeader extends StatelessWidget {
 /// line fit under the pedalboard without scrolling.
 const pieceFit = Size(600, 400);
 
+/// The compact header's module tag (prototype face: Space Grotesk).
+final _compactTagStyle = AppText.title.copyWith(fontSize: 16, letterSpacing: 1);
+
 /// The regular editor's height where none is given (a scroll view): the
 /// 44-pt header, its 12-px gap, the piece at [pieceFit], the value line.
 const double _naturalEditorHeight = 44 + 12 + 400 + 8 + 44;
@@ -799,14 +802,9 @@ class PieceEditor extends HookWidget {
         key: const Key('piece-value'),
         mainAxisSize: .min,
         children: [
-          // 5 px under it: it stays level with the value text (centred in
-          // the 39 px it had before the value's 44-px hit area).
-          Padding(
-            padding: const EdgeInsets.only(bottom: 5),
-            child: Text(
-              p.name,
-              style: AppText.section.copyWith(color: Palette.textMuted),
-            ),
+          Text(
+            p.name,
+            style: AppText.section.copyWith(color: Palette.textMuted),
           ),
           const SizedBox(width: 10),
           if (isEditing.value)
@@ -835,12 +833,15 @@ class PieceEditor extends HookWidget {
               ),
             )
           else
-            // 6 above (as before) and 11 below, so the row is 44 high.
-            Padding(
-              padding: const EdgeInsets.only(top: 6, bottom: 11),
-              child: Text(
-                p.textFor(value) ?? '$value${p.unit ?? ''}',
-                style: valueStyle,
+            // Centred in the row's 44-pt height.
+            SizedBox(
+              height: 44,
+              child: Center(
+                widthFactor: 1,
+                child: Text(
+                  p.textFor(value) ?? '$value${p.unit ?? ''}',
+                  style: valueStyle,
+                ),
               ),
             ),
         ],

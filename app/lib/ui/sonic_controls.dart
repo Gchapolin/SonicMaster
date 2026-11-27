@@ -9,6 +9,17 @@ import '../theme/app_colors.dart';
 import '../theme/app_text.dart';
 import 'sonic_metrics.dart';
 
+// The prototype's faces (N_Principal): Inter for the controls' own text.
+
+/// Segmented-control segment label.
+final _segmentStyle = AppText.ui.copyWith(fontWeight: FontWeight.w600);
+
+/// Dropdown trigger label.
+final _controlStyle = AppText.uiStrong.copyWith(fontSize: 14);
+
+/// Dropdown menu item.
+final _menuStyle = AppText.ui.copyWith(fontSize: 14);
+
 /// Official UI-kit controls, faithful to `UI Kit (standalone).html`:
 /// [SonicToggle] reproduces the BOOST toggle and [SonicDropdown] the MODE
 /// dropdown. All boolean toggles and dropdowns in the app use these.
@@ -252,9 +263,9 @@ class SonicButton extends HookWidget {
                   padding: EdgeInsets.symmetric(horizontal: 22 * s),
                   child: Text(
                     label,
-                    style: AppText.button.copyWith(
-                      fontSize: 19 * s,
-                      letterSpacing: 19 * s * 0.12,
+                    style: AppText.uiStrong.copyWith(
+                      fontSize: 17 * s,
+                      letterSpacing: 17 * s * 0.02,
                       color: labelColor,
                     ),
                   ),
@@ -464,10 +475,7 @@ class SonicSegmented<T> extends StatelessWidget {
     if (!isProportional) return 1;
 
     final painter = TextPainter(
-      text: TextSpan(
-        text: seg.label.toUpperCase(),
-        style: AppText.segmentLabel,
-      ),
+      text: TextSpan(text: seg.label.toUpperCase(), style: _segmentStyle),
       textDirection: TextDirection.ltr,
       maxLines: 1,
     )..layout();
@@ -647,7 +655,7 @@ class _Segment extends StatelessWidget {
             child: Text(
               label.toUpperCase(),
               maxLines: 1,
-              style: AppText.segmentLabel.copyWith(
+              style: _segmentStyle.copyWith(
                 color: isDimmed
                     ? Palette.outline
                     : isActive
@@ -692,7 +700,7 @@ class SonicDropdown<T> extends HookWidget {
   final bool isFilled;
   final double radius;
 
-  /// The trigger label's style (colour aside); null: [AppText.controlLabel].
+  /// The trigger label's style (colour aside); null: Inter 14 w600.
   final TextStyle? labelStyle;
 
   /// Key of the drawn box (the trigger's visible field).
@@ -755,7 +763,7 @@ class SonicDropdown<T> extends HookWidget {
               width!,
               (_widestLabel(
                             labels,
-                            AppText.controlLabel,
+                            _controlStyle,
                             direction: direction,
                             scaler: scaler,
                           ) +
@@ -892,7 +900,7 @@ class _DropdownTrigger extends StatelessWidget {
               label,
               maxLines: 1,
               overflow: .ellipsis,
-              style: (labelStyle ?? AppText.controlLabel).copyWith(
+              style: (labelStyle ?? _controlStyle).copyWith(
                 color: Palette.onSurface,
               ),
             ),
@@ -1017,7 +1025,7 @@ class _DropdownMenu<T> extends HookWidget {
   double _contentWidth(double minWidth) {
     final maxLabel = _widestLabel([
       for (final it in items) it.label,
-    ], AppText.menuItem);
+    ], _menuStyle);
 
     // The item's 14-px side padding, the plate's 6-px padding and 1-px
     // border, both sides.
@@ -1028,7 +1036,7 @@ class _DropdownMenu<T> extends HookWidget {
   // row's 10-px top and bottom padding.
   double _listHeight(TextScaler textScaler) {
     final painter = TextPainter(
-      text: const TextSpan(text: 'Ag', style: AppText.menuItem),
+      text: TextSpan(text: 'Ag', style: _menuStyle),
       textDirection: .ltr,
       textScaler: textScaler,
       maxLines: 1,
@@ -1167,7 +1175,7 @@ class _SonicMenuSection extends StatelessWidget {
         title.toUpperCase(),
         maxLines: 1,
         overflow: .ellipsis,
-        style: AppText.menuItem.copyWith(
+        style: _menuStyle.copyWith(
           color: Palette.onSurfaceVariant,
           fontSize: 11,
           letterSpacing: 1,
@@ -1206,7 +1214,7 @@ class _SonicMenuItem extends StatelessWidget {
             label,
             maxLines: 1,
             overflow: .ellipsis,
-            style: AppText.menuItem.copyWith(
+            style: _menuStyle.copyWith(
               color: isSelected
                   ? Palette.onSecondaryContainer
                   : Palette.onSurface,
