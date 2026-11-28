@@ -73,9 +73,30 @@ Future<bool> connectAndSync(
   // Names first, then the community custom firmware (CFW) settings block:
   // stock firmware never answers it, so its timeout must not hold the IO gate
   // ahead of the names.
-  unawaited(pendingConnectReads = refreshNamesThenCfw(ref));
+  unawaited(pendingConnectReads = _connectReads(ref));
 
   return true;
+}
+
+/// The reads after a connect: the sound playing on the pedal first, so the
+/// editor opens on it instead of empty, then the names and the CFW block.
+Future<void> _connectReads(WidgetRef ref) async {
+  await readPedalSound(ref);
+  await refreshNamesThenCfw(ref);
+}
+
+/// Reads the sound playing on the pedal (its edit buffer: chain, effects,
+/// knobs) unless a preset is already shown or loading. No command reports
+/// which slot it came from, so the current preset stays unknown until one is
+/// picked or the pedal reports a switch.
+@visibleForTesting
+Future<void> readPedalSound(WidgetRef ref) async {
+  if (ref.read(currentPresetStateProvider) != null ||
+      ref.read(presetLoadingProvider)) {
+    return;
+  }
+
+  await refreshDecodedState(ref);
 }
 
 /// Connects to [target] over the current transport and, on success, persists

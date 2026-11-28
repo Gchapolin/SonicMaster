@@ -125,10 +125,11 @@ class PresetBrowserPage extends HookConsumerWidget {
     final state = ref.watch(currentPresetStateProvider);
     final selectedModule = ref.watch(selectedModuleProvider);
 
-    // Work-area empty state: no device, or a device but no preset selected.
+    // Work-area empty state: no device, or a device but nothing to show (no
+    // preset picked and the pedal's own sound not read yet).
     final emptyMessage = !isConnected
         ? ShellText.current.noDeviceConnected
-        : current == null
+        : current == null && state == null
         ? ShellText.current.noPresetSelected
         : null;
 

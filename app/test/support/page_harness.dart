@@ -95,7 +95,7 @@ Future<ProviderContainer> pumpPage(
   WidgetTester tester, {
   required Size size,
   bool isConnected = true,
-  PresetRef current = const PresetRef(.user, 1),
+  PresetRef? current = const PresetRef(.user, 1),
   Map<PresetRef, String>? names,
   DecodedPresetState state = loadedPresetState,
   Map<int, int> selectedEffects = const {0: 1},

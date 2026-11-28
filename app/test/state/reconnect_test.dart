@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sonicmaster/device/demo_transport.dart';
 import 'package:sonicmaster/device/device_model.dart';
 import 'package:sonicmaster/device/device_service.dart';
 import 'package:sonicmaster/device/transport.dart';
@@ -114,6 +115,36 @@ void main() {
     expect(container.read(connectionStateProvider), isTrue);
     expect(container.read(lastBleTargetProvider), 'My Pedal');
     expect(container.read(presetLoadStatusProvider), 'connected');
+  });
+
+  testWidgets('readPedalSound reads the sound playing on the pedal', (
+    tester,
+  ) async {
+    final assets = loadTestDataAssets();
+    final container = ProviderContainer(
+      overrides: [
+        transportKindProvider.overrideWith((_) => .ble),
+        dataAssetsProvider.overrideWith((_) => assets),
+        deviceServiceProvider.overrideWith((ref) {
+          final service = DeviceService(DemoTransport())..startListening();
+
+          ref.onDispose(service.dispose);
+
+          return service;
+        }),
+      ],
+    );
+
+    addTearDown(container.dispose);
+    await container.read(dataAssetsProvider.future);
+    final ref = await pumpRef(tester, container);
+
+    await tester.runAsync(() => readPedalSound(ref));
+
+    // The pedal's edit buffer: its chain and effects, though which slot it
+    // came from is unknown (no command reports it).
+    expect(container.read(currentPresetStateProvider), isNotNull);
+    expect(container.read(currentPresetProvider), isNull);
   });
 
   testWidgets('connectAndSync drops the previous pedal\'s CFW state', (
